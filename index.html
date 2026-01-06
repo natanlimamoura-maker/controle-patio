@@ -3,34 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
-
     <title>Controle de Pátio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary-red: #dc2626;
-            --dark-bg: #000000;
-        }
-        body { 
-            background-color: var(--dark-bg); 
-            color: #ffffff; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        .card-atraso { border-left: 6px solid var(--primary-red); }
+        :root { --primary-red: #dc2626; --dark-bg: #000000; }
+        body { background-color: var(--dark-bg); color: #ffffff; -webkit-tap-highlight-color: transparent; }
+        .card-atraso { border-left: 8px solid var(--primary-red); }
         .hidden { display: none; }
         input, select, textarea { 
             background-color: #1a1a1a !important; 
             color: white !important; 
-            border: 1px solid #333 !important; 
+            border: 1px solid #333 !important;
             appearance: none;
         }
-        input:focus { border-color: var(--primary-red) !important; }
+        select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23dc2626'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.2em; padding-right: 2rem; }
+        input:focus, select:focus { border-color: var(--primary-red) !important; outline: none; }
         .tab-active { color: var(--primary-red); border-top: 2px solid var(--primary-red); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-page { animation: fadeIn 0.3s ease-in; }
@@ -49,78 +41,63 @@
     <main class="p-4 max-w-md mx-auto">
         
         <section id="aba-patio" class="animate-page">
-            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Veículos no Pátio</h2>
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4 text-center">Monitoramento de Pátio</h2>
             <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
         <section id="aba-entrada" class="hidden animate-page">
-            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Nova Entrada</h2>
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4 text-center">Cadastrar Novo Veículo</h2>
             <div class="bg-[#0a0a0a] p-5 rounded-xl border border-red-900/30 space-y-4">
-                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
-                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
-                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg outline-none uppercase font-mono font-bold text-sm">
-                
+                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg uppercase font-black text-sm">
+                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg uppercase font-black text-sm">
+                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg uppercase font-mono font-black text-sm">
                 <div class="space-y-1">
-                    <label class="text-[9px] text-gray-500 font-bold ml-1">DATA DE ENTRADA</label>
-                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-lg outline-none font-bold text-sm uppercase">
+                    <label class="text-[9px] text-gray-500 font-bold ml-1 uppercase">Data de Entrada</label>
+                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-lg font-black text-sm">
                 </div>
-                
                 <div class="bg-black border-2 border-dashed border-red-900/50 p-6 rounded-lg text-center">
                     <input id="fotoInput" type="file" accept="image/*" class="hidden">
                     <label for="fotoInput" class="cursor-pointer">
                         <div class="text-3xl mb-2">📸</div>
-                        <div class="text-red-500 font-black text-xs uppercase">Foto do Veículo</div>
-                        <div class="text-gray-600 text-[9px] mt-1">Câmera ou Galeria</div>
+                        <div class="text-red-500 font-black text-xs uppercase italic">Capturar Imagem</div>
                     </label>
                     <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-red-900/50"></canvas>
                 </div>
-                
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-lg shadow-lg active:scale-95 transition-all uppercase tracking-widest text-sm">
-                    Confirmar Entrada
-                </button>
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-lg shadow-lg active:scale-95 transition-all uppercase tracking-widest text-sm">Confirmar Entrada</button>
             </div>
         </section>
 
         <section id="aba-historico" class="hidden animate-page">
-            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Histórico de Saídas</h2>
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4 text-center">Histórico de Movimentações</h2>
             <div id="lista-historico" class="space-y-2"></div>
         </section>
     </main>
 
     <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[60]">
         <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-red-600/30">
-            <h3 class="font-black text-xl mb-4 text-red-600 uppercase italic">Dar Saída</h3>
+            <h3 class="font-black text-xl mb-4 text-red-600 uppercase italic text-center">Registrar Saída</h3>
             <div class="space-y-4">
                 <div class="space-y-1">
-                    <label class="text-[9px] text-gray-500 font-bold ml-1">DATA DE SAÍDA</label>
-                    <input id="dataSaida" type="date" class="w-full p-4 rounded-lg outline-none text-sm font-bold uppercase">
+                    <label class="text-[9px] text-gray-500 font-bold ml-1 uppercase">Data de Saída</label>
+                    <input id="dataSaida" type="date" class="w-full p-4 rounded-lg text-sm font-black">
                 </div>
-                
-                <select id="statusFinal" class="w-full p-4 rounded-lg outline-none text-sm font-bold uppercase">
-                    <option value="Diagnóstico">Diagnóstico</option>
-                    <option value="Desmontagem">Desmontagem</option>
-                    <option value="Montagem">Montagem</option>
-                    <option value="Finalizado">Finalizado</option>
-                </select>
-
-                <textarea id="servicoRealizado" placeholder="SERVIÇO REALIZADO..." class="w-full p-4 rounded-lg h-28 outline-none resize-none text-sm font-bold uppercase"></textarea>
-
+                <textarea id="servicoRealizado" placeholder="DESCREVA O SERVIÇO REALIZADO..." class="w-full p-4 rounded-lg h-28 outline-none resize-none text-sm font-black uppercase"></textarea>
                 <div class="flex gap-2">
-                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase tracking-tighter">Finalizar</button>
-                    <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-bold text-xs uppercase">Voltar</button>
+                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Concluir Saída</button>
+                    <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-black text-xs uppercase">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
 
     <nav class="fixed bottom-0 w-full bg-black border-t border-red-900/50 flex justify-around p-3 shadow-2xl z-50">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active">
+        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active transition-all">
             <span class="text-xl">🚛</span><span class="text-[9px] font-black mt-1 uppercase">Pátio</span>
         </button>
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-600">
+        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-600 transition-all">
             <span class="text-xl">➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span>
         </button>
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
+        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600 transition-all">
             <span class="text-xl">📜</span><span class="text-[9px] font-black mt-1 uppercase">Histórico</span>
         </button>
     </nav>
@@ -130,7 +107,7 @@
         let idSelecionado = null;
         let fotoFinal = "";
 
-        // Processamento de Foto
+        // Controle de Foto
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -153,11 +130,13 @@
             reader.readAsDataURL(file);
         });
 
-        // Formatação de data simples (Brasil)
-        function formatarData(dataStr) {
-            if(!dataStr) return "";
-            const [ano, mes, dia] = dataStr.split('-');
-            return `${dia}/${mes}/${ano}`;
+        function alterarStatus(id, novoStatus) {
+            const idx = db.findIndex(v => v.id === id);
+            if(idx !== -1) {
+                db[idx].status = novoStatus;
+                localStorage.setItem('controle_patio_db', JSON.stringify(db));
+                renderizar();
+            }
         }
 
         function salvarEntrada() {
@@ -188,33 +167,46 @@
             db.forEach(v => {
                 if(v.ativo) {
                     count++;
-                    // Cálculo de dias
                     const dEntrada = new Date(v.dataEntrada);
-                    const dHoje = new Date();
-                    dHoje.setHours(0,0,0,0);
+                    const dHoje = new Date(); dHoje.setHours(0,0,0,0);
                     const dias = Math.floor((dHoje - dEntrada) / (1000 * 3600 * 24));
                     
                     listaPatio.innerHTML += `
                         <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 shadow-xl ${dias >= 3 ? 'card-atraso' : ''} animate-page">
-                            <div class="flex gap-4">
-                                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=FOTO'}" class="w-20 h-20 object-cover rounded shadow-lg border border-zinc-800">
-                                <div class="flex-1">
-                                    <h3 class="font-black text-red-600 text-lg italic tracking-tighter">${v.placa}</h3>
-                                    <p class="text-[10px] font-bold text-zinc-300 uppercase">${v.modelo}</p>
-                                    <p class="text-[9px] text-zinc-500 uppercase">${v.cliente || 'CLIENTE NÃO INFORMADO'}</p>
-                                    <div class="mt-2 flex items-center gap-2">
-                                        <span class="bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">${v.status}</span>
-                                        ${dias >= 3 ? '<span class="text-red-500 text-[8px] font-bold uppercase tracking-widest animate-pulse">⚠️ ALERTA '+dias+' DIAS</span>' : ''}
+                            <div class="flex flex-col gap-4">
+                                <div class="flex gap-4">
+                                    <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=FOTO'}" class="w-24 h-24 object-cover rounded shadow-lg border border-zinc-800">
+                                    <div class="flex-1">
+                                        <h3 class="font-black text-red-600 text-2xl italic tracking-tighter leading-none">${v.placa}</h3>
+                                        <p class="text-lg font-black text-zinc-100 uppercase mt-1 leading-tight">${v.modelo}</p>
+                                        <p class="text-base font-black text-zinc-400 uppercase leading-tight">${v.cliente || 'S/ NOME'}</p>
                                     </div>
                                 </div>
+                                
+                                <div class="grid grid-cols-2 gap-2 items-center">
+                                    <div class="space-y-1">
+                                        <label class="text-[8px] text-zinc-600 font-black uppercase">Status Atual:</label>
+                                        <select onchange="alterarStatus(${v.id}, this.value)" class="w-full p-2 rounded text-[11px] font-black uppercase bg-zinc-900 border-zinc-800">
+                                            <option value="Diagnóstico" ${v.status === 'Diagnóstico' ? 'selected' : ''}>Diagnóstico</option>
+                                            <option value="Desmontagem" ${v.status === 'Desmontagem' ? 'selected' : ''}>Desmontagem</option>
+                                            <option value="Montagem" ${v.status === 'Montagem' ? 'selected' : ''}>Montagem</option>
+                                            <option value="Finalizado" ${v.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                        </select>
+                                    </div>
+                                    <div class="text-right">
+                                        ${dias >= 3 ? '<p class="text-red-500 text-[10px] font-black uppercase animate-pulse">⚠️ ALERTA: '+dias+' DIAS</p>' : '<p class="text-zinc-600 text-[10px] font-black uppercase">Entrada: '+dias+' dias</p>'}
+                                    </div>
+                                </div>
+                                
+                                <button onclick="abrirSaida(${v.id})" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white py-3 rounded font-black text-xs uppercase transition-all border border-red-900/40">Finalizar & Dar Saída</button>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 hover:bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase transition-all border border-zinc-800">Finalizar Serviço</button>
                         </div>
                     `;
                 } else {
+                    const [ano, mes, dia] = v.dataSaida.split('-');
                     listaHist.innerHTML += `
                         <div class="bg-black p-3 rounded border border-zinc-900 flex justify-between items-center text-[10px] text-zinc-500">
-                            <div><span class="font-bold text-zinc-300 uppercase">${v.placa}</span> | SAIU: ${formatarData(v.dataSaida)}</div>
+                            <div><span class="font-black text-zinc-300 uppercase">${v.placa}</span> | ${dia}/${mes}/${ano}</div>
                             <div class="text-red-600 font-black uppercase text-[8px]">${v.status}</div>
                         </div>
                     `;
@@ -228,29 +220,21 @@
             document.getElementById('dataSaida').value = new Date().toISOString().split('T')[0]; 
             document.getElementById('modal-saida').classList.remove('hidden'); 
         }
-
         function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
-
         function confirmarSaida() {
             const idx = db.findIndex(v => v.id === idSelecionado);
             db[idx].ativo = false;
             db[idx].dataSaida = document.getElementById('dataSaida').value;
-            db[idx].status = document.getElementById('statusFinal').value;
             db[idx].servico = document.getElementById('servicoRealizado').value;
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            fecharModal(); 
-            renderizar();
+            fecharModal(); renderizar();
         }
-
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
             document.getElementById('btn-' + aba).classList.add('tab-active');
-            if(aba === 'historico') renderizar();
         }
-        
-        // Define data de hoje como padrão na entrada
         document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];
         renderizar();
     </script>

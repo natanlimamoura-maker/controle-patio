@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pátio Local Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card-atraso { border-left: 6px solid #ef4444; }
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-in { animation: fadeIn 0.3s ease-in; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans pb-24">
+
+    <header class="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+        <h1 class="text-lg font-bold">Controle de Pátio</h1>
+        <span id="contador" class="bg-blue-600 px-2 py-1 rounded text-xs font-bold">0 Veículos</span>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+        <section id="aba-patio" class="animate-in">
+            <h2 class="text-gray-600 font-bold mb-4 uppercase text-sm tracking-wider">Veículos no Pátio</h2>
+            <div id="lista-veiculos" class="space-y-4"></div>
+        </section>
+
+        <section id="aba-entrada" class="hidden animate-in">
+            <h2 class="text-gray-600 font-bold mb-4 uppercase text-sm">Nova Entrada</h2>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+                <input id="nomeCliente" type="text" placeholder="Nome do Cliente" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="modelo" type="text" placeholder="Modelo do Caminhão" class="w-full border p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <input id="placa" type="text" placeholder="Placa" class="w-full border p-3 rounded-xl uppercase font-mono">
+                <input id="dataEntrada" type="datetime-local" class="w-full border p-3 rounded-xl">
+                
+                <div class="border-2 border-dashed border-gray-300 p-4 rounded-xl text-center">
+                    <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
+                    <label for="fotoInput" class="cursor-pointer text-blue-600 font-medium">📷 Tirar Foto do Caminhão</label>
+                    <canvas id="canvasPreview" class="hidden w-full rounded-lg mt-3 shadow-sm"></canvas>
+                </div>
+                
+                <button onclick="salvarEntrada()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition">
+                    REGISTRAR ENTRADA
+                </button>
+            </div>
+        </section>
+
+        <section id="aba-historico" class="hidden animate-in">
+            <h2 class="text-gray-600 font-bold mb-4 uppercase text-sm">Histórico de Saídas</h2>
+            <div id="lista-historico" class="space-y-3"></div>
+        </section>
+    </main>
+
+    <div id="modal-saida" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl">
+            <h3 class="font-bold text-xl mb-4">Finalizar Serviço</h3>
+            <div class="space-y-4">
+                <label class="block text-sm font-bold">Data de Saída</label>
+                <input id="dataSaida" type="datetime-local" class="w-full border p-3 rounded-xl">
+                
+                <label class="block text-sm font-bold">Status Final</label>
+                <select id="statusFinal" class="w-full border p-3 rounded-xl">
+                    <option value="Diagnóstico">Diagnóstico</option>
+                    <option value="Desmontagem">Desmontagem</option>
+                    <option value="Montagem">Montagem</option>
+                    <option value="Finalizado" selected>Finalizado</option>
+                </select>
+
+                <textarea id="servicoRealizado" placeholder="O que foi feito?" class="w-full border p-3 rounded-xl h-24"></textarea>
+
+                <div class="flex gap-2">
+                    <button onclick="confirmarSaida()" class="flex-1 bg-green-600 text-white p-3 rounded-xl font-bold">DAR SAÍDA</button>
+                    <button onclick="fecharModal()" class="flex-1 bg-gray-200 p-3 rounded-xl">VOLTAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around p-3 shadow-2xl">
+        <button onclick="trocarAba('patio')" class="flex flex-col items-center">
+            <span class="text-2xl">🚚</span><span class="text-[10px] font-bold">PÁTIO</span>
+        </button>
+        <button onclick="trocarAba('entrada')" class="flex flex-col items-center">
+            <span class="text-2xl">➕</span><span class="text-[10px] font-bold">ENTRADA</span>
+        </button>
+        <button onclick="trocarAba('historico')" class="flex flex-col items-center">
+            <span class="text-2xl">📜</span><span class="text-[10px] font-bold">HISTÓRICO</span>
+        </button>
+    </nav>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('patio_caminhoes')) || [];
+        let idParaSaida = null;
+        let fotoData = "";
+
+        // Compressão de Imagem
+        document.getElementById('fotoInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.getElementById('canvasPreview');
+                    const ctx = canvas.getContext('2d');
+                    const maxW = 500;
+                    const scale = maxW / img.width;
+                    canvas.width = maxW;
+                    canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    fotoData = canvas.toDataURL('image/jpeg', 0.6); // Comprime 40%
+                    canvas.classList.remove('hidden');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        function salvarEntrada() {
+            const novaEntrada = {
+                id: Date.now(),
+                cliente: document.getElementById('nomeCliente').value,
+                modelo: document.getElementById('modelo').value,
+                placa: document.getElementById('placa').value.toUpperCase(),
+                dataEntrada: document.getElementById('dataEntrada').value,
+                foto: fotoData,
+                status: 'Diagnóstico',
+                ativo: true,
+                servico: ""
+            };
+
+            if(!novaEntrada.placa) return alert("Preencha ao menos a placa!");
+
+            db.push(novaEntrada);
+            atualizarLocalStorage();
+            alert("Veículo registrado com sucesso!");
+            location.reload();
+        }
+
+        function atualizarLocalStorage() {
+            localStorage.setItem('patio_caminhoes', JSON.stringify(db));
+            renderizar();
+        }
+
+        function abrirSaida(id) {
+            idParaSaida = id;
+            document.getElementById('dataSaida').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('modal-saida').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-saida').classList.add('hidden');
+        }
+
+        function confirmarSaida() {
+            const index = db.findIndex(v => v.id === idParaSaida);
+            db[index].ativo = false;
+            db[index].dataSaida = document.getElementById('dataSaida').value;
+            db[index].status = document.getElementById('statusFinal').value;
+            db[index].servico = document.getElementById('servicoRealizado').value;
+
+            atualizarLocalStorage();
+            fecharModal();
+            renderizar();
+        }
+
+        function renderizar() {
+            const listaPatio = document.getElementById('lista-veiculos');
+            const listaHist = document.getElementById('lista-historico');
+            listaPatio.innerHTML = "";
+            listaHist.innerHTML = "";
+            
+            let ativos = 0;
+            const agora = new Date();
+
+            db.forEach(v => {
+                const dataEnt = new Date(v.dataEntrada);
+                const dias = Math.floor((agora - dataEnt) / (1000 * 60 * 60 * 24));
+                const alerta = dias >= 3;
+
+                if (v.ativo) {
+                    ativos++;
+                    listaPatio.innerHTML += `
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 ${alerta ? 'card-atraso' : ''}">
+                            <div class="flex gap-4">
+                                <img src="${v.foto || 'https://via.placeholder.com/100'}" class="w-24 h-24 object-cover rounded-xl bg-gray-100">
+                                <div class="flex-1">
+                                    <h3 class="font-black text-blue-900">${v.placa}</h3>
+                                    <p class="text-sm font-bold text-gray-700">${v.modelo}</p>
+                                    <p class="text-xs text-gray-500">Cliente: ${v.cliente}</p>
+                                    <p class="text-[10px] ${alerta ? 'text-red-600 font-bold' : 'text-gray-400'}">No pátio há ${dias} dias</p>
+                                    <span class="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded-full font-bold uppercase">${v.status}</span>
+                                </div>
+                            </div>
+                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-red-50 text-red-600 py-2 rounded-xl font-bold text-sm border border-red-100">DAR SAÍDA</button>
+                        </div>
+                    `;
+                } else {
+                    listaHist.innerHTML += `
+                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs text-gray-600">
+                            <span class="font-bold text-gray-800">${v.placa}</span> - Saiu em: ${v.dataSaida.replace('T', ' ')}<br>
+                            Serviço: ${v.servico || 'Não informado'}
+                        </div>
+                    `;
+                }
+            });
+            document.getElementById('contador').innerText = `${ativos} Veículos`;
+        }
+
+        function trocarAba(aba) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('aba-' + aba).classList.remove('hidden');
+        }
+
+        renderizar();
+    </script>
+</body>
+</html>

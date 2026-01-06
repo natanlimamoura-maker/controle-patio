@@ -1,7 +1,7 @@
 {
   "name": "Controle de Pátio",
   "short_name": "PatioPRO",
-  "description": "Sistema de Gestão de Pátio",
+  "description": "Sistema de Gestão de Pátio e Mecânica",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -9,13 +9,13 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3567/3567439.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3847/3847249.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3567/3567439.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3847/3847249.png",
       "sizes": "192x192",
       "type": "image/png"
     }

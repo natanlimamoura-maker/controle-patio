@@ -14,9 +14,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --primary-red: #dc2626; /* red-600 */
+            --primary-red: #dc2626;
             --dark-bg: #000000;
-            --card-bg: #111111;
         }
         body { 
             background-color: var(--dark-bg); 
@@ -29,6 +28,7 @@
             background-color: #1a1a1a !important; 
             color: white !important; 
             border: 1px solid #333 !important; 
+            appearance: none;
         }
         input:focus { border-color: var(--primary-red) !important; }
         .tab-active { color: var(--primary-red); border-top: 2px solid var(--primary-red); }
@@ -59,13 +59,17 @@
                 <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
                 <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
                 <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg outline-none uppercase font-mono font-bold text-sm">
-                <input id="dataEntrada" type="datetime-local" class="w-full p-4 rounded-lg outline-none font-bold text-sm">
+                
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-1">DATA DE ENTRADA</label>
+                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-lg outline-none font-bold text-sm uppercase">
+                </div>
                 
                 <div class="bg-black border-2 border-dashed border-red-900/50 p-6 rounded-lg text-center">
                     <input id="fotoInput" type="file" accept="image/*" class="hidden">
                     <label for="fotoInput" class="cursor-pointer">
                         <div class="text-3xl mb-2">📸</div>
-                        <div class="text-red-500 font-black text-xs uppercase">Adicionar Foto</div>
+                        <div class="text-red-500 font-black text-xs uppercase">Foto do Veículo</div>
                         <div class="text-gray-600 text-[9px] mt-1">Câmera ou Galeria</div>
                     </label>
                     <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-red-900/50"></canvas>
@@ -87,19 +91,22 @@
         <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-red-600/30">
             <h3 class="font-black text-xl mb-4 text-red-600 uppercase italic">Dar Saída</h3>
             <div class="space-y-4">
-                <input id="dataSaida" type="datetime-local" class="w-full p-4 rounded-lg outline-none text-sm font-bold">
+                <div class="space-y-1">
+                    <label class="text-[9px] text-gray-500 font-bold ml-1">DATA DE SAÍDA</label>
+                    <input id="dataSaida" type="date" class="w-full p-4 rounded-lg outline-none text-sm font-bold uppercase">
+                </div>
                 
-                <select id="statusFinal" class="w-full p-4 rounded-lg outline-none text-sm font-bold">
+                <select id="statusFinal" class="w-full p-4 rounded-lg outline-none text-sm font-bold uppercase">
                     <option value="Diagnóstico">Diagnóstico</option>
                     <option value="Desmontagem">Desmontagem</option>
                     <option value="Montagem">Montagem</option>
                     <option value="Finalizado">Finalizado</option>
                 </select>
 
-                <textarea id="servicoRealizado" placeholder="Descreva o serviço feito..." class="w-full p-4 rounded-lg h-28 outline-none resize-none text-sm font-bold"></textarea>
+                <textarea id="servicoRealizado" placeholder="SERVIÇO REALIZADO..." class="w-full p-4 rounded-lg h-28 outline-none resize-none text-sm font-bold uppercase"></textarea>
 
                 <div class="flex gap-2">
-                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Finalizar</button>
+                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase tracking-tighter">Finalizar</button>
                     <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-bold text-xs uppercase">Voltar</button>
                 </div>
             </div>
@@ -123,6 +130,7 @@
         let idSelecionado = null;
         let fotoFinal = "";
 
+        // Processamento de Foto
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -145,16 +153,24 @@
             reader.readAsDataURL(file);
         });
 
+        // Formatação de data simples (Brasil)
+        function formatarData(dataStr) {
+            if(!dataStr) return "";
+            const [ano, mes, dia] = dataStr.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !document.getElementById('dataEntrada').value) return alert("Preencha Placa e Data!");
+            const dataE = document.getElementById('dataEntrada').value;
+            if(!placa || !dataE) return alert("Preencha Placa e Data!");
 
             db.push({
                 id: Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
                 modelo: document.getElementById('modelo').value,
                 placa,
-                dataEntrada: document.getElementById('dataEntrada').value,
+                dataEntrada: dataE,
                 foto: fotoFinal,
                 status: 'Diagnóstico',
                 ativo: true
@@ -172,28 +188,33 @@
             db.forEach(v => {
                 if(v.ativo) {
                     count++;
-                    const dias = Math.floor((new Date() - new Date(v.dataEntrada)) / (1000 * 3600 * 24));
+                    // Cálculo de dias
+                    const dEntrada = new Date(v.dataEntrada);
+                    const dHoje = new Date();
+                    dHoje.setHours(0,0,0,0);
+                    const dias = Math.floor((dHoje - dEntrada) / (1000 * 3600 * 24));
+                    
                     listaPatio.innerHTML += `
-                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 shadow-xl ${dias >= 3 ? 'card-atraso' : ''}">
+                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 shadow-xl ${dias >= 3 ? 'card-atraso' : ''} animate-page">
                             <div class="flex gap-4">
-                                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=SEM+FOTO'}" class="w-20 h-20 object-cover rounded shadow-lg border border-zinc-800">
+                                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=FOTO'}" class="w-20 h-20 object-cover rounded shadow-lg border border-zinc-800">
                                 <div class="flex-1">
                                     <h3 class="font-black text-red-600 text-lg italic tracking-tighter">${v.placa}</h3>
                                     <p class="text-[10px] font-bold text-zinc-300 uppercase">${v.modelo}</p>
-                                    <p class="text-[9px] text-zinc-500 uppercase">${v.cliente || 'Sem Nome'}</p>
+                                    <p class="text-[9px] text-zinc-500 uppercase">${v.cliente || 'CLIENTE NÃO INFORMADO'}</p>
                                     <div class="mt-2 flex items-center gap-2">
                                         <span class="bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">${v.status}</span>
-                                        ${dias >= 3 ? '<span class="text-red-500 text-[8px] font-bold uppercase tracking-widest">⚠️ ALERTA</span>' : ''}
+                                        ${dias >= 3 ? '<span class="text-red-500 text-[8px] font-bold uppercase tracking-widest animate-pulse">⚠️ ALERTA '+dias+' DIAS</span>' : ''}
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 hover:bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase transition-all border border-zinc-800">Dar Saída</button>
+                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 hover:bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase transition-all border border-zinc-800">Finalizar Serviço</button>
                         </div>
                     `;
                 } else {
                     listaHist.innerHTML += `
                         <div class="bg-black p-3 rounded border border-zinc-900 flex justify-between items-center text-[10px] text-zinc-500">
-                            <div><span class="font-bold text-zinc-300 uppercase">${v.placa}</span> - Saiu em ${v.dataSaida.split('T')[0]}</div>
+                            <div><span class="font-bold text-zinc-300 uppercase">${v.placa}</span> | SAIU: ${formatarData(v.dataSaida)}</div>
                             <div class="text-red-600 font-black uppercase text-[8px]">${v.status}</div>
                         </div>
                     `;
@@ -202,8 +223,14 @@
             document.getElementById('contador').innerText = `${count} VEÍCULOS`;
         }
 
-        function abrirSaida(id) { idSelecionado = id; document.getElementById('dataSaida').value = new Date().toISOString().slice(0, 16); document.getElementById('modal-saida').classList.remove('hidden'); }
+        function abrirSaida(id) { 
+            idSelecionado = id; 
+            document.getElementById('dataSaida').value = new Date().toISOString().split('T')[0]; 
+            document.getElementById('modal-saida').classList.remove('hidden'); 
+        }
+
         function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
+
         function confirmarSaida() {
             const idx = db.findIndex(v => v.id === idSelecionado);
             db[idx].ativo = false;
@@ -211,14 +238,20 @@
             db[idx].status = document.getElementById('statusFinal').value;
             db[idx].servico = document.getElementById('servicoRealizado').value;
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            fecharModal(); renderizar();
+            fecharModal(); 
+            renderizar();
         }
+
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
             document.getElementById('btn-' + aba).classList.add('tab-active');
+            if(aba === 'historico') renderizar();
         }
+        
+        // Define data de hoje como padrão na entrada
+        document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];
         renderizar();
     </script>
 </body>

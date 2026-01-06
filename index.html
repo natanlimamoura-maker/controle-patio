@@ -7,117 +7,122 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
 
-    <title>Frota PRO</title>
+    <title>Controle de Pátio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .card-atraso { border-left: 6px solid #ef4444; }
+        :root {
+            --primary-red: #dc2626; /* red-600 */
+            --dark-bg: #000000;
+            --card-bg: #111111;
+        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: #ffffff; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .card-atraso { border-left: 6px solid var(--primary-red); }
         .hidden { display: none; }
-        body { background-color: #111827; color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        input, select, textarea { background-color: #1f2937 !important; color: white !important; border: 1px solid #374151 !important; }
-        .tab-active { color: #60a5fa; border-top: 2px solid #60a5fa; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-page { animation: slideIn 0.3s ease-out; }
+        input, select, textarea { 
+            background-color: #1a1a1a !important; 
+            color: white !important; 
+            border: 1px solid #333 !important; 
+        }
+        input:focus { border-color: var(--primary-red) !important; }
+        .tab-active { color: var(--primary-red); border-top: 2px solid var(--primary-red); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-page { animation: fadeIn 0.3s ease-in; }
     </style>
 </head>
 <body class="font-sans pb-24 select-none">
 
-    <header class="bg-gray-900/95 backdrop-blur-md p-4 sticky top-0 z-50 flex justify-between items-center border-b border-gray-800">
+    <header class="bg-black p-4 sticky top-0 z-50 flex justify-between items-center border-b border-red-900/50">
         <div class="flex items-center gap-2">
-            <span class="text-2xl">🚛</span>
-            <h1 class="text-xl font-black tracking-tighter text-blue-500">FROTA PRO</h1>
+            <span class="text-red-600 text-2xl font-bold italic">PRO</span>
+            <h1 class="text-lg font-black tracking-tighter uppercase">Controle de Pátio</h1>
         </div>
-        <div id="contador" class="bg-blue-600 text-[10px] font-black px-3 py-1 rounded-full shadow-lg">0 VEÍCULOS</div>
+        <div id="contador" class="bg-red-600 text-[10px] font-black px-3 py-1 rounded shadow-lg">0 VEÍCULOS</div>
     </header>
 
     <main class="p-4 max-w-md mx-auto">
         
         <section id="aba-patio" class="animate-page">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-gray-400 font-bold text-xs uppercase tracking-widest">Veículos no Pátio</h2>
-            </div>
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Veículos no Pátio</h2>
             <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
         <section id="aba-entrada" class="hidden animate-page">
-            <h2 class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-4">Nova Entrada</h2>
-            <div class="bg-gray-800 p-5 rounded-3xl shadow-2xl border border-gray-700 space-y-4">
-                <input id="nomeCliente" type="text" placeholder="Nome do Cliente" class="w-full p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
-                <input id="modelo" type="text" placeholder="Modelo do Caminhão" class="w-full p-4 rounded-2xl outline-none">
-                <input id="placa" type="text" placeholder="Placa (Ex: ABC-1234)" class="w-full p-4 rounded-2xl outline-none uppercase font-mono">
-                <input id="dataEntrada" type="datetime-local" class="w-full p-4 rounded-2xl outline-none">
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Nova Entrada</h2>
+            <div class="bg-[#0a0a0a] p-5 rounded-xl border border-red-900/30 space-y-4">
+                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
+                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg outline-none uppercase font-bold text-sm">
+                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg outline-none uppercase font-mono font-bold text-sm">
+                <input id="dataEntrada" type="datetime-local" class="w-full p-4 rounded-lg outline-none font-bold text-sm">
                 
-                <div class="bg-gray-900 border-2 border-dashed border-gray-700 p-6 rounded-2xl text-center">
+                <div class="bg-black border-2 border-dashed border-red-900/50 p-6 rounded-lg text-center">
                     <input id="fotoInput" type="file" accept="image/*" class="hidden">
                     <label for="fotoInput" class="cursor-pointer">
-                        <div class="text-4xl mb-2">📸</div>
-                        <div class="text-blue-400 font-bold">Adicionar Foto</div>
-                        <div class="text-gray-500 text-xs mt-1">Clique para abrir Câmera ou Galeria</div>
+                        <div class="text-3xl mb-2">📸</div>
+                        <div class="text-red-500 font-black text-xs uppercase">Adicionar Foto</div>
+                        <div class="text-gray-600 text-[9px] mt-1">Câmera ou Galeria</div>
                     </label>
-                    <canvas id="canvasPreview" class="hidden w-full rounded-xl mt-4 shadow-xl border border-gray-700"></canvas>
+                    <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-red-900/50"></canvas>
                 </div>
                 
-                <button onclick="salvarEntrada()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-lg transition-all active:scale-95">
-                    REGISTRAR ENTRADA
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-lg shadow-lg active:scale-95 transition-all uppercase tracking-widest text-sm">
+                    Confirmar Entrada
                 </button>
             </div>
         </section>
 
         <section id="aba-historico" class="hidden animate-page">
-            <h2 class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-4">Histórico de Movimentações</h2>
-            <div id="lista-historico" class="space-y-3"></div>
+            <h2 class="text-gray-500 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Histórico de Saídas</h2>
+            <div id="lista-historico" class="space-y-2"></div>
         </section>
     </main>
 
-    <div id="modal-saida" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[60]">
-        <div class="bg-gray-800 p-6 rounded-3xl w-full max-w-sm border border-gray-700">
-            <h3 class="font-black text-xl mb-4 text-blue-400">FINALIZAR SERVIÇO</h3>
+    <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[60]">
+        <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-red-600/30">
+            <h3 class="font-black text-xl mb-4 text-red-600 uppercase italic">Dar Saída</h3>
             <div class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Data e Hora da Saída</label>
-                    <input id="dataSaida" type="datetime-local" class="w-full p-4 rounded-2xl outline-none">
-                </div>
+                <input id="dataSaida" type="datetime-local" class="w-full p-4 rounded-lg outline-none text-sm font-bold">
                 
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Status Final</label>
-                    <select id="statusFinal" class="w-full p-4 rounded-2xl outline-none">
-                        <option value="Diagnóstico">Diagnóstico</option>
-                        <option value="Desmontagem">Desmontagem</option>
-                        <option value="Montagem">Montagem</option>
-                        <option value="Finalizado">Finalizado</option>
-                    </select>
-                </div>
+                <select id="statusFinal" class="w-full p-4 rounded-lg outline-none text-sm font-bold">
+                    <option value="Diagnóstico">Diagnóstico</option>
+                    <option value="Desmontagem">Desmontagem</option>
+                    <option value="Montagem">Montagem</option>
+                    <option value="Finalizado">Finalizado</option>
+                </select>
 
-                <textarea id="servicoRealizado" placeholder="Descreva o serviço feito..." class="w-full p-4 rounded-2xl h-28 outline-none resize-none"></textarea>
+                <textarea id="servicoRealizado" placeholder="Descreva o serviço feito..." class="w-full p-4 rounded-lg h-28 outline-none resize-none text-sm font-bold"></textarea>
 
-                <div class="flex gap-3 pt-2">
-                    <button onclick="confirmarSaida()" class="flex-1 bg-green-600 text-white p-4 rounded-2xl font-black shadow-lg">CONCLUIR</button>
-                    <button onclick="fecharModal()" class="flex-1 bg-gray-700 text-gray-300 p-4 rounded-2xl font-bold">VOLTAR</button>
+                <div class="flex gap-2">
+                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Finalizar</button>
+                    <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-bold text-xs uppercase">Voltar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-gray-900/95 backdrop-blur-md border-t border-gray-800 flex justify-around p-4 shadow-2xl z-50">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active transition-all">
-            <span class="text-2xl">🚛</span><span class="text-[10px] font-black mt-1 uppercase">Pátio</span>
+    <nav class="fixed bottom-0 w-full bg-black border-t border-red-900/50 flex justify-around p-3 shadow-2xl z-50">
+        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active">
+            <span class="text-xl">🚛</span><span class="text-[9px] font-black mt-1 uppercase">Pátio</span>
         </button>
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-gray-500 transition-all">
-            <span class="text-2xl">➕</span><span class="text-[10px] font-black mt-1 uppercase">Entrada</span>
+        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-600">
+            <span class="text-xl">➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span>
         </button>
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-gray-500 transition-all">
-            <span class="text-2xl">📜</span><span class="text-[10px] font-black mt-1 uppercase">Relatórios</span>
+        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
+            <span class="text-xl">📜</span><span class="text-[9px] font-black mt-1 uppercase">Histórico</span>
         </button>
     </nav>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('frota_pro_db')) || [];
+        let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
         let idSelecionado = null;
         let fotoFinal = "";
 
-        // Compressão e Seleção de Foto
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -127,12 +132,12 @@
                 img.onload = function() {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-                    const maxW = 600;
+                    const maxW = 500;
                     const scale = maxW / img.width;
                     canvas.width = maxW;
                     canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    fotoFinal = canvas.toDataURL('image/jpeg', 0.7);
+                    fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
                     canvas.classList.remove('hidden');
                 };
                 img.src = event.target.result;
@@ -141,61 +146,27 @@
         });
 
         function salvarEntrada() {
-            const cliente = document.getElementById('nomeCliente').value;
             const placa = document.getElementById('placa').value.toUpperCase();
-            const dataE = document.getElementById('dataEntrada').value;
+            if(!placa || !document.getElementById('dataEntrada').value) return alert("Preencha Placa e Data!");
 
-            if(!placa || !dataE) return alert("Preencha Placa e Data!");
-
-            const novo = {
+            db.push({
                 id: Date.now(),
-                cliente,
+                cliente: document.getElementById('nomeCliente').value,
                 modelo: document.getElementById('modelo').value,
                 placa,
-                dataEntrada: dataE,
+                dataEntrada: document.getElementById('dataEntrada').value,
                 foto: fotoFinal,
                 status: 'Diagnóstico',
                 ativo: true
-            };
-
-            db.push(novo);
-            salvarERenderizar();
-            alert("Veículo registrado!");
+            });
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
             location.reload(); 
-        }
-
-        function salvarERenderizar() {
-            localStorage.setItem('frota_pro_db', JSON.stringify(db));
-            renderizar();
-        }
-
-        function abrirSaida(id) {
-            idSelecionado = id;
-            document.getElementById('dataSaida').value = new Date().toISOString().slice(0, 16);
-            document.getElementById('modal-saida').classList.remove('hidden');
-        }
-
-        function fecharModal() {
-            document.getElementById('modal-saida').classList.add('hidden');
-        }
-
-        function confirmarSaida() {
-            const idx = db.findIndex(v => v.id === idSelecionado);
-            db[idx].ativo = false;
-            db[idx].dataSaida = document.getElementById('dataSaida').value;
-            db[idx].status = document.getElementById('statusFinal').value;
-            db[idx].servico = document.getElementById('servicoRealizado').value;
-
-            salvarERenderizar();
-            fecharModal();
-            renderizar();
         }
 
         function renderizar() {
             const listaPatio = document.getElementById('lista-veiculos');
             const listaHist = document.getElementById('lista-historico');
-            listaPatio.innerHTML = "";
-            listaHist.innerHTML = "";
+            listaPatio.innerHTML = ""; listaHist.innerHTML = "";
             let count = 0;
 
             db.forEach(v => {
@@ -203,30 +174,27 @@
                     count++;
                     const dias = Math.floor((new Date() - new Date(v.dataEntrada)) / (1000 * 3600 * 24));
                     listaPatio.innerHTML += `
-                        <div class="bg-gray-800 p-4 rounded-3xl border border-gray-700 shadow-lg ${dias >= 3 ? 'card-atraso' : ''}">
+                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 shadow-xl ${dias >= 3 ? 'card-atraso' : ''}">
                             <div class="flex gap-4">
-                                <img src="${v.foto || 'https://via.placeholder.com/150/1f2937/FFFFFF?text=SEM+FOTO'}" class="w-24 h-24 object-cover rounded-2xl bg-gray-900 border border-gray-700">
+                                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=SEM+FOTO'}" class="w-20 h-20 object-cover rounded shadow-lg border border-zinc-800">
                                 <div class="flex-1">
-                                    <h3 class="font-black text-blue-400 text-lg tracking-tighter">${v.placa}</h3>
-                                    <p class="text-xs font-bold text-gray-300 uppercase">${v.modelo}</p>
-                                    <p class="text-[10px] text-gray-500">Dono: ${v.cliente}</p>
+                                    <h3 class="font-black text-red-600 text-lg italic tracking-tighter">${v.placa}</h3>
+                                    <p class="text-[10px] font-bold text-zinc-300 uppercase">${v.modelo}</p>
+                                    <p class="text-[9px] text-zinc-500 uppercase">${v.cliente || 'Sem Nome'}</p>
                                     <div class="mt-2 flex items-center gap-2">
-                                        <span class="bg-blue-900/50 text-blue-400 text-[9px] font-black px-2 py-0.5 rounded-md uppercase">${v.status}</span>
-                                        ${dias >= 3 ? '<span class="text-red-500 text-[9px] font-bold uppercase">⚠️ '+dias+' Dias</span>' : ''}
+                                        <span class="bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">${v.status}</span>
+                                        ${dias >= 3 ? '<span class="text-red-500 text-[8px] font-bold uppercase tracking-widest">⚠️ ALERTA</span>' : ''}
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full mt-4 bg-gray-700/50 hover:bg-red-600/20 text-white py-3 rounded-2xl font-black text-xs transition-all border border-gray-600">DAR SAÍDA</button>
+                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 hover:bg-red-600 text-white py-2 rounded font-black text-[10px] uppercase transition-all border border-zinc-800">Dar Saída</button>
                         </div>
                     `;
                 } else {
                     listaHist.innerHTML += `
-                        <div class="bg-gray-800/50 p-4 rounded-2xl border border-gray-800 flex justify-between items-center text-xs">
-                            <div>
-                                <p class="font-black text-gray-300">${v.placa} - ${v.modelo}</p>
-                                <p class="text-[10px] text-gray-500">Saiu em: ${v.dataSaida.replace('T', ' ')}</p>
-                            </div>
-                            <span class="text-green-500 font-bold uppercase text-[9px]">${v.status}</span>
+                        <div class="bg-black p-3 rounded border border-zinc-900 flex justify-between items-center text-[10px] text-zinc-500">
+                            <div><span class="font-bold text-zinc-300 uppercase">${v.placa}</span> - Saiu em ${v.dataSaida.split('T')[0]}</div>
+                            <div class="text-red-600 font-black uppercase text-[8px]">${v.status}</div>
                         </div>
                     `;
                 }
@@ -234,14 +202,23 @@
             document.getElementById('contador').innerText = `${count} VEÍCULOS`;
         }
 
+        function abrirSaida(id) { idSelecionado = id; document.getElementById('dataSaida').value = new Date().toISOString().slice(0, 16); document.getElementById('modal-saida').classList.remove('hidden'); }
+        function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
+        function confirmarSaida() {
+            const idx = db.findIndex(v => v.id === idSelecionado);
+            db[idx].ativo = false;
+            db[idx].dataSaida = document.getElementById('dataSaida').value;
+            db[idx].status = document.getElementById('statusFinal').value;
+            db[idx].servico = document.getElementById('servicoRealizado').value;
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
+            fecharModal(); renderizar();
+        }
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
-            
             document.getElementById('aba-' + aba).classList.remove('hidden');
             document.getElementById('btn-' + aba).classList.add('tab-active');
         }
-
         renderizar();
     </script>
 </body>

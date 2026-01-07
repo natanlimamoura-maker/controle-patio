@@ -8,9 +8,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PátioPro">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004613.png">
     
-    <title>PÁTIO PRO v6.9</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3524/3524659.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3524/3524659.png">
+    
+    <title>PÁTIO PRO v7.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
@@ -18,10 +20,11 @@
         body { background-color: #050505; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .menu-card { background: linear-gradient(145deg, #111, #080808); border: 1px solid #1a1a1a; transition: all 0.2s; }
-        input, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; }
+        .menu-card:active { transform: scale(0.95); }
+        input, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; transition: border 0.3s; }
+        input:focus { border-color: #dc2626 !important; }
         .tab-anim { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Impede seleção de texto para parecer app nativo */
         * { user-select: none; -webkit-user-select: none; }
         input, textarea { user-select: text; -webkit-user-select: text; }
     </style>
@@ -37,8 +40,8 @@
         
         <section id="aba-menu" class="tab-anim space-y-6 pt-4">
             <div class="glass p-8 rounded-[2.5rem] text-center mb-8 border-b-4 border-red-600 shadow-2xl">
-                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Painel de Controle</p>
-                <h2 class="text-3xl font-black italic uppercase leading-none text-white" id="banner-nome">PÁTIO<span class="text-red-600">PRO</span></h2>
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Gestão Automotiva</p>
+                <h2 class="text-3xl font-black italic uppercase leading-none text-white" id="banner-nome">PÁTIO<br><span class="text-red-600">PRO</span></h2>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <button onclick="trocarAba('entrada')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center">
@@ -61,12 +64,14 @@
         </section>
 
         <section id="aba-entrada" class="hidden tab-anim space-y-6">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Menu</button>
-            <div class="glass p-6 rounded-[2.5rem] space-y-4">
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
                 <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-2xl text-red-600 text-center uppercase">
+                <input id="cliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                
                 <div class="relative">
                     <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-900/40 cursor-pointer">
+                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-900/40 cursor-pointer">
                         <span id="status-icon" class="text-5xl mb-2">📸</span>
                         <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tirar Foto</span>
                     </label>
@@ -75,9 +80,11 @@
                         <button onclick="removerFoto()" class="absolute -top-2 -right-2 bg-red-600 text-white w-10 h-10 rounded-full font-black">✕</button>
                     </div>
                 </div>
-                <input id="modelo" type="text" placeholder="MODELO / COR" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
-                <input id="telefone" type="tel" placeholder="WHATSAPP / TELEFONE" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
-                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-[0.2em]">Confirmar Entrada</button>
+                
+                <input id="modelo" type="text" placeholder="VEÍCULO (MODELO/COR)" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                <input id="telefone" type="tel" placeholder="TELEFONE / WHATSAPP" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                
+                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-red-600/20 active:bg-red-700 transition-colors">Confirmar Entrada</button>
             </div>
         </section>
 
@@ -94,41 +101,43 @@
         <section id="aba-ajustes" class="hidden tab-anim space-y-6">
             <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
             <div class="glass p-6 rounded-[2rem] space-y-4">
-                <input id="input-nome-oficina" type="text" placeholder="NOME DA OFICINA" class="w-full p-4 rounded-xl text-xs font-bold uppercase text-center">
-                <button onclick="salvarNomeOficina()" class="w-full bg-white/10 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest">Atualizar Nome</button>
+                <p class="text-[10px] font-black text-red-600 uppercase">Configurações do Sistema</p>
+                <input id="input-nome-oficina" type="text" placeholder="NOME DA UNIDADE" class="w-full p-4 rounded-xl text-xs font-bold uppercase text-center">
+                <button onclick="salvarNomeOficina()" class="w-full bg-white/10 py-4 rounded-xl text-[10px] font-black uppercase">Atualizar Nome</button>
             </div>
             <div class="glass p-6 rounded-[2rem] space-y-4 text-center">
                 <p id="texto-validade" class="text-xs font-black text-white italic uppercase"></p>
-                <input id="chave-renovacao" type="password" placeholder="CHAVE" class="w-full p-4 rounded-xl text-xs font-bold text-center">
-                <button onclick="renovarAssinatura()" class="w-full bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase">Renovar +30 Dias</button>
+                <input id="chave-renovacao" type="password" placeholder="CHAVE DE RENOVAÇÃO" class="w-full p-4 rounded-xl text-xs font-bold text-center">
+                <button onclick="renovarAssinatura()" class="w-full bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]">Renovar Assinatura</button>
             </div>
-            <button onclick="limparTudo()" class="w-full text-[8px] text-zinc-800 font-black uppercase opacity-20">Resetar App</button>
+            <button onclick="limparTudo()" class="w-full text-[8px] text-zinc-800 font-black uppercase pt-10">Zerar Banco de Dados</button>
         </section>
     </main>
 
     <div id="modal-edit" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-6 overflow-y-auto">
-        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm space-y-4">
-            <h2 class="text-center font-black text-red-600 uppercase italic" id="modal-titulo">Ficha do Veículo</h2>
-            <img id="edit-img" class="w-full h-32 object-cover rounded-2xl border border-white/10">
+        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm space-y-4 shadow-2xl border-t-2 border-red-600">
+            <h2 class="text-center font-black text-red-600 uppercase italic" id="modal-titulo">Ficha do Cliente</h2>
+            <img id="edit-img" class="w-full h-44 object-cover rounded-2xl border border-white/10 shadow-lg">
             
             <div class="space-y-2">
-                <input id="edit-placa" type="text" class="w-full p-3 rounded-xl font-black text-center text-xl uppercase" placeholder="PLACA">
-                <input id="edit-modelo" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="MODELO">
-                <input id="edit-telefone" type="tel" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="TELEFONE">
-                <textarea id="edit-servico" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase h-20" placeholder="DESCREVA O SERVIÇO..."></textarea>
+                <input id="edit-placa" type="text" class="w-full p-3 rounded-xl font-black text-center text-xl uppercase text-red-600">
+                <input id="edit-cliente" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="NOME DO CLIENTE">
+                <input id="edit-modelo" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="MODELO DO VEÍCULO">
+                <input id="edit-telefone" type="tel" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="TELEFONE CONTATO">
+                <textarea id="edit-servico" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase h-24" placeholder="NOTAS E SERVIÇOS..."></textarea>
             </div>
             
-            <div id="info-datas" class="bg-black/40 p-3 rounded-xl text-[8px] font-bold text-zinc-400 space-y-1">
+            <div id="info-datas" class="bg-black/40 p-3 rounded-xl text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">
                 <p id="data-entrada"></p>
                 <p id="data-saida"></p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="fecharModal()" class="bg-zinc-800 py-4 rounded-xl text-[10px] font-black uppercase">Fechar</button>
-                <button onclick="salvarEdicao()" class="bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase italic">Salvar</button>
+                <button onclick="fecharModal()" class="bg-zinc-900 py-4 rounded-xl text-[10px] font-black uppercase">Sair</button>
+                <button onclick="salvarEdicao()" class="bg-zinc-100 text-black py-4 rounded-xl text-[10px] font-black uppercase italic">Atualizar</button>
             </div>
-            <button id="btn-concluir-saida" onclick="concluirSaida()" class="w-full bg-green-600 py-4 rounded-xl text-[10px] font-black uppercase hidden">Dar Saída Final</button>
-            <button id="btn-excluir" onclick="excluirRegistro()" class="w-full text-[8px] text-zinc-700 font-black uppercase tracking-widest pt-2">Excluir Permanente</button>
+            <button id="btn-concluir-saida" onclick="concluirSaida()" class="w-full bg-green-600 py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-green-600/20">Registrar Saída</button>
+            <button id="btn-excluir" onclick="excluirRegistro()" class="w-full text-[8px] text-zinc-800 font-black uppercase tracking-widest mt-2">Apagar do Histórico</button>
         </div>
     </div>
 
@@ -139,8 +148,12 @@
         let fotoFinal = ""; let idAtual = null;
 
         function init() {
-            document.getElementById('header-nome').innerText = config.nomeOficina;
-            document.getElementById('banner-nome').innerText = config.nomeOficina;
+            const displayNome = config.nomeOficina.includes("PRO") ? 
+                config.nomeOficina.replace("PRO", "<span class='text-red-600'>PRO</span>") : 
+                config.nomeOficina;
+            
+            document.getElementById('header-nome').innerHTML = displayNome;
+            document.getElementById('banner-nome').innerHTML = config.nomeOficina.split(" ").join("<br>");
             document.getElementById('input-nome-oficina').value = config.nomeOficina;
             verificarLicenca(); renderizar();
         }
@@ -166,8 +179,21 @@
 
         function salvarRegistro() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Falta foto ou placa!");
-            db.push({ id: Date.now(), placa, modelo: document.getElementById('modelo').value.toUpperCase(), telefone: document.getElementById('telefone').value, foto: fotoFinal, entrada: new Date().toLocaleString('pt-BR'), saida: '', servico: '', ativo: true });
+            const cliente = document.getElementById('cliente').value.toUpperCase();
+            if(!placa || !fotoFinal) return alert("Erro: Foto e Placa são obrigatórios!");
+            
+            db.push({ 
+                id: Date.now(), 
+                placa, 
+                cliente: cliente || "NÃO INFORMADO",
+                modelo: document.getElementById('modelo').value.toUpperCase(), 
+                telefone: document.getElementById('telefone').value, 
+                foto: fotoFinal, 
+                entrada: new Date().toLocaleString('pt-BR'), 
+                saida: '', 
+                servico: '', 
+                ativo: true 
+            });
             localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload();
         }
 
@@ -177,20 +203,24 @@
             db.slice().reverse().forEach(v => {
                 if(v.ativo) {
                     count++;
-                    p.innerHTML += `<div class="glass p-4 rounded-3xl flex items-center gap-4">
-                        <img src="${v.foto}" class="w-16 h-16 object-cover rounded-xl">
+                    p.innerHTML += `<div class="glass p-4 rounded-3xl flex items-center gap-4 border border-white/5">
+                        <img src="${v.foto}" class="w-16 h-16 object-cover rounded-xl shadow-md border border-white/5">
                         <div class="flex-1" onclick="abrirEdicao(${v.id})">
-                            <h3 class="text-xl font-black italic text-white uppercase leading-none">${v.placa}</h3>
-                            <p class="text-[8px] text-zinc-500 font-bold mt-1">${v.modelo}</p>
+                            <h3 class="text-xl font-black italic text-white uppercase leading-none tracking-tighter">${v.placa}</h3>
+                            <p class="text-[9px] text-red-500 font-black mt-1 uppercase">${v.cliente}</p>
+                            <p class="text-[7px] text-zinc-500 font-bold uppercase">${v.modelo}</p>
                         </div>
-                        <button onclick="abrirSaida(${v.id})" class="bg-red-600/20 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black italic">SAÍDA</button>
+                        <button onclick="abrirSaida(${v.id})" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black italic shadow-lg shadow-red-600/20 active:scale-95 transition-transform">SAÍDA</button>
                     </div>`;
                 } else {
-                    h.innerHTML += `<div onclick="abrirEdicao(${v.id}, true)" class="glass p-4 rounded-2xl flex justify-between items-center">
-                        <span class="font-black text-white italic uppercase">${v.placa}</span>
+                    h.innerHTML += `<div onclick="abrirEdicao(${v.id}, true)" class="glass p-4 rounded-2xl flex justify-between items-center border-l-2 border-zinc-800">
+                        <div>
+                            <span class="font-black text-white italic uppercase tracking-tighter">${v.placa}</span>
+                            <p class="text-[7px] text-zinc-500 uppercase font-black">${v.cliente}</p>
+                        </div>
                         <div class="text-right">
-                            <p class="text-[7px] text-zinc-600 font-bold uppercase">${v.entrada.split(',')[0]}</p>
-                            <span class="text-red-600 text-[8px] font-black uppercase italic">Ver Detalhes →</span>
+                            <p class="text-[7px] text-zinc-600 font-black">${v.entrada.split(',')[0]}</p>
+                            <span class="text-red-600 text-[8px] font-black uppercase italic">Relatório →</span>
                         </div>
                     </div>`;
                 }
@@ -200,9 +230,10 @@
 
         function abrirEdicao(id, historico = false) {
             idAtual = id; const v = db.find(x => x.id === id);
-            document.getElementById('modal-titulo').innerText = historico ? "RELATÓRIO FINAL" : "EDITAR FICHA";
+            document.getElementById('modal-titulo').innerText = historico ? "REGISTRO HISTÓRICO" : "FICHA DE TRABALHO";
             document.getElementById('edit-img').src = v.foto;
             document.getElementById('edit-placa').value = v.placa;
+            document.getElementById('edit-cliente').value = v.cliente || "";
             document.getElementById('edit-modelo').value = v.modelo;
             document.getElementById('edit-telefone').value = v.telefone || "";
             document.getElementById('edit-servico').value = v.servico || "";
@@ -215,13 +246,14 @@
 
         function abrirSaida(id) {
             abrirEdicao(id);
-            document.getElementById('modal-titulo').innerText = "CONCLUIR SERVIÇO";
+            document.getElementById('modal-titulo').innerText = "CONCLUIR E DAR SAÍDA";
             document.getElementById('btn-concluir-saida').classList.remove('hidden');
         }
 
         function salvarEdicao() {
             const i = db.findIndex(x => x.id === idAtual);
             db[i].placa = document.getElementById('edit-placa').value.toUpperCase();
+            db[i].cliente = document.getElementById('edit-cliente').value.toUpperCase();
             db[i].modelo = document.getElementById('edit-modelo').value.toUpperCase();
             db[i].telefone = document.getElementById('edit-telefone').value;
             db[i].servico = document.getElementById('edit-servico').value.toUpperCase();
@@ -247,12 +279,12 @@
         function verificarLicenca() { 
             const hoje = new Date().getTime(); const faltam = Math.ceil((config.validade - hoje) / (1000 * 60 * 60 * 24));
             document.getElementById('texto-validade').innerText = faltam > 0 ? `Licença: ${faltam} dias` : "Expirado";
-            if (hoje > config.validade) document.body.innerHTML = "<div style='background:#000;color:red;height:100vh;display:flex;align-items:center;justify-content:center;font-weight:900;text-align:center;'>ASSINATURA EXPIRADA<br>FALE COM O SUPORTE</div>";
+            if (hoje > config.validade) document.body.innerHTML = "<div style='background:#000;color:red;height:100vh;display:flex;align-items:center;justify-content:center;font-weight:900;text-align:center;'>ASSINATURA EXPIRADA<br>CONTATE O ADMINISTRADOR</div>";
         }
         
         function renovarAssinatura() { if (document.getElementById('chave-renovacao').value.toUpperCase() === MASTER_KEY) { config.validade += (30 * 24 * 60 * 60 * 1000); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); } }
         function removerFoto() { fotoFinal = ""; document.getElementById('container-preview').classList.add('hidden'); document.getElementById('label-foto').classList.remove('hidden'); }
-        function limparTudo() { if(confirm("Resetar tudo?")) { localStorage.clear(); location.reload(); } }
+        function limparTudo() { if(confirm("Deseja apagar TODOS os dados do app?")) { localStorage.clear(); location.reload(); } }
 
         init();
     </script>

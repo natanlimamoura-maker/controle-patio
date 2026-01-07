@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>PÁTIO PRO v4.5</title>
+    <title>PÁTIO PRO v5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -30,7 +30,7 @@
             </button>
         </div>
         <div id="header-logo">
-            <h1 class="text-xl font-black tracking-tighter italic uppercase leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
+            <h1 id="nome-oficina-display" class="text-xl font-black tracking-tighter italic uppercase leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
         </div>
         <div id="contador" class="bg-red-600/10 border border-red-500/20 text-red-500 text-[10px] font-black px-4 py-2 rounded-full uppercase">0 Ativos</div>
     </header>
@@ -39,8 +39,8 @@
         
         <section id="aba-menu" class="page-transition space-y-6 pt-4">
             <div class="glass p-8 rounded-[2.5rem] text-center mb-8 border-b-4 border-red-600 shadow-2xl">
-                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Painel de Controle</p>
-                <h2 class="text-3xl font-black italic uppercase leading-none">SISTEMA DE<br><span class="text-red-500">OFICINA</span></h2>
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Painel Operacional</p>
+                <h2 id="banner-oficina" class="text-3xl font-black italic uppercase leading-none">PÁTIO<br><span class="text-red-500">PRO</span></h2>
             </div>
             
             <div class="grid grid-cols-2 gap-4">
@@ -48,7 +48,7 @@
                     <span class="text-3xl mb-3">➕</span>
                     <span class="text-[10px] font-black uppercase tracking-widest">Nova Entrada</span>
                 </button>
-                <button onclick="trocarAba('patio')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center relative">
+                <button onclick="trocarAba('patio')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center">
                     <span class="text-3xl mb-3">🚛</span>
                     <span class="text-[10px] font-black uppercase tracking-widest">Pátio Atual</span>
                 </button>
@@ -56,10 +56,36 @@
                     <span class="text-3xl mb-3">📜</span>
                     <span class="text-[10px] font-black uppercase tracking-widest">Relatórios</span>
                 </button>
-                <button onclick="limparTudo()" class="menu-card p-6 rounded-[2rem] flex flex-col items-center opacity-30">
-                    <span class="text-3xl mb-3">🧹</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest">Limpar BD</span>
+                <button onclick="trocarAba('ajustes')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center">
+                    <span class="text-3xl mb-3">⚙️</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Ajustes</span>
                 </button>
+            </div>
+        </section>
+
+        <section id="aba-ajustes" class="hidden page-transition space-y-6">
+            <div class="glass p-6 rounded-[2rem] space-y-4">
+                <h3 class="text-xs font-black text-red-500 uppercase tracking-widest">Personalização</h3>
+                <input id="input-nome-oficina" type="text" placeholder="NOME DA SUA OFICINA" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                <button onclick="salvarConfig()" class="w-full bg-white/5 py-3 rounded-xl text-[10px] font-black uppercase">Atualizar Nome</button>
+            </div>
+
+            <div class="glass p-6 rounded-[2rem] space-y-4">
+                <h3 class="text-xs font-black text-red-500 uppercase tracking-widest">Segurança de Dados</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportarBackup()" class="bg-green-600/20 text-green-500 p-4 rounded-xl text-[9px] font-black uppercase">Fazer Backup</button>
+                    <label class="bg-blue-600/20 text-blue-500 p-4 rounded-xl text-[9px] font-black uppercase text-center cursor-pointer">
+                        Importar Dados
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importarBackup(event)">
+                    </label>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-[2rem] space-y-4">
+                <h3 class="text-xs font-black text-red-500 uppercase tracking-widest">Memória e Limpeza</h3>
+                <div id="info-memoria" class="text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">Uso de disco: Calculando...</div>
+                <button onclick="limparFotosAntigas()" class="w-full border border-red-900/30 text-red-900 py-3 rounded-xl text-[9px] font-black uppercase">Remover fotos (Histórico antigo)</button>
+                <button onclick="limparTudo()" class="w-full text-zinc-700 py-3 text-[8px] font-black uppercase">Resetar Sistema (Cuidado)</button>
             </div>
         </section>
 
@@ -69,8 +95,8 @@
         </section>
 
         <section id="aba-entrada" class="hidden page-transition">
-            <div class="glass p-6 rounded-[2rem] space-y-6 shadow-2xl border border-white/10">
-                <h2 id="titulo-form" class="text-lg font-black uppercase italic text-center text-red-500">Registro de Veículo</h2>
+            <div class="glass p-6 rounded-[2rem] space-y-6">
+                <h2 id="titulo-form" class="text-lg font-black uppercase italic text-center text-red-500">Registro</h2>
                 <div class="space-y-4">
                     <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-xl text-red-500 uppercase">
                     <input id="modelo" type="text" placeholder="MODELO / MARCA" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
@@ -79,14 +105,14 @@
                 </div>
                 <div class="pt-2 relative">
                     <input id="fotoInput" type="file" accept="image/*" class="hidden">
-                    <button id="btn-remover-foto" onclick="removerFoto()" class="hidden absolute top-4 right-4 z-20 bg-red-600 text-white p-2 rounded-full text-[8px] font-black shadow-lg">✕ REMOVER</button>
-                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40">
+                    <button id="btn-remover-foto" onclick="removerFoto()" class="hidden absolute top-4 right-4 z-20 bg-red-600 text-white p-2 rounded-full text-[8px] font-black shadow-lg">✕</button>
+                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 text-center">
                         <span class="text-4xl mb-2">📸</span>
-                        <span class="text-[9px] font-black uppercase text-zinc-500 text-center">Tirar Foto ou Galeria</span>
+                        <span class="text-[9px] font-black uppercase text-zinc-500">Foto ou Galeria</span>
                     </label>
                     <canvas id="canvasPreview" class="hidden mt-4 mx-auto border border-white/5 rounded-2xl shadow-2xl"></canvas>
                 </div>
-                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all">Salvar Dados</button>
+                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl">Confirmar</button>
             </div>
         </section>
 
@@ -98,31 +124,89 @@
 
     <div id="modal-relatorio" class="hidden fixed inset-0 bg-black z-[100] overflow-y-auto p-6">
         <div class="flex justify-between items-center mb-6">
-            <button onclick="fecharRelatorio()" class="text-[10px] font-black text-zinc-500 uppercase">← Fechar</button>
-            <h2 class="text-red-500 font-black italic uppercase">Relatório Detalhado</h2>
+            <button onclick="fecharRelatorio()" class="btn-voltar">← Fechar</button>
         </div>
         <div id="conteudo-relatorio" class="space-y-6 max-w-lg mx-auto pb-10"></div>
     </div>
 
-    <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[60] backdrop-blur-md">
-        <div class="glass p-8 rounded-[3rem] w-full max-w-sm border border-red-500/20">
-            <h3 class="font-black text-xl mb-6 text-center italic text-red-500">CONCLUIR SERVIÇO</h3>
-            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-44 text-sm font-medium mb-6 uppercase border-white/10" placeholder="O QUE FOI FEITO NO VEÍCULO?"></textarea>
-            <div class="flex flex-col gap-3">
-                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg">Finalizar e Arquivar</button>
-                <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase p-2">Cancelar</button>
-            </div>
+    <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[60]">
+        <div class="glass p-8 rounded-[3rem] w-full max-w-sm">
+            <h3 class="font-black text-xl mb-6 text-center italic text-red-500 uppercase">Finalizar</h3>
+            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-44 text-sm font-medium mb-6 uppercase" placeholder="SERVIÇO REALIZADO..."></textarea>
+            <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg mb-3">Concluir</button>
+            <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script>
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { nomeOficina: "PÁTIO PRO" };
         let fotoFinal = "";
         let idSelecionado = null;
         let modoEdicao = false;
         let idEdicao = null;
 
-        // CONTROLE DE IMAGEM
+        // INICIALIZAÇÃO
+        function init() {
+            document.getElementById('nome-oficina-display').innerText = config.nomeOficina;
+            document.getElementById('input-nome-oficina').value = config.nomeOficina;
+            document.getElementById('banner-oficina').innerText = config.nomeOficina;
+            document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];
+            calcularMemoria();
+            irParaMenu();
+            renderizar();
+        }
+
+        // CONFIGURAÇÕES
+        function salvarConfig() {
+            config.nomeOficina = document.getElementById('input-nome-oficina').value.toUpperCase();
+            localStorage.setItem('patio_config', JSON.stringify(config));
+            location.reload();
+        }
+
+        // BACKUP E IMPORTAÇÃO
+        function exportarBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `backup_patio_${new Date().toLocaleDateString()}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importarBackup(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const importado = JSON.parse(e.target.result);
+                if(confirm(`Deseja importar ${importado.length} registros? Isso substituirá os atuais.`)) {
+                    db = importado;
+                    localStorage.setItem('controle_patio_db', JSON.stringify(db));
+                    location.reload();
+                }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        // LIMPEZA
+        function limparFotosAntigas() {
+            if(confirm("Isso removerá apenas as fotos de registros finalizados para economizar espaço. Os dados de texto continuarão existindo. Confirmar?")) {
+                db = db.map(item => {
+                    if(!item.ativo) { item.foto = "foto_removida.jpg"; }
+                    return item;
+                });
+                localStorage.setItem('controle_patio_db', JSON.stringify(db));
+                location.reload();
+            }
+        }
+
+        function calcularMemoria() {
+            const stringDB = JSON.stringify(db);
+            const tamanho = (stringDB.length / 1024 / 1024).toFixed(2);
+            document.getElementById('info-memoria').innerText = `Uso de Memória: ${tamanho} MB / 5.00 MB`;
+        }
+
+        // GESTÃO DE FOTO (COMPRESSÃO)
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -149,18 +233,16 @@
         });
 
         function removerFoto() {
-            fotoFinal = "";
-            document.getElementById('fotoInput').value = "";
+            fotoFinal = ""; document.getElementById('fotoInput').value = "";
             document.getElementById('canvasPreview').classList.add('hidden');
             document.getElementById('label-foto').classList.remove('hidden');
             document.getElementById('btn-remover-foto').classList.add('hidden');
         }
 
-        // SALVAR / EDITAR
+        // SALVAR / RENDERIZAR / NAVEGAR
         function salvarRegistro() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("ERRO: Placa e Foto são obrigatórios!");
-
+            if(!placa || !fotoFinal) return alert("Placa e Foto são obrigatórios!");
             const dados = {
                 id: modoEdicao ? idEdicao : Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
@@ -171,19 +253,12 @@
                 status: modoEdicao ? db.find(x => x.id === idEdicao).status : 'Diagnóstico',
                 ativo: true
             };
-
-            if(modoEdicao) {
-                const idx = db.findIndex(x => x.id === idEdicao);
-                db[idx] = dados;
-            } else {
-                db.push(dados);
-            }
-
+            if(modoEdicao) { const idx = db.findIndex(x => x.id === idEdicao); db[idx] = dados; }
+            else { db.push(dados); }
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
             location.reload();
         }
 
-        // NAVEGAÇÃO
         function irParaMenu() {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('aba-menu').classList.remove('hidden');
@@ -200,22 +275,20 @@
             renderizar();
         }
 
-        // RENDERIZAÇÃO E BUSCA
         function renderizar() {
             const buscaP = document.getElementById('buscaPlacaPatio').value.toUpperCase();
             const buscaH = document.getElementById('buscaPlacaHist').value.toUpperCase();
             const containerPatio = document.getElementById('lista-patio');
             const containerHist = document.getElementById('lista-historico');
-            
             containerPatio.innerHTML = ""; containerHist.innerHTML = "";
             let ativos = 0;
 
             db.slice().reverse().forEach(v => {
                 if(v.ativo) {
-                    if (buscaP !== "" && !v.placa.includes(buscaP)) return;
+                    if (buscaP && !v.placa.includes(buscaP)) return;
                     ativos++;
                     containerPatio.innerHTML += `
-                        <div class="glass rounded-[2rem] overflow-hidden page-transition border-l-4 border-red-600">
+                        <div class="glass rounded-[2rem] overflow-hidden page-transition border-l-4 border-red-600 mb-4">
                             <div class="flex p-4 gap-4">
                                 <img src="${v.foto}" class="w-20 h-20 object-cover rounded-2xl">
                                 <div class="flex-1">
@@ -238,14 +311,11 @@
                         </div>
                     `;
                 } else {
-                    if (buscaH !== "" && !v.placa.includes(buscaH)) return;
+                    if (buscaH && !v.placa.includes(buscaH)) return;
                     containerHist.innerHTML += `
-                        <div onclick="verRelatorio(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center active:scale-95 transition-all">
-                            <div>
-                                <p class="font-black text-white italic text-base uppercase leading-none">${v.placa}</p>
-                                <p class="text-[8px] text-zinc-500 font-bold uppercase mt-1">Saída: ${v.dataSaida}</p>
-                            </div>
-                            <span class="text-red-500 text-[10px] font-black uppercase">VER DADOS →</span>
+                        <div onclick="verRelatorio(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center mb-2">
+                            <div><p class="font-black text-white italic uppercase leading-none">${v.placa}</p><p class="text-[8px] text-zinc-500 uppercase mt-1">Saída: ${v.dataSaida}</p></div>
+                            <span class="text-red-500 text-[10px] font-black uppercase">DADOS →</span>
                         </div>
                     `;
                 }
@@ -253,10 +323,69 @@
             document.getElementById('contador').innerText = `${ativos} Ativos`;
         }
 
-        // FUNÇÃO DE RELATÓRIO CORRIGIDA
         function verRelatorio(id) {
             const v = db.find(x => x.id === id);
             if(!v) return;
             const container = document.getElementById('conteudo-relatorio');
             container.innerHTML = `
-                <img src="${v.foto}" class="w-full h
+                <img src="${v.foto}" class="w-full h-64 object-cover rounded-[2.5rem] shadow-2xl">
+                <div class="text-center">
+                    <h3 class="text-4xl font-black text-white italic uppercase">${v.placa}</h3>
+                    <p class="text-red-500 font-black uppercase text-xs">${v.modelo || 'MODELO'}</p>
+                </div>
+                <div class="glass p-6 rounded-[2rem] space-y-4 text-xs font-bold uppercase">
+                    <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">CLIENTE</span><span>${v.cliente || 'AVULSO'}</span></div>
+                    <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">ENTRADA</span><span>${v.dataEntrada}</span></div>
+                    <div class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">SAÍDA</span><span>${v.dataSaida}</span></div>
+                    <div><p class="text-red-500 mb-2">SERVIÇO:</p><div class="bg-black/50 p-4 rounded-xl text-zinc-300 normal-case">${v.servico || 'NÃO DESCRITO'}</div></div>
+                </div>
+                <button onclick="excluirRegistro(${v.id})" class="w-full text-zinc-700 font-black text-[9px] uppercase py-4">Excluir Permanente</button>
+            `;
+            document.getElementById('modal-relatorio').classList.remove('hidden');
+        }
+
+        function fecharRelatorio() { document.getElementById('modal-relatorio').classList.add('hidden'); }
+        function prepararEdicao(id) {
+            const v = db.find(x => x.id === id);
+            modoEdicao = true; idEdicao = id;
+            document.getElementById('titulo-form').innerText = "Editar Veículo";
+            document.getElementById('placa').value = v.placa;
+            document.getElementById('modelo').value = v.modelo;
+            document.getElementById('nomeCliente').value = v.cliente;
+            document.getElementById('dataEntrada').value = v.dataEntrada;
+            fotoFinal = v.foto;
+            const canvas = document.getElementById('canvasPreview');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); canvas.classList.remove('hidden'); };
+            img.src = v.foto;
+            document.getElementById('label-foto').classList.add('hidden');
+            document.getElementById('btn-remover-foto').classList.remove('hidden');
+            trocarAba('entrada');
+        }
+
+        function excluirRegistro(id) {
+            if(confirm("Apagar permanentemente?")) {
+                db = db.filter(x => x.id !== id);
+                localStorage.setItem('controle_patio_db', JSON.stringify(db));
+                fecharRelatorio(); renderizar(); calcularMemoria();
+            }
+        }
+
+        function atualizarStatus(id, s) { const i = db.findIndex(x => x.id === id); db[i].status = s; localStorage.setItem('controle_patio_db', JSON.stringify(db)); }
+        function abrirSaida(id) { idSelecionado = id; document.getElementById('modal-saida').classList.remove('hidden'); }
+        function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
+        function confirmarSaida() {
+            const i = db.findIndex(x => x.id === idSelecionado);
+            db[i].ativo = false;
+            db[i].dataSaida = new Date().toLocaleDateString('pt-BR');
+            db[i].servico = document.getElementById('servicoRealizado').value;
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
+            location.reload();
+        }
+        function limparTudo() { if(confirm("APAGAR TUDO?")) { localStorage.clear(); location.reload(); } }
+
+        init();
+    </script>
+</body>
+</html>

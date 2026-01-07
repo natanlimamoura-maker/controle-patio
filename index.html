@@ -6,108 +6,153 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>PATIO PRO v2</title>
+    <title>PÁTIO PRO ELITE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root { --accent: #ef4444; }
         body { 
-            background: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
-            color: #e2e8f0;
+            background-color: #050505;
+            color: #f4f4f5;
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
+
+        /* Efeito de Vidro e Bordas */
+        .glass {
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-blur {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+        .card-glow {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
         }
-        .tab-active { color: #ef4444; transform: translateY(-2px); transition: all 0.3s ease; }
+
+        /* Animações Premium */
+        .page-transition { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilização de Inputs */
+        input, select, textarea {
+            background: #111 !important;
+            border: 1px solid #222 !important;
+            transition: all 0.3s ease;
+        }
+        input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+
+        /* Botão central de Entrada */
+        .btn-plus {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+            transform: translateY(-20px);
+        }
+        
+        .active-tab { color: var(--accent); }
     </style>
 </head>
-<body class="pb-28">
+<body class="pb-36">
 
-    <header class="p-6 sticky top-0 z-40 bg-black/60 backdrop-blur-md">
-        <div class="flex justify-between items-end">
-            <div>
-                <p class="text-[10px] font-black tracking-[0.3em] text-red-500 uppercase">Sistema de Gestão</p>
-                <h1 class="text-2xl font-black italic tracking-tighter uppercase leading-none">Pátio<span class="text-red-600">PRO</span></h1>
-            </div>
-            <div id="contador" class="text-[11px] font-bold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">0 VEÍCULOS</div>
+    <header class="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-lg border-b border-white/5">
+        <div>
+            <h1 class="text-xl font-black tracking-tighter italic uppercase italic leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
+            <p class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase mt-1">Gestão de Fluxo v2.5</p>
+        </div>
+        <div id="contador" class="bg-red-600/10 border border-red-500/20 text-red-500 text-[10px] font-black px-4 py-2 rounded-full">
+            0 VEÍCULOS
         </div>
     </header>
 
-    <main class="px-5 max-w-lg mx-auto">
-        <div class="mb-8 fade-in">
-            <input id="buscaPlaca" type="text" oninput="renderizar()" placeholder="Pesquisar placa..." 
-                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-sm focus:bg-white/10 focus:border-red-500/50 outline-none transition-all">
+    <main class="p-5 max-w-lg mx-auto">
+        
+        <div class="mb-6 page-transition">
+            <div class="relative group">
+                <input id="buscaPlaca" type="text" onkeyup="renderizar()" placeholder="PESQUISAR PLACA..." 
+                    class="w-full p-4 pl-12 rounded-2xl text-xs font-bold uppercase tracking-widest outline-none">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-20 group-focus-within:opacity-100 group-focus-within:text-red-500 transition-all">🔍</span>
+            </div>
         </div>
 
-        <section id="aba-patio" class="space-y-5"></section>
+        <section id="aba-patio" class="space-y-4"></section>
 
-        <section id="aba-entrada" class="hidden fade-in">
-            <div class="glass-card p-6 space-y-5">
-                <h2 class="text-xl font-black uppercase italic text-red-500 mb-2">Nova Entrada</h2>
+        <section id="aba-entrada" class="hidden page-transition">
+            <div class="glass p-6 rounded-[2rem] space-y-6">
+                <div class="text-center">
+                    <span class="text-3xl">📝</span>
+                    <h2 class="text-lg font-black uppercase italic mt-2">Check-in de Veículo</h2>
+                </div>
+                
                 <div class="space-y-4">
-                    <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-xl bg-black border border-zinc-800 font-black text-lg text-red-500 uppercase">
-                    <input id="modelo" type="text" placeholder="Modelo do Veículo" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
-                    <input id="nomeCliente" type="text" placeholder="Nome do Cliente" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
-                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
+                    <div class="relative">
+                        <label class="text-[9px] font-black text-zinc-500 uppercase ml-4 mb-1 block">Identificação</label>
+                        <input id="placa" type="text" placeholder="ABC-1234" class="w-full p-4 rounded-2xl font-black text-xl text-red-500 placeholder:text-zinc-800 uppercase">
+                    </div>
+                    <input id="modelo" type="text" placeholder="MODELO DO VEÍCULO" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
+                    <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
+                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-2xl text-xs font-bold">
                 </div>
-                <div>
+
+                <div class="pt-2">
                     <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                    <label for="fotoInput" class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-800 rounded-2xl bg-white/5 relative">
-                        <div id="loading-foto" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center rounded-2xl text-red-500 font-bold text-xs">COMPRIMINDO...</div>
+                    <label for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 active:scale-95 transition-all">
+                        <div id="loading-foto" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center rounded-3xl z-10">
+                            <div class="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <span class="text-red-500 font-black text-[10px]">PROCESSANDO...</span>
+                        </div>
                         <span class="text-4xl mb-2">📸</span>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">Tirar Foto do Veículo</span>
+                        <span class="text-[9px] font-black uppercase text-zinc-500">Capturar Imagem</span>
                     </label>
-                    <canvas id="canvasPreview" class="hidden w-full rounded-xl mt-4 border border-zinc-800"></canvas>
+                    <canvas id="canvasPreview" class="hidden w-full rounded-2xl mt-4 border border-white/5"></canvas>
                 </div>
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-sm tracking-widest shadow-lg shadow-red-900/20">Finalizar Cadastro</button>
+
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all">
+                    Registrar Entrada
+                </button>
             </div>
         </section>
 
-        <section id="aba-historico" class="hidden fade-in space-y-3"></section>
+        <section id="aba-historico" class="hidden page-transition space-y-3"></section>
     </main>
 
-    <div id="modal-detalhe" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[70] backdrop-blur-md">
-        <div class="glass-card p-6 w-full max-w-sm overflow-y-auto max-h-[90vh]">
+    <div id="modal-detalhe" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[70] backdrop-blur-xl">
+        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm border border-white/10 shadow-2xl">
             <div id="conteudo-detalhe"></div>
-            <button onclick="fecharDetalhe()" class="w-full mt-6 bg-zinc-800 text-white p-4 rounded-xl font-black text-xs uppercase">Fechar Relatório</button>
+            <div class="flex flex-col gap-3 mt-6">
+                <button onclick="fecharDetalhe()" class="w-full bg-zinc-800 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Fechar Relatório</button>
+                <button id="btn-excluir-v" class="w-full text-red-900 font-bold text-[9px] uppercase tracking-tighter">Excluir Registro permanentemente</button>
+            </div>
         </div>
     </div>
 
     <div id="modal-saida" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-[60]">
-        <div class="glass-card p-6 w-full max-w-sm">
-            <h3 class="font-black text-xl mb-4 text-red-500 uppercase italic text-center">Finalizar Serviço</h3>
-            <textarea id="servicoRealizado" placeholder="Descreva o serviço realizado..." class="w-full p-4 rounded-xl bg-black border border-zinc-800 h-32 text-sm outline-none mb-4 uppercase"></textarea>
-            <div class="flex gap-3">
-                <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-xl font-black text-xs uppercase">Dar Saída</button>
-                <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-zinc-400 p-4 rounded-xl font-black text-xs uppercase">Voltar</button>
+        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm border border-red-500/20">
+            <h3 class="font-black text-xl mb-2 text-center italic">ORDEM DE SAÍDA</h3>
+            <p class="text-[10px] text-zinc-500 text-center uppercase mb-6">Descreva os reparos realizados</p>
+            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-40 text-sm font-medium outline-none mb-6 uppercase" placeholder="EX: TROCA DE ÓLEO, REPARO NA SUSPENSÃO..."></textarea>
+            <div class="flex flex-col gap-3">
+                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg active:scale-95 transition-all">Finalizar Agora</button>
+                <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase p-2">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-6 left-6 right-6 nav-blur rounded-3xl p-4 z-50 flex justify-around items-center border border-white/5">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active">
-            <span class="text-xl">🚛</span><span class="text-[8px] font-black mt-1 uppercase">Pátio</span>
+    <nav class="fixed bottom-8 left-8 right-8 h-20 glass rounded-[2.5rem] z-50 flex justify-around items-center px-4 border border-white/10 shadow-2xl">
+        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center active-tab transition-colors">
+            <span class="text-xl">🏠</span>
+            <span class="text-[8px] font-black mt-1 uppercase">Pátio</span>
         </button>
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center">
-            <span class="text-3xl -mt-6 bg-red-600 text-white p-3 rounded-full shadow-xl border-4 border-[#0a0a0a]">➕</span>
+        
+        <button onclick="trocarAba('entrada')" id="btn-entrada" class="btn-plus bg-red-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-3xl active:scale-90 transition-all border-[6px] border-[#050505]">
+            <span class="mb-1">＋</span>
         </button>
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-500">
-            <span class="text-xl">📜</span><span class="text-[8px] font-black mt-1 uppercase">Histórico</span>
+
+        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600 transition-colors">
+            <span class="text-xl">📊</span>
+            <span class="text-[8px] font-black mt-1 uppercase">Relatórios</span>
         </button>
     </nav>
 
     <script>
+        // LÓGICA DE DADOS E COMPRESSÃO (Mantida para eficiência)
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
         let fotoFinal = "";
         let idSelecionado = null;
@@ -122,11 +167,11 @@
                 img.onload = function() {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-                    let max_size = 800, width = img.width, height = img.height;
-                    if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
-                    else { if (height > max_size) { width *= max_size / height; height = max_size; } }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
+                    let max = 800, w = img.width, h = img.height;
+                    if (w > h) { if (w > max) { h *= max / w; w = max; } }
+                    else { if (h > max) { w *= max / h; h = max; } }
+                    canvas.width = w; canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
                     fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('loading-foto').classList.add('hidden');
                     canvas.classList.remove('hidden');
@@ -138,7 +183,7 @@
 
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Falta a foto ou a placa!");
+            if(!placa || !fotoFinal) return alert("Erro: Foto e Placa são obrigatórios!");
             db.push({
                 id: Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
@@ -161,18 +206,21 @@
             let contador = 0;
 
             db.slice().reverse().forEach(v => {
-                if(!v.placa.includes(busca)) return;
+                if (busca !== "" && !v.placa.includes(busca)) return;
 
                 if(v.ativo) {
                     contador++;
                     containerPatio.innerHTML += `
-                        <div class="glass-card overflow-hidden fade-in border-l-4 border-red-600">
-                            <div class="flex p-4 gap-4">
-                                <img src="${v.foto}" class="w-24 h-24 object-cover rounded-xl border border-white/10">
-                                <div class="flex-1 flex flex-col justify-center">
-                                    <h3 class="font-black text-white text-2xl tracking-tighter italic leading-none mb-1">${v.placa}</h3>
-                                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">${v.modelo || 'Veículo s/ modelo'}</p>
-                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-black uppercase text-red-500 outline-none">
+                        <div class="glass rounded-[2rem] overflow-hidden card-glow page-transition">
+                            <div class="flex p-5 gap-5">
+                                <div class="relative">
+                                    <img src="${v.foto}" class="w-24 h-24 object-cover rounded-2xl border border-white/5">
+                                    <div class="absolute -top-2 -left-2 bg-red-600 text-[7px] font-black px-2 py-1 rounded-md italic shadow-lg">ATIVO</div>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-2xl font-black italic tracking-tighter leading-none mb-1 text-white uppercase">${v.placa}</h3>
+                                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">${v.modelo || 'VEÍCULO'}</p>
+                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-[10px] font-black uppercase text-red-500 outline-none">
                                         <option value="Diagnóstico" ${v.status=='Diagnóstico'?'selected':''}>Diagnóstico</option>
                                         <option value="Desmontagem" ${v.status=='Desmontagem'?'selected':''}>Desmontagem</option>
                                         <option value="Montagem" ${v.status=='Montagem'?'selected':''}>Montagem</option>
@@ -180,19 +228,19 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="p-4 bg-white/5 border-t border-white/5">
-                                <button onclick="abrirSaida(${v.id})" class="w-full bg-zinc-800/50 text-zinc-300 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Liberar Saída</button>
+                            <div class="px-5 pb-5">
+                                <button onclick="abrirSaida(${v.id})" class="w-full bg-white/5 hover:bg-white/10 text-zinc-400 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all">Liberar Saída</button>
                             </div>
                         </div>
                     `;
                 } else {
                     containerHist.innerHTML += `
-                        <div onclick="verDetalhe(${v.id})" class="glass-card p-4 flex justify-between items-center border-l border-zinc-700 opacity-80 active:scale-95 transition-all">
+                        <div onclick="verDetalhe(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center active:scale-95 transition-all opacity-70">
                             <div>
-                                <p class="font-black text-white italic text-lg leading-none">${v.placa}</p>
-                                <p class="text-[9px] text-zinc-500 uppercase font-bold mt-1">Saída: ${v.dataSaida} • ${v.status}</p>
+                                <p class="font-black text-white italic text-lg leading-none uppercase">${v.placa}</p>
+                                <p class="text-[8px] text-zinc-500 uppercase font-bold mt-1">${v.dataSaida} • ${v.status}</p>
                             </div>
-                            <div class="text-red-500 text-xl">👁️</div>
+                            <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-xs">👁️</div>
                         </div>
                     `;
                 }
@@ -202,25 +250,38 @@
 
         function verDetalhe(id) {
             const v = db.find(x => x.id === id);
-            const conteudo = document.getElementById('conteudo-detalhe');
-            conteudo.innerHTML = `
-                <img src="${v.foto}" class="w-full h-48 object-cover rounded-2xl border border-white/10 mb-4 shadow-2xl">
-                <h3 class="text-3xl font-black text-red-600 italic tracking-tighter mb-1">${v.placa}</h3>
-                <p class="text-lg font-black text-white uppercase mb-4">${v.modelo || 'SEM MODELO'}</p>
-                <div class="space-y-4 border-t border-white/10 pt-4">
-                    <div><p class="text-[9px] text-zinc-500 font-bold uppercase">Cliente</p><p class="text-sm font-black text-zinc-200 uppercase">${v.cliente || 'NÃO INFORMADO'}</p></div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><p class="text-[9px] text-zinc-500 font-bold uppercase">Entrada</p><p class="text-xs font-black text-zinc-300">${v.dataEntrada}</p></div>
-                        <div><p class="text-[9px] text-zinc-500 font-bold uppercase">Saída</p><p class="text-xs font-black text-zinc-300">${v.dataSaida}</p></div>
+            idSelecionado = id;
+            document.getElementById('conteudo-detalhe').innerHTML = `
+                <img src="${v.foto}" class="w-full h-56 object-cover rounded-[2rem] border border-white/10 mb-6 shadow-2xl">
+                <div class="text-center mb-6">
+                    <h3 class="text-4xl font-black text-red-600 italic tracking-tighter uppercase leading-none">${v.placa}</h3>
+                    <p class="text-xs font-bold text-zinc-400 uppercase mt-1">${v.modelo || 'VEÍCULO'}</p>
+                </div>
+                <div class="space-y-4 bg-black/40 p-5 rounded-3xl border border-white/5">
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Cliente</span>
+                        <span class="text-[10px] font-black text-white uppercase">${v.cliente || 'AVULSO'}</span>
                     </div>
-                    <div><p class="text-[9px] text-red-600 font-bold uppercase">Serviço Realizado</p><div class="bg-black/60 p-3 rounded-xl mt-1 text-xs text-zinc-400 font-bold uppercase leading-relaxed border border-white/5">${v.servico || 'Nenhuma descrição.'}</div></div>
+                    <div class="flex justify-between border-b border-white/5 pb-2">
+                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Entrada</span>
+                        <span class="text-[10px] font-black text-zinc-200">${v.dataEntrada}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Saída</span>
+                        <span class="text-[10px] font-black text-zinc-200">${v.dataSaida}</span>
+                    </div>
+                    <div class="pt-2">
+                        <p class="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Serviço Realizado</p>
+                        <p class="text-[11px] text-zinc-400 font-medium uppercase leading-relaxed">${v.servico || 'NÃO DESCRITO'}</p>
+                    </div>
                 </div>
             `;
+            document.getElementById('btn-excluir-v').onclick = () => { if(confirm("EXCLUIR DEFINITIVAMENTE?")) { db = db.filter(i => i.id !== id); localStorage.setItem('controle_patio_db', JSON.stringify(db)); fecharDetalhe(); renderizar(); } };
             document.getElementById('modal-detalhe').classList.remove('hidden');
         }
 
         function fecharDetalhe() { document.getElementById('modal-detalhe').classList.add('hidden'); }
-        function atualizarStatus(id, status) { const i = db.findIndex(x => x.id === id); db[i].status = status; localStorage.setItem('controle_patio_db', JSON.stringify(db)); }
+        function atualizarStatus(id, s) { const i = db.findIndex(x => x.id === id); db[i].status = s; localStorage.setItem('controle_patio_db', JSON.stringify(db)); }
         function abrirSaida(id) { idSelecionado = id; document.getElementById('modal-saida').classList.remove('hidden'); }
         function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
 
@@ -235,10 +296,11 @@
 
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active', 'text-zinc-500'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-zinc-600'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
-            document.getElementById('btn-' + aba).classList.add('tab-active');
-            if(aba !== 'entrada') document.getElementById('btn-entrada').classList.remove('tab-active');
+            document.getElementById('btn-' + aba).classList.add('active-tab');
+            if(aba !== 'entrada') document.getElementById('btn-entrada').classList.remove('active-tab');
+            renderizar();
         }
 
         document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];

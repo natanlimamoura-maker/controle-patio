@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PÁTIO PRO v6.8</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PátioPro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3004/3004613.png">
+    
+    <title>PÁTIO PRO v6.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
         body { background-color: #050505; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
@@ -13,6 +21,9 @@
         input, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; }
         .tab-anim { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Impede seleção de texto para parecer app nativo */
+        * { user-select: none; -webkit-user-select: none; }
+        input, textarea { user-select: text; -webkit-user-select: text; }
     </style>
 </head>
 <body class="pb-10">
@@ -27,7 +38,7 @@
         <section id="aba-menu" class="tab-anim space-y-6 pt-4">
             <div class="glass p-8 rounded-[2.5rem] text-center mb-8 border-b-4 border-red-600 shadow-2xl">
                 <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Painel de Controle</p>
-                <h2 class="text-3xl font-black italic uppercase leading-none text-white" id="banner-nome">PÁTIO<br><span class="text-red-600">PRO</span></h2>
+                <h2 class="text-3xl font-black italic uppercase leading-none text-white" id="banner-nome">PÁTIO<span class="text-red-600">PRO</span></h2>
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <button onclick="trocarAba('entrada')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center">
@@ -91,6 +102,7 @@
                 <input id="chave-renovacao" type="password" placeholder="CHAVE" class="w-full p-4 rounded-xl text-xs font-bold text-center">
                 <button onclick="renovarAssinatura()" class="w-full bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase">Renovar +30 Dias</button>
             </div>
+            <button onclick="limparTudo()" class="w-full text-[8px] text-zinc-800 font-black uppercase opacity-20">Resetar App</button>
         </section>
     </main>
 
@@ -100,20 +112,13 @@
             <img id="edit-img" class="w-full h-32 object-cover rounded-2xl border border-white/10">
             
             <div class="space-y-2">
-                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Placa</label>
-                <input id="edit-placa" type="text" class="w-full p-3 rounded-xl font-black text-center text-xl uppercase">
-                
-                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Modelo</label>
-                <input id="edit-modelo" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase">
-                
-                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Telefone</label>
-                <input id="edit-telefone" type="tel" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase">
-                
-                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Serviço / Obs</label>
+                <input id="edit-placa" type="text" class="w-full p-3 rounded-xl font-black text-center text-xl uppercase" placeholder="PLACA">
+                <input id="edit-modelo" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="MODELO">
+                <input id="edit-telefone" type="tel" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase" placeholder="TELEFONE">
                 <textarea id="edit-servico" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase h-20" placeholder="DESCREVA O SERVIÇO..."></textarea>
             </div>
             
-            <div id="info-datas" class="bg-black/40 p-3 rounded-xl text-[8px] font-bold text-zinc-400 space-y-1 hidden">
+            <div id="info-datas" class="bg-black/40 p-3 rounded-xl text-[8px] font-bold text-zinc-400 space-y-1">
                 <p id="data-entrada"></p>
                 <p id="data-saida"></p>
             </div>
@@ -162,17 +167,7 @@
         function salvarRegistro() {
             const placa = document.getElementById('placa').value.toUpperCase();
             if(!placa || !fotoFinal) return alert("Falta foto ou placa!");
-            db.push({ 
-                id: Date.now(), 
-                placa, 
-                modelo: document.getElementById('modelo').value.toUpperCase(), 
-                telefone: document.getElementById('telefone').value,
-                foto: fotoFinal, 
-                entrada: new Date().toLocaleString('pt-BR'), 
-                saida: '', 
-                servico: '', 
-                ativo: true 
-            });
+            db.push({ id: Date.now(), placa, modelo: document.getElementById('modelo').value.toUpperCase(), telefone: document.getElementById('telefone').value, foto: fotoFinal, entrada: new Date().toLocaleString('pt-BR'), saida: '', servico: '', ativo: true });
             localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload();
         }
 
@@ -211,12 +206,8 @@
             document.getElementById('edit-modelo').value = v.modelo;
             document.getElementById('edit-telefone').value = v.telefone || "";
             document.getElementById('edit-servico').value = v.servico || "";
-            
-            const infoDatas = document.getElementById('info-datas');
-            infoDatas.classList.remove('hidden');
             document.getElementById('data-entrada').innerText = "ENTRADA: " + v.entrada;
             document.getElementById('data-saida').innerText = v.saida ? "SAÍDA: " + v.saida : "STATUS: NO PÁTIO";
-            
             document.getElementById('btn-concluir-saida').classList.add('hidden');
             document.getElementById('btn-excluir').classList.toggle('hidden', !historico);
             document.getElementById('modal-edit').classList.remove('hidden');
@@ -249,17 +240,19 @@
 
         function excluirRegistro() { if(confirm("Apagar permanentemente?")) { db = db.filter(x => x.id !== idAtual); localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload(); } }
         function fecharModal() { document.getElementById('modal-edit').classList.add('hidden'); }
-        function trocarAba(aba) { document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('aba-' + aba).classList.remove('hidden'); renderizar(); }
+        function trocarAba(aba) { document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('aba-' + aba).classList.remove('hidden'); renderizar(); window.scrollTo(0,0); }
         function irParaMenu() { trocarAba('menu'); }
         function salvarNomeOficina() { config.nomeOficina = document.getElementById('input-nome-oficina').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
+        
         function verificarLicenca() { 
             const hoje = new Date().getTime(); const faltam = Math.ceil((config.validade - hoje) / (1000 * 60 * 60 * 24));
             document.getElementById('texto-validade').innerText = faltam > 0 ? `Licença: ${faltam} dias` : "Expirado";
-            if (hoje > config.validade) document.body.innerHTML = "<h1 style='color:red;text-align:center;padding-top:50px;font-family:sans-serif;'>ASSINATURA EXPIRADA</h1>";
+            if (hoje > config.validade) document.body.innerHTML = "<div style='background:#000;color:red;height:100vh;display:flex;align-items:center;justify-content:center;font-weight:900;text-align:center;'>ASSINATURA EXPIRADA<br>FALE COM O SUPORTE</div>";
         }
+        
         function renovarAssinatura() { if (document.getElementById('chave-renovacao').value.toUpperCase() === MASTER_KEY) { config.validade += (30 * 24 * 60 * 60 * 1000); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); } }
         function removerFoto() { fotoFinal = ""; document.getElementById('container-preview').classList.add('hidden'); document.getElementById('label-foto').classList.remove('hidden'); }
-        function limparTudo() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
+        function limparTudo() { if(confirm("Resetar tudo?")) { localStorage.clear(); location.reload(); } }
 
         init();
     </script>

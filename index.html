@@ -3,86 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>PRO Controle de Pátio</title>
+    <title>PATIO PRO v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-red: #dc2626; --dark-bg: #000000; }
-        body { background-color: var(--dark-bg); color: #ffffff; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-        .card-atraso { border-left: 6px solid var(--primary-red); }
-        .hidden { display: none; }
-        input, select, textarea { 
-            background-color: #111 !important; 
-            color: white !important; 
-            border: 1px solid #333 !important;
+        body { 
+            background: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        input:focus { border-color: var(--primary-red) !important; outline: none; }
-        .tab-active { color: var(--primary-red); border-top: 2px solid var(--primary-red); }
-        .btn-status { font-size: 10px; font-weight: 900; text-transform: uppercase; }
+
+        /* Efeito Vidro nos Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+        }
+
+        /* Status Customizados */
+        .status-badge {
+            background: #dc2626;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Animações */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Estilo da Navegação */
+        .nav-blur {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-active {
+            color: #ef4444;
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        input, select, textarea {
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
-<body class="font-sans pb-24 select-none">
+<body class="pb-28">
 
-    <header class="bg-black p-4 sticky top-0 z-50 border-b border-red-900/50">
-        <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-2">
-                <span class="text-red-600 text-2xl font-bold italic">PRO</span>
-                <h1 class="text-lg font-black tracking-tighter uppercase">Pátio</h1>
+    <header class="p-6 sticky top-0 z-40 bg-black/60 backdrop-blur-md">
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-[10px] font-black tracking-[0.3em] text-red-500 uppercase">Sistema de Gestão</p>
+                <h1 class="text-2xl font-black italic tracking-tighter uppercase leading-none">Pátio<span class="text-red-600">PRO</span></h1>
             </div>
-            <div id="contador" class="bg-red-600 text-[10px] font-black px-3 py-1 rounded shadow-lg">0 VEÍCULOS</div>
+            <div id="contador" class="text-[11px] font-bold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
+                0 VEÍCULOS
+            </div>
         </div>
-        <input id="buscaPlaca" type="text" oninput="renderizar()" placeholder="🔍 BUSCAR PLACA..." class="w-full p-3 rounded-lg text-xs font-black uppercase outline-none">
     </header>
 
-    <main class="p-4 max-w-md mx-auto">
-        <section id="aba-patio" class="space-y-4"></section>
+    <main class="px-5 max-w-lg mx-auto">
+        
+        <div class="mb-8 fade-in">
+            <div class="relative group">
+                <input id="buscaPlaca" type="text" oninput="renderizar()" placeholder="Pesquisar placa..." 
+                    class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-sm focus:bg-white/10 focus:border-red-500/50 outline-none transition-all">
+                <span class="absolute right-4 top-4 opacity-30 text-lg">🔍</span>
+            </div>
+        </div>
 
-        <section id="aba-entrada" class="hidden">
-            <div class="bg-[#0a0a0a] p-5 rounded-xl border border-zinc-900 space-y-4">
-                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg font-black text-sm uppercase">
-                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg font-black text-sm uppercase">
-                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg font-black text-sm uppercase">
-                <input id="dataEntrada" type="date" class="w-full p-4 rounded-lg font-black text-sm uppercase">
+        <section id="aba-patio" class="space-y-5"></section>
+
+        <section id="aba-entrada" class="hidden fade-in">
+            <div class="glass-card p-6 space-y-5 border-red-500/20">
+                <h2 class="text-xl font-black uppercase italic text-red-500 mb-2">Nova Entrada</h2>
                 
-                <div class="bg-black border-2 border-dashed border-zinc-800 p-6 rounded-lg text-center relative">
-                    <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                    <label for="fotoInput" class="cursor-pointer block">
-                        <div id="loading-foto" class="hidden mb-2 text-red-500 animate-pulse text-xs font-black">COMPRIMINDO...</div>
-                        <div class="text-3xl mb-1">📸</div>
-                        <div class="text-zinc-500 font-black text-[10px] uppercase">Toque para Tirar Foto</div>
-                    </label>
-                    <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-zinc-800"></canvas>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-zinc-500 uppercase ml-2">Identificação</label>
+                        <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-xl bg-black border border-zinc-800 font-black text-lg text-red-500 placeholder:text-zinc-700">
+                    </div>
+                    <input id="modelo" type="text" placeholder="Modelo do Caminhão" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
+                    <input id="nomeCliente" type="text" placeholder="Nome do Cliente" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
+                    <input id="dataEntrada" type="date" class="w-full p-4 rounded-xl bg-black border border-zinc-800 text-sm uppercase">
                 </div>
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-lg uppercase text-sm shadow-lg">Confirmar Entrada</button>
+
+                <div class="pt-2">
+                    <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
+                    <label for="fotoInput" class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-zinc-800 rounded-2xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
+                        <div id="loading-foto" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center rounded-2xl z-10 text-red-500 font-bold text-xs">COMPRIMINDO...</div>
+                        <span class="text-4xl mb-2">📸</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">Capturar Imagem</span>
+                    </label>
+                    <canvas id="canvasPreview" class="hidden w-full rounded-xl mt-4 border border-zinc-800"></canvas>
+                </div>
+
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl shadow-[0_10px_20px_rgba(220,38,38,0.3)] uppercase text-sm tracking-widest transition-all active:scale-95">
+                    Finalizar Cadastro
+                </button>
             </div>
         </section>
 
-        <section id="aba-historico" class="hidden space-y-3"></section>
+        <section id="aba-historico" class="hidden fade-in space-y-3"></section>
     </main>
 
-    <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[60]">
-        <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-zinc-800">
-            <h3 class="font-black text-lg mb-4 text-red-600 uppercase italic">Finalizar Serviço</h3>
-            <textarea id="servicoRealizado" placeholder="O QUE FOI FEITO NO CAMINHÃO?" class="w-full p-4 rounded-lg h-32 outline-none resize-none text-sm font-black uppercase mb-4"></textarea>
-            <div class="flex gap-2">
-                <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Dar Saída</button>
-                <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-black text-xs uppercase">Voltar</button>
+    <div id="modal-saida" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-[60] backdrop-blur-sm">
+        <div class="glass-card p-6 w-full max-w-sm">
+            <h3 class="font-black text-xl mb-4 text-red-500 uppercase italic">Concluir Ordem</h3>
+            <textarea id="servicoRealizado" placeholder="Descreva o serviço realizado..." class="w-full p-4 rounded-xl bg-black border border-zinc-800 h-32 text-sm focus:border-red-500 outline-none mb-4"></textarea>
+            <div class="flex gap-3">
+                <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-xl font-black text-xs uppercase shadow-lg shadow-red-900/20">Dar Saída</button>
+                <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-zinc-400 p-4 rounded-xl font-black text-xs uppercase">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-black border-t border-zinc-900 flex justify-around p-3 z-50">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active">
-            <span>🚛</span><span class="text-[9px] font-black mt-1 uppercase">Pátio</span>
+    <nav class="fixed bottom-6 left-6 right-6 nav-blur rounded-3xl p-4 z-50 flex justify-around items-center shadow-2xl border border-white/5">
+        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active transition-all">
+            <span class="text-xl">🚛</span>
+            <span class="text-[8px] font-black mt-1 uppercase tracking-tighter">Pátio</span>
         </button>
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-600">
-            <span>➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span>
+        <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-500 hover:text-white">
+            <span class="text-3xl -mt-6 bg-red-600 text-white p-3 rounded-full shadow-xl border-4 border-[#0a0a0a]">➕</span>
         </button>
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
-            <span>📜</span><span class="text-[9px] font-black mt-1 uppercase">Relatórios</span>
+        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-500 hover:text-white">
+            <span class="text-xl">📜</span>
+            <span class="text-[8px] font-black mt-1 uppercase tracking-tighter">Histórico</span>
         </button>
     </nav>
 
@@ -91,38 +142,24 @@
         let fotoFinal = "";
         let idSelecionado = null;
 
-        // FUNÇÃO DE COMPRESSÃO REAL (DIMINUI PARA ~130KB)
+        // LÓGICA DE FOTO E COMPRESSÃO (Alvo 130KB)
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             document.getElementById('loading-foto').classList.remove('hidden');
             const reader = new FileReader();
-
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-
-                    // Redimensiona para no máximo 800px (ideal para 130KB)
-                    let width = img.width;
-                    let height = img.height;
+                    let width = img.width, height = img.height;
                     const max_size = 800;
-
-                    if (width > height) {
-                        if (width > max_size) { height *= max_size / width; width = max_size; }
-                    } else {
-                        if (height > max_size) { width *= max_size / height; height = max_size; }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
+                    if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
+                    else { if (height > max_size) { width *= max_size / height; height = max_size; } }
+                    canvas.width = width; canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-
-                    // Exporta como JPEG qualidade 0.6 (Ótimo equilíbrio)
                     fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
-                    
                     document.getElementById('loading-foto').classList.add('hidden');
                     canvas.classList.remove('hidden');
                 };
@@ -133,8 +170,7 @@
 
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Tire a foto e preencha a placa!");
-
+            if(!placa || !fotoFinal) return alert("Falta a foto ou a placa!");
             db.push({
                 id: Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
@@ -145,7 +181,6 @@
                 status: 'Diagnóstico',
                 ativo: true
             });
-
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
             location.reload();
         }
@@ -163,13 +198,16 @@
                 if(v.ativo) {
                     contador++;
                     containerPatio.innerHTML += `
-                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 card-atraso">
-                            <div class="flex gap-4">
-                                <img src="${v.foto}" class="w-20 h-20 object-cover rounded border border-zinc-800">
-                                <div class="flex-1">
-                                    <h3 class="font-black text-red-600 text-xl italic">${v.placa}</h3>
-                                    <p class="text-xs font-black text-zinc-300 uppercase">${v.modelo}</p>
-                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full mt-2 p-2 rounded btn-status">
+                        <div class="glass-card overflow-hidden fade-in border-l-4 border-red-600">
+                            <div class="flex p-4 gap-4">
+                                <div class="relative">
+                                    <img src="${v.foto}" class="w-24 h-24 object-cover rounded-xl border border-white/10">
+                                    <span class="absolute -top-2 -left-2 bg-red-600 text-[8px] font-black px-2 py-1 rounded-md shadow-lg italic">EM PÁTIO</span>
+                                </div>
+                                <div class="flex-1 flex flex-col justify-center">
+                                    <h3 class="font-black text-white text-2xl tracking-tighter italic leading-none mb-1">${v.placa}</h3>
+                                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">${v.modelo || 'Caminhão s/ modelo'}</p>
+                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-black uppercase text-red-500 outline-none">
                                         <option value="Diagnóstico" ${v.status=='Diagnóstico'?'selected':''}>Diagnóstico</option>
                                         <option value="Desmontagem" ${v.status=='Desmontagem'?'selected':''}>Desmontagem</option>
                                         <option value="Montagem" ${v.status=='Montagem'?'selected':''}>Montagem</option>
@@ -177,17 +215,19 @@
                                     </select>
                                 </div>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 text-white py-3 rounded font-black text-[10px] uppercase border border-zinc-800">Dar Saída</button>
+                            <div class="p-4 bg-white/5 border-t border-white/5">
+                                <button onclick="abrirSaida(${v.id})" class="w-full bg-zinc-800/50 text-zinc-300 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Liberar Saída</button>
+                            </div>
                         </div>
                     `;
                 } else {
                     containerHist.innerHTML += `
-                        <div class="bg-[#0a0a0a] p-3 rounded border border-zinc-900 flex justify-between items-center">
+                        <div class="glass-card p-4 flex justify-between items-center border-l border-zinc-700 opacity-80">
                             <div>
-                                <p class="font-black text-zinc-200">${v.placa}</p>
-                                <p class="text-[8px] text-zinc-500 uppercase">Saída: ${v.dataSaida}</p>
+                                <p class="font-black text-white italic">${v.placa}</p>
+                                <p class="text-[9px] text-zinc-500 uppercase font-bold">${v.dataSaida} • ${v.status}</p>
                             </div>
-                            <span class="text-[9px] font-black text-red-600 uppercase">${v.status}</span>
+                            <button class="text-zinc-600">👁️</button>
                         </div>
                     `;
                 }
@@ -215,9 +255,10 @@
 
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active', 'text-zinc-500'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
             document.getElementById('btn-' + aba).classList.add('tab-active');
+            if(aba !== 'entrada') document.getElementById('btn-entrada').classList.remove('tab-active');
         }
 
         document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];

@@ -6,61 +6,73 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>PÁTIO PRO ELITE</title>
+    <title>PÁTIO PRO v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #ef4444; }
-        body { 
-            background-color: #050505;
-            color: #f4f4f5;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .glass {
-            background: rgba(18, 18, 18, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .page-transition { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        
-        input, select, textarea {
-            background: #111 !important;
-            border: 1px solid #222 !important;
-            color: white !important;
-        }
-        .btn-plus {
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
-            transform: translateY(-20px);
-        }
-        .active-tab { color: var(--accent); }
-        canvas { max-width: 100%; height: auto; border-radius: 1rem; }
+        body { background-color: #050505; color: #f4f4f5; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .glass { background: rgba(18, 18, 18, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .page-transition { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        input, select, textarea { background: #111 !important; border: 1px solid #222 !important; color: white !important; outline: none; }
+        .menu-card { background: linear-gradient(145deg, #111, #080808); border: 1px solid #222; transition: all 0.2s; }
+        .menu-card:active { transform: scale(0.95); background: #1a1a1a; }
+        .btn-voltar { font-size: 10px; font-weight: 900; color: #555; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
-<body class="pb-36">
+<body class="pb-10">
 
-    <header class="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-lg border-b border-white/5">
-        <div>
+    <header class="p-6 sticky top-0 z-40 bg-[#050505]/90 backdrop-blur-lg border-b border-white/5 flex justify-between items-center">
+        <div id="header-voltar" class="hidden">
+            <button onclick="irParaMenu()" class="btn-voltar flex items-center gap-2">
+                <span class="text-lg">←</span> VOLTAR
+            </button>
+        </div>
+        <div id="header-logo">
             <h1 class="text-xl font-black tracking-tighter italic uppercase leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
-            <p class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase mt-1">Gestão Profissional</p>
         </div>
         <div id="contador" class="bg-red-600/10 border border-red-500/20 text-red-500 text-[10px] font-black px-4 py-2 rounded-full">0 VEÍCULOS</div>
     </header>
 
     <main class="p-5 max-w-lg mx-auto">
-        <div class="mb-6 page-transition">
-            <div class="relative">
-                <input id="buscaPlaca" type="text" onkeyup="renderizar()" placeholder="PESQUISAR PLACA..." 
-                    class="w-full p-4 pl-12 rounded-2xl text-xs font-bold uppercase outline-none focus:border-red-500">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-20">🔍</span>
+        
+        <section id="aba-menu" class="page-transition space-y-6 pt-4">
+            <div class="glass p-8 rounded-[2.5rem] text-center mb-8 border-b-4 border-red-600">
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Bem-vindo ao Painel</p>
+                <h2 class="text-3xl font-black italic uppercase leading-none">CONTROLE DE<br><span class="text-red-500">FLUXO</span></h2>
             </div>
-        </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="trocarAba('entrada')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center">
+                    <span class="text-3xl mb-3">➕</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Nova Entrada</span>
+                </button>
+                <button onclick="trocarAba('patio')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center">
+                    <span class="text-3xl mb-3">🚛</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Ver Pátio</span>
+                </button>
+                <button onclick="trocarAba('historico')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center">
+                    <span class="text-3xl mb-3">📜</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Relatórios</span>
+                </button>
+                <button onclick="alert('Funcionalidade em breve!')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center opacity-40">
+                    <span class="text-3xl mb-3">⚙️</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Ajustes</span>
+                </button>
+            </div>
+        </section>
 
-        <section id="aba-patio" class="space-y-4"></section>
+        <section id="aba-patio" class="hidden page-transition space-y-4">
+            <div class="mb-4">
+                <input id="buscaPlaca" type="text" onkeyup="renderizar()" placeholder="PESQUISAR PLACA..." class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
+            </div>
+            <div id="lista-patio" class="space-y-4"></div>
+        </section>
 
         <section id="aba-entrada" class="hidden page-transition">
             <div class="glass p-6 rounded-[2rem] space-y-6">
+                <h2 id="titulo-form" class="text-lg font-black uppercase italic text-center text-red-500">Cadastro de Veículo</h2>
                 <div class="space-y-4">
                     <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-xl text-red-500 uppercase">
                     <input id="modelo" type="text" placeholder="MODELO DO VEÍCULO" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
@@ -68,122 +80,129 @@
                     <input id="dataEntrada" type="date" class="w-full p-4 rounded-2xl text-xs font-bold">
                 </div>
 
-                <div class="pt-2">
+                <div class="pt-2 relative">
                     <input id="fotoInput" type="file" accept="image/*" class="hidden">
-                    <label for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 active:scale-95 transition-all relative">
-                        <div id="loading-foto" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center rounded-3xl z-10">
-                            <span class="text-red-500 font-black text-[10px] animate-pulse">COMPRIMINDO...</span>
-                        </div>
+                    
+                    <button id="btn-remover-foto" onclick="removerFoto()" class="hidden absolute top-4 right-4 z-20 bg-red-600 text-white p-2 rounded-full text-[8px] font-black shadow-lg uppercase">Remover ✕</button>
+
+                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 relative">
+                        <div id="loading-foto" class="hidden absolute inset-0 bg-black/90 flex items-center justify-center rounded-3xl z-10"><span class="text-red-500 font-black text-[10px] animate-pulse">PROCESSANDO...</span></div>
                         <span class="text-4xl mb-2">📸</span>
-                        <span class="text-[9px] font-black uppercase text-zinc-500 text-center">Tirar Foto ou Galeria</span>
+                        <span class="text-[9px] font-black uppercase text-zinc-500">Foto (Câmera ou Galeria)</span>
                     </label>
-                    <canvas id="canvasPreview" class="hidden mt-4 border border-white/5"></canvas>
+                    <canvas id="canvasPreview" class="hidden mt-4 mx-auto border border-white/5 rounded-2xl shadow-2xl"></canvas>
                 </div>
 
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition-all shadow-lg">Registrar Entrada</button>
+                <button id="btn-salvar" onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all">Confirmar Registro</button>
             </div>
         </section>
 
-        <section id="aba-historico" class="hidden page-transition space-y-3"></section>
+        <section id="aba-historico" class="hidden page-transition space-y-3">
+            <h2 class="text-xs font-black text-zinc-500 uppercase tracking-widest mb-4">Arquivos de Saída</h2>
+            <div id="lista-historico" class="space-y-3"></div>
+        </section>
     </main>
 
-    <div id="modal-detalhe" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[70] backdrop-blur-xl">
-        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div id="conteudo-detalhe"></div>
-            <div class="flex flex-col gap-3 mt-6">
-                <button onclick="fecharDetalhe()" class="w-full bg-zinc-800 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Fechar</button>
-                <button id="btn-excluir-v" class="w-full text-red-900 font-bold text-[9px] uppercase">Excluir Registro</button>
-            </div>
-        </div>
-    </div>
-
     <div id="modal-saida" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-[60]">
-        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm">
-            <h3 class="font-black text-xl mb-6 text-center italic">ORDEM DE SAÍDA</h3>
-            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-40 text-sm font-medium outline-none mb-6 uppercase" placeholder="SERVIÇO REALIZADO..."></textarea>
+        <div class="glass p-8 rounded-[3rem] w-full max-w-sm">
+            <h3 class="font-black text-xl mb-6 text-center italic text-red-500 uppercase">Finalizar Serviço</h3>
+            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-40 text-sm font-medium mb-6 uppercase border-white/10" placeholder="DESCREVA O SERVIÇO..."></textarea>
             <div class="flex flex-col gap-3">
-                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase active:scale-95 transition-all">Concluir Saída</button>
+                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg">Concluir Agora</button>
                 <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase p-2">Voltar</button>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-8 left-8 right-8 h-20 glass rounded-[2.5rem] z-50 flex justify-around items-center px-4 border border-white/10">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center active-tab">
-            <span class="text-xl">🏠</span><span class="text-[8px] font-black mt-1 uppercase">Pátio</span>
-        </button>
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="btn-plus bg-red-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-3xl border-[6px] border-[#050505]">
-            <span class="mb-1">＋</span>
-        </button>
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
-            <span class="text-xl">📊</span><span class="text-[8px] font-black mt-1 uppercase">Histórico</span>
-        </button>
-    </nav>
-
     <script>
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
         let fotoFinal = "";
         let idSelecionado = null;
+        let modoEdicao = false;
+        let idEdicao = null;
 
-        // LÓGICA DE COMPRESSÃO E SELEÇÃO DE ARQUIVO
+        // SELEÇÃO E COMPRESSÃO DE IMAGEM
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
-            if (!file.type.match('image.*')) {
-                alert("Por favor, selecione apenas fotos!");
-                return;
-            }
-
             document.getElementById('loading-foto').classList.remove('hidden');
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = (event) => {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = () => {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-                    
-                    // COMPRESSÃO AGRESSIVA (Alvo 130-160KB)
-                    let max_size = 800; 
-                    let w = img.width, h = img.height;
-                    if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
-                    else { if (h > max_size) { w *= max_size / h; h = max_size; } }
-
+                    let max = 800, w = img.width, h = img.height;
+                    if (w > h) { if (w > max) { h *= max / w; w = max; } }
+                    else { if (h > max) { w *= max / h; h = max; } }
                     canvas.width = w; canvas.height = h;
                     ctx.drawImage(img, 0, 0, w, h);
-
-                    // Qualidade 0.5 (Ideal para fotos pesadas da galeria)
                     fotoFinal = canvas.toDataURL('image/jpeg', 0.5);
                     
                     document.getElementById('loading-foto').classList.add('hidden');
                     canvas.classList.remove('hidden');
+                    document.getElementById('label-foto').classList.add('hidden');
+                    document.getElementById('btn-remover-foto').classList.remove('hidden');
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
 
-        function salvarEntrada() {
+        function removerFoto() {
+            fotoFinal = "";
+            document.getElementById('fotoInput').value = "";
+            document.getElementById('canvasPreview').classList.add('hidden');
+            document.getElementById('label-foto').classList.remove('hidden');
+            document.getElementById('btn-remover-foto').classList.add('hidden');
+        }
+
+        function salvarRegistro() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Preencha Placa e Foto!");
-            db.push({
-                id: Date.now(),
+            if(!placa || !fotoFinal) return alert("Erro: Preencha Placa e Foto!");
+
+            const dados = {
+                id: modoEdicao ? idEdicao : Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
                 modelo: document.getElementById('modelo').value,
                 placa: placa,
                 dataEntrada: document.getElementById('dataEntrada').value,
                 foto: fotoFinal,
-                status: 'Diagnóstico',
+                status: modoEdicao ? db.find(x => x.id === idEdicao).status : 'Diagnóstico',
                 ativo: true
-            });
+            };
+
+            if(modoEdicao) {
+                const idx = db.findIndex(x => x.id === idEdicao);
+                db[idx] = dados;
+            } else {
+                db.push(dados);
+            }
+
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
             location.reload();
         }
 
+        function irParaMenu() {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('aba-menu').classList.remove('hidden');
+            document.getElementById('header-voltar').classList.add('hidden');
+            document.getElementById('header-logo').classList.remove('hidden');
+            modoEdicao = false;
+        }
+
+        function trocarAba(aba) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('aba-' + aba).classList.remove('hidden');
+            document.getElementById('header-voltar').classList.remove('hidden');
+            document.getElementById('header-logo').classList.add('hidden');
+            renderizar();
+        }
+
         function renderizar() {
             const busca = document.getElementById('buscaPlaca').value.toUpperCase();
-            const containerPatio = document.getElementById('aba-patio');
-            const containerHist = document.getElementById('aba-historico');
+            const containerPatio = document.getElementById('lista-patio');
+            const containerHist = document.getElementById('lista-historico');
             containerPatio.innerHTML = ""; containerHist.innerHTML = "";
             let contador = 0;
 
@@ -194,12 +213,18 @@
                     contador++;
                     containerPatio.innerHTML += `
                         <div class="glass rounded-[2rem] overflow-hidden page-transition border-l-4 border-red-600">
-                            <div class="flex p-5 gap-5">
-                                <img src="${v.foto}" class="w-24 h-24 object-cover rounded-2xl border border-white/5">
+                            <div class="flex p-4 gap-4">
+                                <img src="${v.foto}" class="w-20 h-20 object-cover rounded-2xl">
                                 <div class="flex-1">
-                                    <h3 class="text-2xl font-black italic text-white uppercase">${v.placa}</h3>
-                                    <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">${v.modelo || 'VEÍCULO'}</p>
-                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-[10px] font-black uppercase text-red-500">
+                                    <div class="flex justify-between">
+                                        <h3 class="text-xl font-black italic text-white uppercase">${v.placa}</h3>
+                                        <div class="flex gap-3">
+                                            <button onclick="prepararEdicao(${v.id})" class="text-zinc-500">✏️</button>
+                                            <button onclick="excluirRegistro(${v.id})" class="text-zinc-500">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <p class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">${v.modelo || 'VEÍCULO'}</p>
+                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full bg-black border border-white/5 rounded-lg p-2 text-[9px] font-black text-red-500 uppercase">
                                         <option value="Diagnóstico" ${v.status=='Diagnóstico'?'selected':''}>Diagnóstico</option>
                                         <option value="Desmontagem" ${v.status=='Desmontagem'?'selected':''}>Desmontagem</option>
                                         <option value="Montagem" ${v.status=='Montagem'?'selected':''}>Montagem</option>
@@ -207,15 +232,14 @@
                                     </select>
                                 </div>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full bg-white/5 text-zinc-400 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest">Liberar Saída</button>
+                            <button onclick="abrirSaida(${v.id})" class="w-full bg-white/5 text-zinc-500 py-3 text-[9px] font-black uppercase tracking-widest">Registrar Saída</button>
                         </div>
                     `;
                 } else {
                     containerHist.innerHTML += `
-                        <div onclick="verDetalhe(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center opacity-70">
-                            <div><p class="font-black text-white italic text-lg leading-none uppercase">${v.placa}</p>
-                            <p class="text-[8px] text-zinc-500 uppercase font-bold mt-1">${v.dataSaida}</p></div>
-                            <span class="text-xs">👁️</span>
+                        <div class="glass p-5 rounded-2xl flex justify-between items-center opacity-60">
+                            <div><p class="font-black text-white italic text-sm uppercase">${v.placa}</p><p class="text-[8px] text-zinc-500 font-bold">SAÍDA: ${v.dataSaida}</p></div>
+                            <button onclick="excluirRegistro(${v.id})" class="text-lg">🗑️</button>
                         </div>
                     `;
                 }
@@ -223,34 +247,38 @@
             document.getElementById('contador').innerText = `${contador} VEÍCULOS`;
         }
 
-        function verDetalhe(id) {
+        function prepararEdicao(id) {
             const v = db.find(x => x.id === id);
-            idSelecionado = id;
-            document.getElementById('conteudo-detalhe').innerHTML = `
-                <img src="${v.foto}" class="w-full h-56 object-cover rounded-[2rem] border border-white/10 mb-6">
-                <div class="text-center mb-6">
-                    <h3 class="text-4xl font-black text-red-600 italic uppercase">${v.placa}</h3>
-                    <p class="text-xs font-bold text-zinc-400 uppercase">${v.modelo || 'VEÍCULO'}</p>
-                </div>
-                <div class="space-y-4 bg-black/40 p-5 rounded-3xl border border-white/5 text-[10px] font-bold uppercase">
-                    <p class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">CLIENTE</span><span>${v.cliente || 'AVULSO'}</span></p>
-                    <p class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">ENTRADA</span><span>${v.dataEntrada}</span></p>
-                    <p class="flex justify-between"><span class="text-zinc-500">SAÍDA</span><span>${v.dataSaida}</span></p>
-                    <div class="pt-2 border-t border-white/5">
-                        <p class="text-red-500 mb-1">SERVIÇO REALIZADO</p>
-                        <p class="text-zinc-400 leading-relaxed">${v.servico || 'NÃO DESCRITO'}</p>
-                    </div>
-                </div>
-            `;
-            document.getElementById('btn-excluir-v').onclick = () => { if(confirm("EXCLUIR DEFINITIVAMENTE?")) { db = db.filter(i => i.id !== id); localStorage.setItem('controle_patio_db', JSON.stringify(db)); fecharDetalhe(); renderizar(); } };
-            document.getElementById('modal-detalhe').classList.remove('hidden');
+            modoEdicao = true; idEdicao = id;
+            document.getElementById('titulo-form').innerText = "Editar Veículo";
+            document.getElementById('placa').value = v.placa;
+            document.getElementById('modelo').value = v.modelo;
+            document.getElementById('nomeCliente').value = v.cliente;
+            document.getElementById('dataEntrada').value = v.dataEntrada;
+            fotoFinal = v.foto;
+            
+            const canvas = document.getElementById('canvasPreview');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => { canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img, 0, 0); canvas.classList.remove('hidden'); };
+            img.src = v.foto;
+            
+            document.getElementById('label-foto').classList.add('hidden');
+            document.getElementById('btn-remover-foto').classList.remove('hidden');
+            trocarAba('entrada');
         }
 
-        function fecharDetalhe() { document.getElementById('modal-detalhe').classList.add('hidden'); }
+        function excluirRegistro(id) {
+            if(confirm("Apagar registro permanentemente?")) {
+                db = db.filter(x => x.id !== id);
+                localStorage.setItem('controle_patio_db', JSON.stringify(db));
+                renderizar();
+            }
+        }
+
         function atualizarStatus(id, s) { const i = db.findIndex(x => x.id === id); db[i].status = s; localStorage.setItem('controle_patio_db', JSON.stringify(db)); }
         function abrirSaida(id) { idSelecionado = id; document.getElementById('modal-saida').classList.remove('hidden'); }
         function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
-
         function confirmarSaida() {
             const i = db.findIndex(x => x.id === idSelecionado);
             db[i].ativo = false;
@@ -260,16 +288,8 @@
             location.reload();
         }
 
-        function trocarAba(aba) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-zinc-600'));
-            document.getElementById('aba-' + aba).classList.remove('hidden');
-            document.getElementById('btn-' + aba).classList.add('active-tab');
-            if(aba !== 'entrada') document.getElementById('btn-entrada').classList.remove('active-tab');
-            renderizar();
-        }
-
         document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];
+        irParaMenu();
         renderizar();
     </script>
 </body>

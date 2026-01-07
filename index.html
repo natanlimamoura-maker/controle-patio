@@ -17,58 +17,43 @@
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Efeito de Vidro e Bordas */
         .glass {
             background: rgba(18, 18, 18, 0.7);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        .card-glow {
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
-        }
-
-        /* Animações Premium */
         .page-transition { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Estilização de Inputs */
+        
         input, select, textarea {
             background: #111 !important;
             border: 1px solid #222 !important;
-            transition: all 0.3s ease;
+            color: white !important;
         }
-        input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
-
-        /* Botão central de Entrada */
         .btn-plus {
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
             transform: translateY(-20px);
         }
-        
         .active-tab { color: var(--accent); }
+        canvas { max-width: 100%; height: auto; border-radius: 1rem; }
     </style>
 </head>
 <body class="pb-36">
 
     <header class="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-lg border-b border-white/5">
         <div>
-            <h1 class="text-xl font-black tracking-tighter italic uppercase italic leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
-            <p class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase mt-1">Gestão de Fluxo v2.5</p>
+            <h1 class="text-xl font-black tracking-tighter italic uppercase leading-none">PÁTIO<span class="text-red-500">PRO</span></h1>
+            <p class="text-[9px] font-bold text-zinc-500 tracking-widest uppercase mt-1">Gestão Profissional</p>
         </div>
-        <div id="contador" class="bg-red-600/10 border border-red-500/20 text-red-500 text-[10px] font-black px-4 py-2 rounded-full">
-            0 VEÍCULOS
-        </div>
+        <div id="contador" class="bg-red-600/10 border border-red-500/20 text-red-500 text-[10px] font-black px-4 py-2 rounded-full">0 VEÍCULOS</div>
     </header>
 
     <main class="p-5 max-w-lg mx-auto">
-        
         <div class="mb-6 page-transition">
-            <div class="relative group">
+            <div class="relative">
                 <input id="buscaPlaca" type="text" onkeyup="renderizar()" placeholder="PESQUISAR PLACA..." 
-                    class="w-full p-4 pl-12 rounded-2xl text-xs font-bold uppercase tracking-widest outline-none">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-20 group-focus-within:opacity-100 group-focus-within:text-red-500 transition-all">🔍</span>
+                    class="w-full p-4 pl-12 rounded-2xl text-xs font-bold uppercase outline-none focus:border-red-500">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-20">🔍</span>
             </div>
         </div>
 
@@ -76,37 +61,26 @@
 
         <section id="aba-entrada" class="hidden page-transition">
             <div class="glass p-6 rounded-[2rem] space-y-6">
-                <div class="text-center">
-                    <span class="text-3xl">📝</span>
-                    <h2 class="text-lg font-black uppercase italic mt-2">Check-in de Veículo</h2>
-                </div>
-                
                 <div class="space-y-4">
-                    <div class="relative">
-                        <label class="text-[9px] font-black text-zinc-500 uppercase ml-4 mb-1 block">Identificação</label>
-                        <input id="placa" type="text" placeholder="ABC-1234" class="w-full p-4 rounded-2xl font-black text-xl text-red-500 placeholder:text-zinc-800 uppercase">
-                    </div>
+                    <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-xl text-red-500 uppercase">
                     <input id="modelo" type="text" placeholder="MODELO DO VEÍCULO" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
                     <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-2xl text-xs font-bold uppercase">
                     <input id="dataEntrada" type="date" class="w-full p-4 rounded-2xl text-xs font-bold">
                 </div>
 
                 <div class="pt-2">
-                    <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                    <label for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 active:scale-95 transition-all">
+                    <input id="fotoInput" type="file" accept="image/*" class="hidden">
+                    <label for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-black/40 active:scale-95 transition-all relative">
                         <div id="loading-foto" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center rounded-3xl z-10">
-                            <div class="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                            <span class="text-red-500 font-black text-[10px]">PROCESSANDO...</span>
+                            <span class="text-red-500 font-black text-[10px] animate-pulse">COMPRIMINDO...</span>
                         </div>
                         <span class="text-4xl mb-2">📸</span>
-                        <span class="text-[9px] font-black uppercase text-zinc-500">Capturar Imagem</span>
+                        <span class="text-[9px] font-black uppercase text-zinc-500 text-center">Tirar Foto ou Galeria</span>
                     </label>
-                    <canvas id="canvasPreview" class="hidden w-full rounded-2xl mt-4 border border-white/5"></canvas>
+                    <canvas id="canvasPreview" class="hidden mt-4 border border-white/5"></canvas>
                 </div>
 
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all">
-                    Registrar Entrada
-                </button>
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-xs tracking-widest active:scale-95 transition-all shadow-lg">Registrar Entrada</button>
             </div>
         </section>
 
@@ -114,52 +88,53 @@
     </main>
 
     <div id="modal-detalhe" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-6 z-[70] backdrop-blur-xl">
-        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm border border-white/10 shadow-2xl">
+        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm border border-white/10 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div id="conteudo-detalhe"></div>
             <div class="flex flex-col gap-3 mt-6">
-                <button onclick="fecharDetalhe()" class="w-full bg-zinc-800 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Fechar Relatório</button>
-                <button id="btn-excluir-v" class="w-full text-red-900 font-bold text-[9px] uppercase tracking-tighter">Excluir Registro permanentemente</button>
+                <button onclick="fecharDetalhe()" class="w-full bg-zinc-800 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Fechar</button>
+                <button id="btn-excluir-v" class="w-full text-red-900 font-bold text-[9px] uppercase">Excluir Registro</button>
             </div>
         </div>
     </div>
 
     <div id="modal-saida" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center p-6 z-[60]">
-        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm border border-red-500/20">
-            <h3 class="font-black text-xl mb-2 text-center italic">ORDEM DE SAÍDA</h3>
-            <p class="text-[10px] text-zinc-500 text-center uppercase mb-6">Descreva os reparos realizados</p>
-            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-40 text-sm font-medium outline-none mb-6 uppercase" placeholder="EX: TROCA DE ÓLEO, REPARO NA SUSPENSÃO..."></textarea>
+        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm">
+            <h3 class="font-black text-xl mb-6 text-center italic">ORDEM DE SAÍDA</h3>
+            <textarea id="servicoRealizado" class="w-full p-5 rounded-2xl h-40 text-sm font-medium outline-none mb-6 uppercase" placeholder="SERVIÇO REALIZADO..."></textarea>
             <div class="flex flex-col gap-3">
-                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase shadow-lg active:scale-95 transition-all">Finalizar Agora</button>
-                <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase p-2">Cancelar</button>
+                <button onclick="confirmarSaida()" class="w-full bg-red-600 text-white p-5 rounded-2xl font-black text-xs uppercase active:scale-95 transition-all">Concluir Saída</button>
+                <button onclick="fecharModal()" class="w-full text-zinc-500 font-bold text-[10px] uppercase p-2">Voltar</button>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-8 left-8 right-8 h-20 glass rounded-[2.5rem] z-50 flex justify-around items-center px-4 border border-white/10 shadow-2xl">
-        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center active-tab transition-colors">
-            <span class="text-xl">🏠</span>
-            <span class="text-[8px] font-black mt-1 uppercase">Pátio</span>
+    <nav class="fixed bottom-8 left-8 right-8 h-20 glass rounded-[2.5rem] z-50 flex justify-around items-center px-4 border border-white/10">
+        <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center active-tab">
+            <span class="text-xl">🏠</span><span class="text-[8px] font-black mt-1 uppercase">Pátio</span>
         </button>
-        
-        <button onclick="trocarAba('entrada')" id="btn-entrada" class="btn-plus bg-red-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-3xl active:scale-90 transition-all border-[6px] border-[#050505]">
+        <button onclick="trocarAba('entrada')" id="btn-entrada" class="btn-plus bg-red-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-3xl border-[6px] border-[#050505]">
             <span class="mb-1">＋</span>
         </button>
-
-        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600 transition-colors">
-            <span class="text-xl">📊</span>
-            <span class="text-[8px] font-black mt-1 uppercase">Relatórios</span>
+        <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
+            <span class="text-xl">📊</span><span class="text-[8px] font-black mt-1 uppercase">Histórico</span>
         </button>
     </nav>
 
     <script>
-        // LÓGICA DE DADOS E COMPRESSÃO (Mantida para eficiência)
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
         let fotoFinal = "";
         let idSelecionado = null;
 
+        // LÓGICA DE COMPRESSÃO E SELEÇÃO DE ARQUIVO
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            if (!file.type.match('image.*')) {
+                alert("Por favor, selecione apenas fotos!");
+                return;
+            }
+
             document.getElementById('loading-foto').classList.remove('hidden');
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -167,12 +142,19 @@
                 img.onload = function() {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-                    let max = 800, w = img.width, h = img.height;
-                    if (w > h) { if (w > max) { h *= max / w; w = max; } }
-                    else { if (h > max) { w *= max / h; h = max; } }
+                    
+                    // COMPRESSÃO AGRESSIVA (Alvo 130-160KB)
+                    let max_size = 800; 
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
+                    else { if (h > max_size) { w *= max_size / h; h = max_size; } }
+
                     canvas.width = w; canvas.height = h;
                     ctx.drawImage(img, 0, 0, w, h);
-                    fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
+
+                    // Qualidade 0.5 (Ideal para fotos pesadas da galeria)
+                    fotoFinal = canvas.toDataURL('image/jpeg', 0.5);
+                    
                     document.getElementById('loading-foto').classList.add('hidden');
                     canvas.classList.remove('hidden');
                 };
@@ -183,7 +165,7 @@
 
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Erro: Foto e Placa são obrigatórios!");
+            if(!placa || !fotoFinal) return alert("Preencha Placa e Foto!");
             db.push({
                 id: Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
@@ -211,16 +193,13 @@
                 if(v.ativo) {
                     contador++;
                     containerPatio.innerHTML += `
-                        <div class="glass rounded-[2rem] overflow-hidden card-glow page-transition">
+                        <div class="glass rounded-[2rem] overflow-hidden page-transition border-l-4 border-red-600">
                             <div class="flex p-5 gap-5">
-                                <div class="relative">
-                                    <img src="${v.foto}" class="w-24 h-24 object-cover rounded-2xl border border-white/5">
-                                    <div class="absolute -top-2 -left-2 bg-red-600 text-[7px] font-black px-2 py-1 rounded-md italic shadow-lg">ATIVO</div>
-                                </div>
+                                <img src="${v.foto}" class="w-24 h-24 object-cover rounded-2xl border border-white/5">
                                 <div class="flex-1">
-                                    <h3 class="text-2xl font-black italic tracking-tighter leading-none mb-1 text-white uppercase">${v.placa}</h3>
+                                    <h3 class="text-2xl font-black italic text-white uppercase">${v.placa}</h3>
                                     <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">${v.modelo || 'VEÍCULO'}</p>
-                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-[10px] font-black uppercase text-red-500 outline-none">
+                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-[10px] font-black uppercase text-red-500">
                                         <option value="Diagnóstico" ${v.status=='Diagnóstico'?'selected':''}>Diagnóstico</option>
                                         <option value="Desmontagem" ${v.status=='Desmontagem'?'selected':''}>Desmontagem</option>
                                         <option value="Montagem" ${v.status=='Montagem'?'selected':''}>Montagem</option>
@@ -228,19 +207,15 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="px-5 pb-5">
-                                <button onclick="abrirSaida(${v.id})" class="w-full bg-white/5 hover:bg-white/10 text-zinc-400 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all">Liberar Saída</button>
-                            </div>
+                            <button onclick="abrirSaida(${v.id})" class="w-full bg-white/5 text-zinc-400 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest">Liberar Saída</button>
                         </div>
                     `;
                 } else {
                     containerHist.innerHTML += `
-                        <div onclick="verDetalhe(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center active:scale-95 transition-all opacity-70">
-                            <div>
-                                <p class="font-black text-white italic text-lg leading-none uppercase">${v.placa}</p>
-                                <p class="text-[8px] text-zinc-500 uppercase font-bold mt-1">${v.dataSaida} • ${v.status}</p>
-                            </div>
-                            <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center text-xs">👁️</div>
+                        <div onclick="verDetalhe(${v.id})" class="glass p-5 rounded-2xl flex justify-between items-center opacity-70">
+                            <div><p class="font-black text-white italic text-lg leading-none uppercase">${v.placa}</p>
+                            <p class="text-[8px] text-zinc-500 uppercase font-bold mt-1">${v.dataSaida}</p></div>
+                            <span class="text-xs">👁️</span>
                         </div>
                     `;
                 }
@@ -252,27 +227,18 @@
             const v = db.find(x => x.id === id);
             idSelecionado = id;
             document.getElementById('conteudo-detalhe').innerHTML = `
-                <img src="${v.foto}" class="w-full h-56 object-cover rounded-[2rem] border border-white/10 mb-6 shadow-2xl">
+                <img src="${v.foto}" class="w-full h-56 object-cover rounded-[2rem] border border-white/10 mb-6">
                 <div class="text-center mb-6">
-                    <h3 class="text-4xl font-black text-red-600 italic tracking-tighter uppercase leading-none">${v.placa}</h3>
-                    <p class="text-xs font-bold text-zinc-400 uppercase mt-1">${v.modelo || 'VEÍCULO'}</p>
+                    <h3 class="text-4xl font-black text-red-600 italic uppercase">${v.placa}</h3>
+                    <p class="text-xs font-bold text-zinc-400 uppercase">${v.modelo || 'VEÍCULO'}</p>
                 </div>
-                <div class="space-y-4 bg-black/40 p-5 rounded-3xl border border-white/5">
-                    <div class="flex justify-between border-b border-white/5 pb-2">
-                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Cliente</span>
-                        <span class="text-[10px] font-black text-white uppercase">${v.cliente || 'AVULSO'}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-white/5 pb-2">
-                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Entrada</span>
-                        <span class="text-[10px] font-black text-zinc-200">${v.dataEntrada}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Saída</span>
-                        <span class="text-[10px] font-black text-zinc-200">${v.dataSaida}</span>
-                    </div>
-                    <div class="pt-2">
-                        <p class="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1">Serviço Realizado</p>
-                        <p class="text-[11px] text-zinc-400 font-medium uppercase leading-relaxed">${v.servico || 'NÃO DESCRITO'}</p>
+                <div class="space-y-4 bg-black/40 p-5 rounded-3xl border border-white/5 text-[10px] font-bold uppercase">
+                    <p class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">CLIENTE</span><span>${v.cliente || 'AVULSO'}</span></p>
+                    <p class="flex justify-between border-b border-white/5 pb-2"><span class="text-zinc-500">ENTRADA</span><span>${v.dataEntrada}</span></p>
+                    <p class="flex justify-between"><span class="text-zinc-500">SAÍDA</span><span>${v.dataSaida}</span></p>
+                    <div class="pt-2 border-t border-white/5">
+                        <p class="text-red-500 mb-1">SERVIÇO REALIZADO</p>
+                        <p class="text-zinc-400 leading-relaxed">${v.servico || 'NÃO DESCRITO'}</p>
                     </div>
                 </div>
             `;

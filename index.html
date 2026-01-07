@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>PÁTIO PRO v6.5</title>
+    <title>PÁTIO PRO v6.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #050505; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        body { background-color: #050505; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .menu-card { background: linear-gradient(145deg, #111, #080808); border: 1px solid #1a1a1a; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
-        .menu-card:active { transform: scale(0.95); background: #1a1a1a; }
-        input { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; }
+        .menu-card { background: linear-gradient(145deg, #111, #080808); border: 1px solid #1a1a1a; transition: all 0.2s; }
+        input, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; }
         .tab-anim { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -20,7 +18,7 @@
 <body class="pb-10">
 
     <header class="p-6 sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-md border-b border-white/5 flex justify-between items-center">
-        <h1 onclick="irParaMenu()" class="text-xl font-black italic uppercase tracking-tighter cursor-pointer">PÁTIO<span class="text-red-600">PRO</span></h1>
+        <h1 onclick="irParaMenu()" class="text-xl font-black italic uppercase tracking-tighter cursor-pointer" id="header-nome">PÁTIO<span class="text-red-600">PRO</span></h1>
         <div id="contador" class="bg-red-600/20 border border-red-600/30 text-red-500 text-[10px] font-black px-4 py-2 rounded-full italic">0 VEÍCULOS</div>
     </header>
 
@@ -28,10 +26,9 @@
         
         <section id="aba-menu" class="tab-anim space-y-6 pt-4">
             <div class="glass p-8 rounded-[2.5rem] text-center mb-8 border-b-4 border-red-600 shadow-2xl">
-                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Sistema de Gestão</p>
-                <h2 class="text-3xl font-black italic uppercase leading-none text-white">PAINEL<br><span class="text-red-600">PRINCIPAL</span></h2>
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-2">Painel de Controle</p>
+                <h2 class="text-3xl font-black italic uppercase leading-none text-white" id="banner-nome">PÁTIO<br><span class="text-red-600">PRO</span></h2>
             </div>
-            
             <div class="grid grid-cols-2 gap-4">
                 <button onclick="trocarAba('entrada')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center">
                     <span class="text-4xl mb-3">➕</span>
@@ -53,212 +50,218 @@
         </section>
 
         <section id="aba-entrada" class="hidden tab-anim space-y-6">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase mb-2">← Voltar ao Menu</button>
-            <div class="glass p-6 rounded-[2.5rem] space-y-6">
-                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-2xl text-red-600 text-center uppercase shadow-inner">
-                
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Menu</button>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4">
+                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-2xl text-red-600 text-center uppercase">
                 <div class="relative">
                     <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-900/40">
+                    <label id="label-foto" for="fotoInput" class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-900/40 cursor-pointer">
                         <span id="status-icon" class="text-5xl mb-2">📸</span>
-                        <span id="status-text" class="text-[10px] font-black uppercase text-zinc-500 tracking-widest text-center">Tocar para Fotografar</span>
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tirar Foto</span>
                     </label>
-
                     <div id="container-preview" class="hidden relative">
                         <img id="img-preview" src="" class="w-full rounded-3xl border border-white/10 shadow-2xl">
-                        <button onclick="removerFoto()" class="absolute -top-2 -right-2 bg-red-600 text-white w-10 h-10 rounded-full font-black border-2 border-black">✕</button>
+                        <button onclick="removerFoto()" class="absolute -top-2 -right-2 bg-red-600 text-white w-10 h-10 rounded-full font-black">✕</button>
                     </div>
                 </div>
-
-                <input id="modelo" type="text" placeholder="MODELO / COR / KM" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
-                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-[0.2em] shadow-lg active:scale-95 transition-all">Salvar Veículo</button>
+                <input id="modelo" type="text" placeholder="MODELO / COR" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                <input id="telefone" type="tel" placeholder="WHATSAPP / TELEFONE" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
+                <button onclick="salvarRegistro()" class="w-full bg-red-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-[0.2em]">Confirmar Entrada</button>
             </div>
         </section>
 
         <section id="aba-patio" class="hidden tab-anim space-y-4">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase mb-2">← Voltar</button>
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
             <div id="lista-patio" class="space-y-4"></div>
         </section>
 
         <section id="aba-historico" class="hidden tab-anim space-y-4">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase mb-2">← Voltar</button>
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
             <div id="lista-historico" class="space-y-3"></div>
         </section>
 
         <section id="aba-ajustes" class="hidden tab-anim space-y-6">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase mb-2">← Voltar</button>
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
             <div class="glass p-6 rounded-[2rem] space-y-4">
-                <h3 class="text-[10px] font-black text-red-600 uppercase tracking-widest">Controle de Assinatura</h3>
-                <div class="bg-black/50 p-4 rounded-xl border border-white/5 text-center">
-                    <p id="texto-validade" class="text-xs font-black text-white italic uppercase"></p>
-                </div>
-                <input id="chave-renovacao" type="password" placeholder="DIGITE A CHAVE" class="w-full p-4 rounded-xl text-xs font-bold text-center uppercase tracking-widest">
-                <button onclick="renovarAssinatura()" class="w-full bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest">Renovar +30 Dias</button>
+                <input id="input-nome-oficina" type="text" placeholder="NOME DA OFICINA" class="w-full p-4 rounded-xl text-xs font-bold uppercase text-center">
+                <button onclick="salvarNomeOficina()" class="w-full bg-white/10 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest">Atualizar Nome</button>
             </div>
-            <button onclick="limparTudo()" class="w-full text-[8px] text-zinc-800 font-black uppercase tracking-widest">Limpar Memória</button>
+            <div class="glass p-6 rounded-[2rem] space-y-4 text-center">
+                <p id="texto-validade" class="text-xs font-black text-white italic uppercase"></p>
+                <input id="chave-renovacao" type="password" placeholder="CHAVE" class="w-full p-4 rounded-xl text-xs font-bold text-center">
+                <button onclick="renovarAssinatura()" class="w-full bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase">Renovar +30 Dias</button>
+            </div>
         </section>
-
     </main>
 
-    <div id="tela-bloqueio" class="hidden fixed inset-0 bg-black flex flex-col items-center justify-center p-10 text-center z-[1000]">
-        <h1 class="text-3xl font-black text-red-600 italic uppercase mb-4">Acesso Bloqueado</h1>
-        <p class="text-zinc-500 text-[10px] mb-10 font-black uppercase tracking-widest">Vencimento detectado.</p>
-        <input id="chave-bloqueio" type="password" placeholder="SENHA" class="w-full p-6 bg-zinc-900 rounded-3xl text-center text-white font-black mb-4 uppercase tracking-widest shadow-2xl">
-        <button onclick="ativarPeloBloqueio()" class="w-full bg-red-600 p-6 rounded-3xl font-black uppercase text-xs mb-8">Desbloquear Agora</button>
-        <a href="https://wa.me/5511953795473" class="text-green-500 font-black text-[10px] uppercase">Suporte Técnico</a>
-    </div>
+    <div id="modal-edit" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-6 overflow-y-auto">
+        <div class="glass p-6 rounded-[2.5rem] w-full max-w-sm space-y-4">
+            <h2 class="text-center font-black text-red-600 uppercase italic" id="modal-titulo">Ficha do Veículo</h2>
+            <img id="edit-img" class="w-full h-32 object-cover rounded-2xl border border-white/10">
+            
+            <div class="space-y-2">
+                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Placa</label>
+                <input id="edit-placa" type="text" class="w-full p-3 rounded-xl font-black text-center text-xl uppercase">
+                
+                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Modelo</label>
+                <input id="edit-modelo" type="text" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase">
+                
+                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Telefone</label>
+                <input id="edit-telefone" type="tel" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase">
+                
+                <label class="text-[8px] font-black text-zinc-500 uppercase ml-2">Serviço / Obs</label>
+                <textarea id="edit-servico" class="w-full p-3 rounded-xl text-[10px] font-bold uppercase h-20" placeholder="DESCREVA O SERVIÇO..."></textarea>
+            </div>
+            
+            <div id="info-datas" class="bg-black/40 p-3 rounded-xl text-[8px] font-bold text-zinc-400 space-y-1 hidden">
+                <p id="data-entrada"></p>
+                <p id="data-saida"></p>
+            </div>
 
-    <div id="modal-relatorio" class="hidden fixed inset-0 bg-black z-[100] overflow-y-auto p-6">
-        <button onclick="fecharRelatorio()" class="text-red-600 font-black text-[10px] uppercase mb-6 italic">← Sair do Relatório</button>
-        <div id="conteudo-relatorio"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="fecharModal()" class="bg-zinc-800 py-4 rounded-xl text-[10px] font-black uppercase">Fechar</button>
+                <button onclick="salvarEdicao()" class="bg-red-600 py-4 rounded-xl text-[10px] font-black uppercase italic">Salvar</button>
+            </div>
+            <button id="btn-concluir-saida" onclick="concluirSaida()" class="w-full bg-green-600 py-4 rounded-xl text-[10px] font-black uppercase hidden">Dar Saída Final</button>
+            <button id="btn-excluir" onclick="excluirRegistro()" class="w-full text-[8px] text-zinc-700 font-black uppercase tracking-widest pt-2">Excluir Permanente</button>
+        </div>
     </div>
 
     <script>
         const MASTER_KEY = "PATIO2026";
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
-        let config = JSON.parse(localStorage.getItem('patio_config')) || { 
-            validade: new Date().getTime() + (30 * 24 * 60 * 60 * 1000) 
-        };
-        let fotoFinal = "";
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { nomeOficina: "PÁTIO PRO", validade: new Date().getTime() + (30 * 24 * 60 * 60 * 1000) };
+        let fotoFinal = ""; let idAtual = null;
 
-        // --- CÂMERA E COMPRESSÃO (Otimizado) ---
+        function init() {
+            document.getElementById('header-nome').innerText = config.nomeOficina;
+            document.getElementById('banner-nome').innerText = config.nomeOficina;
+            document.getElementById('input-nome-oficina').value = config.nomeOficina;
+            verificarLicenca(); renderizar();
+        }
+
+        // --- CÂMERA ---
         document.getElementById('fotoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
             document.getElementById('status-icon').innerText = "⏳";
-            
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
+            const reader = new FileReader(); reader.readAsDataURL(file);
             reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
+                const img = new Image(); img.src = event.target.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const scale = 800 / img.width; // Limite de 800px para qualidade boa
-                    canvas.width = 800; canvas.height = img.height * scale;
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const scale = 800 / img.width; canvas.width = 800; canvas.height = img.height * scale;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('img-preview').src = fotoFinal;
                     document.getElementById('container-preview').classList.remove('hidden');
                     document.getElementById('label-foto').classList.add('hidden');
-                    document.getElementById('status-icon').innerText = "📸";
                 };
             };
         });
 
-        function removerFoto() {
-            fotoFinal = ""; document.getElementById('container-preview').classList.add('hidden');
-            document.getElementById('label-foto').classList.remove('hidden');
-            document.getElementById('fotoInput').value = "";
-        }
-
-        // --- LICENÇA ---
-        function verificarLicenca() {
-            const hoje = new Date().getTime();
-            const faltam = Math.ceil((config.validade - hoje) / (1000 * 60 * 60 * 24));
-            document.getElementById('texto-validade').innerText = faltam > 0 ? `Licença ativa: ${faltam} dias` : "Expirado";
-            if (hoje > config.validade) document.getElementById('tela-bloqueio').classList.remove('hidden');
-        }
-
-        function renovarAssinatura() {
-            if (document.getElementById('chave-renovacao').value.toUpperCase() === MASTER_KEY) {
-                config.validade = Math.max(new Date().getTime(), config.validade) + (30 * 24 * 60 * 60 * 1000);
-                localStorage.setItem('patio_config', JSON.stringify(config));
-                alert("CONCLUÍDO! +30 DIAS ADICIONADOS."); location.reload();
-            } else { alert("CHAVE INCORRETA!"); }
-        }
-
-        function ativarPeloBloqueio() {
-            if (document.getElementById('chave-bloqueio').value.toUpperCase() === MASTER_KEY) {
-                config.validade = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
-                localStorage.setItem('patio_config', JSON.stringify(config));
-                location.reload();
-            } else { alert("SENHA INVÁLIDA!"); }
-        }
-
-        // --- NAVEGAÇÃO ---
-        function trocarAba(aba) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('aba-' + aba).classList.remove('hidden');
-            renderizar();
-            window.scrollTo(0,0);
-        }
-
-        function irParaMenu() { trocarAba('menu'); }
-
-        // --- OPERAÇÕES ---
         function salvarRegistro() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !fotoFinal) return alert("Erro: Foto e Placa são obrigatórios!");
-            db.push({
-                id: Date.now(),
-                placa: placa,
-                modelo: document.getElementById('modelo').value.toUpperCase(),
-                foto: fotoFinal,
-                data: new Date().toLocaleDateString('pt-BR'),
-                ativo: true
+            if(!placa || !fotoFinal) return alert("Falta foto ou placa!");
+            db.push({ 
+                id: Date.now(), 
+                placa, 
+                modelo: document.getElementById('modelo').value.toUpperCase(), 
+                telefone: document.getElementById('telefone').value,
+                foto: fotoFinal, 
+                entrada: new Date().toLocaleString('pt-BR'), 
+                saida: '', 
+                servico: '', 
+                ativo: true 
             });
-            localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            location.reload();
+            localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload();
         }
 
         function renderizar() {
-            const p = document.getElementById('lista-patio');
-            const h = document.getElementById('lista-historico');
+            const p = document.getElementById('lista-patio'); const h = document.getElementById('lista-historico');
             p.innerHTML = ""; h.innerHTML = ""; let count = 0;
             db.slice().reverse().forEach(v => {
                 if(v.ativo) {
                     count++;
-                    p.innerHTML += `
-                        <div class="glass p-4 rounded-3xl flex items-center gap-4">
-                            <img src="${v.foto}" class="w-16 h-16 object-cover rounded-xl">
-                            <div class="flex-1">
-                                <h3 class="text-xl font-black italic text-white uppercase leading-none">${v.placa}</h3>
-                                <p class="text-[8px] text-zinc-500 font-bold mt-1">${v.modelo || 'VEÍCULO'}</p>
-                            </div>
-                            <button onclick="darSaida(${v.id})" class="bg-red-600/20 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black">SAÍDA</button>
-                        </div>`;
+                    p.innerHTML += `<div class="glass p-4 rounded-3xl flex items-center gap-4">
+                        <img src="${v.foto}" class="w-16 h-16 object-cover rounded-xl">
+                        <div class="flex-1" onclick="abrirEdicao(${v.id})">
+                            <h3 class="text-xl font-black italic text-white uppercase leading-none">${v.placa}</h3>
+                            <p class="text-[8px] text-zinc-500 font-bold mt-1">${v.modelo}</p>
+                        </div>
+                        <button onclick="abrirSaida(${v.id})" class="bg-red-600/20 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black italic">SAÍDA</button>
+                    </div>`;
                 } else {
-                    h.innerHTML += `
-                        <div onclick="verRelatorio(${v.id})" class="glass p-4 rounded-2xl flex justify-between items-center">
-                            <span class="font-black text-white italic uppercase">${v.placa}</span>
-                            <span class="text-red-600 text-[8px] font-black uppercase tracking-tighter italic">Relatório →</span>
-                        </div>`;
+                    h.innerHTML += `<div onclick="abrirEdicao(${v.id}, true)" class="glass p-4 rounded-2xl flex justify-between items-center">
+                        <span class="font-black text-white italic uppercase">${v.placa}</span>
+                        <div class="text-right">
+                            <p class="text-[7px] text-zinc-600 font-bold uppercase">${v.entrada.split(',')[0]}</p>
+                            <span class="text-red-600 text-[8px] font-black uppercase italic">Ver Detalhes →</span>
+                        </div>
+                    </div>`;
                 }
             });
             document.getElementById('contador').innerText = `${count} VEÍCULOS`;
         }
 
-        function darSaida(id) {
-            if(confirm("Confirmar saída do veículo?")) {
-                const i = db.findIndex(x => x.id === id);
-                db[i].ativo = false;
-                localStorage.setItem('controle_patio_db', JSON.stringify(db));
-                renderizar();
-            }
+        function abrirEdicao(id, historico = false) {
+            idAtual = id; const v = db.find(x => x.id === id);
+            document.getElementById('modal-titulo').innerText = historico ? "RELATÓRIO FINAL" : "EDITAR FICHA";
+            document.getElementById('edit-img').src = v.foto;
+            document.getElementById('edit-placa').value = v.placa;
+            document.getElementById('edit-modelo').value = v.modelo;
+            document.getElementById('edit-telefone').value = v.telefone || "";
+            document.getElementById('edit-servico').value = v.servico || "";
+            
+            const infoDatas = document.getElementById('info-datas');
+            infoDatas.classList.remove('hidden');
+            document.getElementById('data-entrada').innerText = "ENTRADA: " + v.entrada;
+            document.getElementById('data-saida').innerText = v.saida ? "SAÍDA: " + v.saida : "STATUS: NO PÁTIO";
+            
+            document.getElementById('btn-concluir-saida').classList.add('hidden');
+            document.getElementById('btn-excluir').classList.toggle('hidden', !historico);
+            document.getElementById('modal-edit').classList.remove('hidden');
         }
 
-        function verRelatorio(id) {
-            const v = db.find(x => x.id === id);
-            document.getElementById('conteudo-relatorio').innerHTML = `
-                <img src="${v.foto}" class="w-full rounded-[2rem] mb-6">
-                <h2 class="text-4xl font-black italic text-white uppercase text-center mb-6">${v.placa}</h2>
-                <div class="glass p-6 rounded-2xl space-y-4">
-                    <p class="text-[10px] text-zinc-500 font-black uppercase">Ficha: ${v.modelo}</p>
-                    <p class="text-[10px] text-zinc-500 font-black uppercase">Registrado em: ${v.data}</p>
-                </div>
-                <button onclick="apagarRegistro(${v.id})" class="w-full mt-10 text-[8px] text-zinc-800 font-black uppercase">Excluir Permanentes</button>
-            `;
-            document.getElementById('modal-relatorio').classList.remove('hidden');
+        function abrirSaida(id) {
+            abrirEdicao(id);
+            document.getElementById('modal-titulo').innerText = "CONCLUIR SERVIÇO";
+            document.getElementById('btn-concluir-saida').classList.remove('hidden');
         }
 
-        function fecharRelatorio() { document.getElementById('modal-relatorio').classList.add('hidden'); }
-        function apagarRegistro(id) { if(confirm("Apagar?")) { db = db.filter(x => x.id !== id); localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload(); } }
+        function salvarEdicao() {
+            const i = db.findIndex(x => x.id === idAtual);
+            db[i].placa = document.getElementById('edit-placa').value.toUpperCase();
+            db[i].modelo = document.getElementById('edit-modelo').value.toUpperCase();
+            db[i].telefone = document.getElementById('edit-telefone').value;
+            db[i].servico = document.getElementById('edit-servico').value.toUpperCase();
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
+            fecharModal(); renderizar();
+        }
+
+        function concluirSaida() {
+            const i = db.findIndex(x => x.id === idAtual);
+            db[i].ativo = false;
+            db[i].saida = new Date().toLocaleString('pt-BR');
+            db[i].servico = document.getElementById('edit-servico').value.toUpperCase();
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
+            location.reload();
+        }
+
+        function excluirRegistro() { if(confirm("Apagar permanentemente?")) { db = db.filter(x => x.id !== idAtual); localStorage.setItem('controle_patio_db', JSON.stringify(db)); location.reload(); } }
+        function fecharModal() { document.getElementById('modal-edit').classList.add('hidden'); }
+        function trocarAba(aba) { document.querySelectorAll('section').forEach(s => s.classList.add('hidden')); document.getElementById('aba-' + aba).classList.remove('hidden'); renderizar(); }
+        function irParaMenu() { trocarAba('menu'); }
+        function salvarNomeOficina() { config.nomeOficina = document.getElementById('input-nome-oficina').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
+        function verificarLicenca() { 
+            const hoje = new Date().getTime(); const faltam = Math.ceil((config.validade - hoje) / (1000 * 60 * 60 * 24));
+            document.getElementById('texto-validade').innerText = faltam > 0 ? `Licença: ${faltam} dias` : "Expirado";
+            if (hoje > config.validade) document.body.innerHTML = "<h1 style='color:red;text-align:center;padding-top:50px;font-family:sans-serif;'>ASSINATURA EXPIRADA</h1>";
+        }
+        function renovarAssinatura() { if (document.getElementById('chave-renovacao').value.toUpperCase() === MASTER_KEY) { config.validade += (30 * 24 * 60 * 60 * 1000); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); } }
+        function removerFoto() { fotoFinal = ""; document.getElementById('container-preview').classList.add('hidden'); document.getElementById('label-foto').classList.remove('hidden'); }
         function limparTudo() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
 
-        verificarLicenca();
-        renderizar();
+        init();
     </script>
 </body>
 </html>

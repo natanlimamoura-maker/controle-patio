@@ -7,23 +7,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
-    <title>Controle de Pátio</title>
+    <title>PRO Controle de Pátio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --primary-red: #dc2626; --dark-bg: #000000; }
-        body { background-color: var(--dark-bg); color: #ffffff; -webkit-tap-highlight-color: transparent; }
-        .card-atraso { border-left: 8px solid var(--primary-red); }
+        body { background-color: var(--dark-bg); color: #ffffff; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .card-atraso { border-left: 6px solid var(--primary-red); }
         .hidden { display: none; }
         input, select, textarea { 
-            background-color: #1a1a1a !important; 
+            background-color: #111 !important; 
             color: white !important; 
             border: 1px solid #333 !important;
         }
-        input:focus, select:focus { border-color: var(--primary-red) !important; outline: none; }
+        input:focus { border-color: var(--primary-red) !important; outline: none; }
         .tab-active { color: var(--primary-red); border-top: 2px solid var(--primary-red); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-page { animation: fadeIn 0.3s ease-in; }
+        .btn-status { font-size: 10px; font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
 <body class="font-sans pb-24 select-none">
@@ -32,99 +30,100 @@
         <div class="flex justify-between items-center mb-3">
             <div class="flex items-center gap-2">
                 <span class="text-red-600 text-2xl font-bold italic">PRO</span>
-                <h1 class="text-lg font-black tracking-tighter uppercase">Controle de Pátio</h1>
+                <h1 class="text-lg font-black tracking-tighter uppercase">Pátio</h1>
             </div>
             <div id="contador" class="bg-red-600 text-[10px] font-black px-3 py-1 rounded shadow-lg">0 VEÍCULOS</div>
         </div>
-        <div class="relative">
-            <input id="buscaPlaca" type="text" oninput="renderizar()" placeholder="🔍 PESQUISAR POR PLACA..." class="w-full p-3 rounded-lg text-xs font-black uppercase outline-none">
-        </div>
+        <input id="buscaPlaca" type="text" oninput="renderizar()" placeholder="🔍 BUSCAR PLACA..." class="w-full p-3 rounded-lg text-xs font-black uppercase outline-none">
     </header>
 
     <main class="p-4 max-w-md mx-auto">
-        
-        <section id="aba-patio" class="animate-page">
-            <div id="lista-veiculos" class="space-y-4"></div>
-        </section>
+        <section id="aba-patio" class="space-y-4"></section>
 
-        <section id="aba-entrada" class="hidden animate-page">
-            <div class="bg-[#0a0a0a] p-5 rounded-xl border border-red-900/30 space-y-4">
-                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg uppercase font-black text-sm">
-                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg uppercase font-black text-sm">
-                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg uppercase font-mono font-black text-sm">
+        <section id="aba-entrada" class="hidden">
+            <div class="bg-[#0a0a0a] p-5 rounded-xl border border-zinc-900 space-y-4">
+                <input id="nomeCliente" type="text" placeholder="NOME DO CLIENTE" class="w-full p-4 rounded-lg font-black text-sm uppercase">
+                <input id="modelo" type="text" placeholder="MODELO DO CAMINHÃO" class="w-full p-4 rounded-lg font-black text-sm uppercase">
+                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-lg font-black text-sm uppercase">
                 <input id="dataEntrada" type="date" class="w-full p-4 rounded-lg font-black text-sm uppercase">
                 
-                <div class="bg-black border-2 border-dashed border-red-900/50 p-6 rounded-lg text-center">
-                    <input id="fotoInput" type="file" accept="image/*" class="hidden">
-                    <label for="fotoInput" class="cursor-pointer">
-                        <div class="text-3xl mb-2">📸</div>
-                        <div class="text-red-500 font-black text-xs uppercase italic">Capturar/Selecionar Foto</div>
+                <div class="bg-black border-2 border-dashed border-zinc-800 p-6 rounded-lg text-center relative">
+                    <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
+                    <label for="fotoInput" class="cursor-pointer block">
+                        <div id="loading-foto" class="hidden mb-2 text-red-500 animate-pulse text-xs font-black">COMPRIMINDO...</div>
+                        <div class="text-3xl mb-1">📸</div>
+                        <div class="text-zinc-500 font-black text-[10px] uppercase">Toque para Tirar Foto</div>
                     </label>
-                    <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-red-900/50"></canvas>
+                    <canvas id="canvasPreview" class="hidden w-full rounded mt-4 border border-zinc-800"></canvas>
                 </div>
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-lg shadow-lg uppercase tracking-widest text-sm">Confirmar Entrada</button>
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 text-white font-black py-5 rounded-lg uppercase text-sm shadow-lg">Confirmar Entrada</button>
             </div>
         </section>
 
-        <section id="aba-historico" class="hidden animate-page">
-            <div id="lista-historico" class="space-y-3"></div>
-        </section>
+        <section id="aba-historico" class="hidden space-y-3"></section>
     </main>
 
-    <div id="modal-detalhe" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[70]">
-        <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-zinc-800 overflow-y-auto max-h-[90vh]">
-            <div id="conteudo-detalhe"></div>
-            <button onclick="fecharDetalhe()" class="w-full mt-6 bg-zinc-800 text-white p-4 rounded-lg font-black text-xs uppercase">Fechar Relatório</button>
-        </div>
-    </div>
-
     <div id="modal-saida" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center p-4 z-[60]">
-        <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-red-600/30">
-            <h3 class="font-black text-xl mb-4 text-red-600 uppercase italic">Finalizar Serviço</h3>
-            <div class="space-y-4">
-                <input id="dataSaida" type="date" class="w-full p-4 rounded-lg text-sm font-black uppercase">
-                <textarea id="servicoRealizado" placeholder="DESCREVA O SERVIÇO REALIZADO..." class="w-full p-4 rounded-lg h-32 outline-none resize-none text-sm font-black uppercase"></textarea>
-                <div class="flex gap-2">
-                    <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Dar Saída</button>
-                    <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-black text-xs uppercase">Voltar</button>
-                </div>
+        <div class="bg-[#111] p-6 rounded-xl w-full max-w-sm border border-zinc-800">
+            <h3 class="font-black text-lg mb-4 text-red-600 uppercase italic">Finalizar Serviço</h3>
+            <textarea id="servicoRealizado" placeholder="O QUE FOI FEITO NO CAMINHÃO?" class="w-full p-4 rounded-lg h-32 outline-none resize-none text-sm font-black uppercase mb-4"></textarea>
+            <div class="flex gap-2">
+                <button onclick="confirmarSaida()" class="flex-1 bg-red-600 text-white p-4 rounded-lg font-black text-xs uppercase">Dar Saída</button>
+                <button onclick="fecharModal()" class="flex-1 bg-zinc-800 text-gray-400 p-4 rounded-lg font-black text-xs uppercase">Voltar</button>
             </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 w-full bg-black border-t border-red-900/50 flex justify-around p-3 shadow-2xl z-50">
+    <nav class="fixed bottom-0 w-full bg-black border-t border-zinc-900 flex justify-around p-3 z-50">
         <button onclick="trocarAba('patio')" id="btn-patio" class="flex flex-col items-center tab-active">
-            <span class="text-xl">🚛</span><span class="text-[9px] font-black mt-1 uppercase">Pátio</span>
+            <span>🚛</span><span class="text-[9px] font-black mt-1 uppercase">Pátio</span>
         </button>
         <button onclick="trocarAba('entrada')" id="btn-entrada" class="flex flex-col items-center text-zinc-600">
-            <span class="text-xl">➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span>
+            <span>➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span>
         </button>
         <button onclick="trocarAba('historico')" id="btn-historico" class="flex flex-col items-center text-zinc-600">
-            <span class="text-xl">📜</span><span class="text-[9px] font-black mt-1 uppercase">Relatórios</span>
+            <span>📜</span><span class="text-[9px] font-black mt-1 uppercase">Relatórios</span>
         </button>
     </nav>
 
     <script>
         let db = JSON.parse(localStorage.getItem('controle_patio_db')) || [];
-        let idSelecionado = null;
         let fotoFinal = "";
+        let idSelecionado = null;
 
-        // Gerenciamento de Foto
+        // FUNÇÃO DE COMPRESSÃO REAL (DIMINUI PARA ~130KB)
         document.getElementById('fotoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            document.getElementById('loading-foto').classList.remove('hidden');
             const reader = new FileReader();
+
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.getElementById('canvasPreview');
                     const ctx = canvas.getContext('2d');
-                    const maxW = 600;
-                    const scale = maxW / img.width;
-                    canvas.width = maxW;
-                    canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Redimensiona para no máximo 800px (ideal para 130KB)
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 800;
+
+                    if (width > height) {
+                        if (width > max_size) { height *= max_size / width; width = max_size; }
+                    } else {
+                        if (height > max_size) { width *= max_size / height; height = max_size; }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Exporta como JPEG qualidade 0.6 (Ótimo equilíbrio)
                     fotoFinal = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    document.getElementById('loading-foto').classList.add('hidden');
                     canvas.classList.remove('hidden');
                 };
                 img.src = event.target.result;
@@ -132,135 +131,86 @@
             reader.readAsDataURL(file);
         });
 
-        function formatarData(data) {
-            if(!data) return "---";
-            const [ano, mes, dia] = data.split('-');
-            return `${dia}/${mes}/${ano}`;
-        }
-
-        function alterarStatus(id, novoStatus) {
-            const idx = db.findIndex(v => v.id === id);
-            if(idx !== -1) {
-                db[idx].status = novoStatus;
-                localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            }
-        }
-
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa || !document.getElementById('dataEntrada').value) return alert("Preencha Placa e Data!");
+            if(!placa || !fotoFinal) return alert("Tire a foto e preencha a placa!");
 
             db.push({
                 id: Date.now(),
                 cliente: document.getElementById('nomeCliente').value,
                 modelo: document.getElementById('modelo').value,
-                placa,
+                placa: placa,
                 dataEntrada: document.getElementById('dataEntrada').value,
                 foto: fotoFinal,
                 status: 'Diagnóstico',
                 ativo: true
             });
+
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            location.reload(); 
+            location.reload();
         }
 
         function renderizar() {
             const busca = document.getElementById('buscaPlaca').value.toUpperCase();
-            const listaPatio = document.getElementById('lista-veiculos');
-            const listaHist = document.getElementById('lista-historico');
-            listaPatio.innerHTML = ""; listaHist.innerHTML = "";
-            let count = 0;
+            const containerPatio = document.getElementById('aba-patio');
+            const containerHist = document.getElementById('aba-historico');
+            containerPatio.innerHTML = ""; containerHist.innerHTML = "";
+            let contador = 0;
 
             db.slice().reverse().forEach(v => {
                 if(!v.placa.includes(busca)) return;
 
                 if(v.ativo) {
-                    count++;
-                    const dias = Math.floor((new Date() - new Date(v.dataEntrada)) / (1000 * 3600 * 24));
-                    listaPatio.innerHTML += `
-                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 shadow-xl ${dias >= 3 ? 'card-atraso' : ''}">
+                    contador++;
+                    containerPatio.innerHTML += `
+                        <div class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 card-atraso">
                             <div class="flex gap-4">
-                                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=FOTO'}" class="w-24 h-24 object-cover rounded shadow-lg border border-zinc-800">
+                                <img src="${v.foto}" class="w-20 h-20 object-cover rounded border border-zinc-800">
                                 <div class="flex-1">
-                                    <h3 class="font-black text-red-600 text-2xl italic leading-none">${v.placa}</h3>
-                                    <p class="text-lg font-black text-zinc-100 uppercase mt-1 leading-tight">${v.modelo}</p>
-                                    <p class="text-sm font-bold text-zinc-400 uppercase">${v.cliente || 'S/ NOME'}</p>
-                                    <select onchange="alterarStatus(${v.id}, this.value)" class="w-full mt-2 p-2 rounded text-[10px] font-black uppercase bg-zinc-900 border-zinc-800">
-                                        <option value="Diagnóstico" ${v.status === 'Diagnóstico' ? 'selected' : ''}>Diagnóstico</option>
-                                        <option value="Desmontagem" ${v.status === 'Desmontagem' ? 'selected' : ''}>Desmontagem</option>
-                                        <option value="Montagem" ${v.status === 'Montagem' ? 'selected' : ''}>Montagem</option>
-                                        <option value="Finalizado" ${v.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                    <h3 class="font-black text-red-600 text-xl italic">${v.placa}</h3>
+                                    <p class="text-xs font-black text-zinc-300 uppercase">${v.modelo}</p>
+                                    <select onchange="atualizarStatus(${v.id}, this.value)" class="w-full mt-2 p-2 rounded btn-status">
+                                        <option value="Diagnóstico" ${v.status=='Diagnóstico'?'selected':''}>Diagnóstico</option>
+                                        <option value="Desmontagem" ${v.status=='Desmontagem'?'selected':''}>Desmontagem</option>
+                                        <option value="Montagem" ${v.status=='Montagem'?'selected':''}>Montagem</option>
+                                        <option value="Finalizado" ${v.status=='Finalizado'?'selected':''}>Finalizado</option>
                                     </select>
                                 </div>
                             </div>
-                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 hover:bg-red-600 text-white py-3 rounded font-black text-xs uppercase border border-zinc-800">Finalizar & Dar Saída</button>
+                            <button onclick="abrirSaida(${v.id})" class="w-full mt-3 bg-zinc-900 text-white py-3 rounded font-black text-[10px] uppercase border border-zinc-800">Dar Saída</button>
                         </div>
                     `;
                 } else {
-                    listaHist.innerHTML += `
-                        <div onclick="verDetalhe(${v.id})" class="bg-[#0a0a0a] p-4 rounded-lg border border-zinc-900 flex justify-between items-center active:scale-95 transition-all">
+                    containerHist.innerHTML += `
+                        <div class="bg-[#0a0a0a] p-3 rounded border border-zinc-900 flex justify-between items-center">
                             <div>
-                                <h4 class="font-black text-zinc-200 text-lg">${v.placa}</h4>
-                                <p class="text-[10px] text-zinc-500 uppercase">Saída: ${formatarData(v.dataSaida)}</p>
+                                <p class="font-black text-zinc-200">${v.placa}</p>
+                                <p class="text-[8px] text-zinc-500 uppercase">Saída: ${v.dataSaida}</p>
                             </div>
-                            <div class="text-right">
-                                <span class="text-red-600 font-black uppercase text-[10px] block">${v.status}</span>
-                                <span class="text-zinc-600 text-[9px] uppercase italic">Ver Detalhes ></span>
-                            </div>
+                            <span class="text-[9px] font-black text-red-600 uppercase">${v.status}</span>
                         </div>
                     `;
                 }
             });
-            document.getElementById('contador').innerText = `${count} VEÍCULOS`;
+            document.getElementById('contador').innerText = `${contador} VEÍCULOS`;
         }
 
-        function verDetalhe(id) {
-            const v = db.find(x => x.id === id);
-            const modal = document.getElementById('modal-detalhe');
-            const conteudo = document.getElementById('conteudo-detalhe');
-            
-            conteudo.innerHTML = `
-                <img src="${v.foto || 'https://via.placeholder.com/150/111/444?text=FOTO'}" class="w-full h-48 object-cover rounded-lg border border-zinc-800 mb-4 shadow-2xl">
-                <h3 class="text-3xl font-black text-red-600 italic tracking-tighter">${v.placa}</h3>
-                <p class="text-xl font-black text-zinc-100 uppercase mb-4">${v.modelo}</p>
-                
-                <div class="space-y-4 border-t border-zinc-800 pt-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-[9px] text-zinc-500 font-bold uppercase">Entrada</p>
-                            <p class="text-sm font-black text-zinc-300">${formatarData(v.dataEntrada)}</p>
-                        </div>
-                        <div>
-                            <p class="text-[9px] text-zinc-500 font-bold uppercase">Saída</p>
-                            <p class="text-sm font-black text-zinc-300">${formatarData(v.dataSaida)}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-[9px] text-zinc-500 font-bold uppercase">Cliente</p>
-                        <p class="text-sm font-black text-zinc-300 uppercase">${v.cliente || 'Não Informado'}</p>
-                    </div>
-                    <div>
-                        <p class="text-[9px] text-red-600 font-bold uppercase">Serviço Realizado</p>
-                        <div class="bg-black p-3 rounded-lg border border-zinc-900 mt-1">
-                            <p class="text-xs text-zinc-400 font-bold uppercase leading-relaxed">${v.servico || 'Nenhuma descrição informada.'}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            modal.classList.remove('hidden');
-        }
-
-        function fecharDetalhe() { document.getElementById('modal-detalhe').classList.add('hidden'); }
-        function abrirSaida(id) { idSelecionado = id; document.getElementById('dataSaida').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-saida').classList.remove('hidden'); }
-        function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
-        
-        function confirmarSaida() {
-            const idx = db.findIndex(v => v.id === idSelecionado);
-            db[idx].ativo = false;
-            db[idx].dataSaida = document.getElementById('dataSaida').value;
-            db[idx].servico = document.getElementById('servicoRealizado').value;
+        function atualizarStatus(id, status) {
+            const i = db.findIndex(x => x.id === id);
+            db[i].status = status;
             localStorage.setItem('controle_patio_db', JSON.stringify(db));
-            fecharModal(); renderizar();
+        }
+
+        function abrirSaida(id) { idSelecionado = id; document.getElementById('modal-saida').classList.remove('hidden'); }
+        function fecharModal() { document.getElementById('modal-saida').classList.add('hidden'); }
+
+        function confirmarSaida() {
+            const i = db.findIndex(x => x.id === idSelecionado);
+            db[i].ativo = false;
+            db[i].dataSaida = new Date().toLocaleDateString('pt-BR');
+            db[i].servico = document.getElementById('servicoRealizado').value;
+            localStorage.setItem('controle_patio_db', JSON.stringify(db));
+            location.reload();
         }
 
         function trocarAba(aba) {
@@ -268,7 +218,6 @@
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
             document.getElementById('btn-' + aba).classList.add('tab-active');
-            renderizar();
         }
 
         document.getElementById('dataEntrada').value = new Date().toISOString().split('T')[0];

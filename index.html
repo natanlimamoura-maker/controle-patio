@@ -29,7 +29,7 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic">Verificando...</span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic tracking-tight">Verificando licença...</span>
             </div>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">0 No Pátio</span>
         </div>
@@ -48,13 +48,19 @@
                         <img id="img-previa" class="w-full h-full object-cover">
                     </div>
 
-                    <label class="flex flex-col items-center justify-center border-2 border-dashed border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50 active:bg-blue-100">
-                        <span id="label-foto" class="font-bold text-sm">📸 Câmera ou Galeria</span>
-                        <input type="file" id="foto" accept="image/*" class="hidden" onchange="mostrarPrevia(this)">
-                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50 active:bg-blue-100">
+                            <span class="font-bold text-xs uppercase tracking-tighter">📸 Câmera</span>
+                            <input type="file" id="foto-camera" accept="image/*" capture="environment" class="hidden" onchange="mostrarPrevia(this)">
+                        </label>
+                        <label class="flex flex-col items-center justify-center border-2 border-gray-200 p-4 rounded-2xl text-gray-600 cursor-pointer bg-gray-50 active:bg-gray-100">
+                            <span class="font-bold text-xs uppercase tracking-tighter">🖼️ Galeria</span>
+                            <input type="file" id="foto-galeria" accept="image/*" class="hidden" onchange="mostrarPrevia(this)">
+                        </label>
+                    </div>
                     
-                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-4 rounded-2xl shadow-lg uppercase">Confirmar Entrada</button>
-                    <button type="button" id="btn-cancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-200 text-gray-500 font-bold p-3 rounded-2xl mt-2 uppercase text-xs">Cancelar</button>
+                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-4 rounded-2xl shadow-lg uppercase tracking-wide">Confirmar Entrada</button>
+                    <button type="button" id="btn-cancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-200 text-gray-500 font-bold p-3 rounded-2xl mt-2 uppercase text-[10px]">Cancelar Alterações</button>
                 </form>
             </div>
         </section>
@@ -65,42 +71,44 @@
 
         <section id="aba-relatorio" class="tab-content">
             <div id="lista-relatorio" class="space-y-3"></div>
-            <button onclick="limparHistorico()" class="w-full mt-6 text-red-500 font-bold text-[10px] p-4 bg-red-50 rounded-2xl uppercase">Limpar Relatório</button>
+            <button onclick="limparHistorico()" class="w-full mt-6 text-red-500 font-bold text-[10px] p-4 bg-red-50 rounded-2xl uppercase tracking-widest">Apagar Todo o Relatório</button>
         </section>
 
         <section id="aba-config" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl shadow-md space-y-6">
+            <div class="bg-white p-6 rounded-3xl shadow-md space-y-6 border border-gray-100">
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                     <p id="status-assinatura-detalhe" class="text-blue-600 text-[11px] font-bold uppercase"></p>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Nome da Empresa</label>
-                    <input type="text" id="config-nome" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mt-1 outline-none font-bold">
-                    <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl mt-2">Salvar Nome</button>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Título do Aplicativo</label>
+                    <input type="text" id="config-nome" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mt-1 outline-none font-black text-blue-800">
+                    <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl mt-3">Salvar Nome</button>
                 </div>
-                <div class="grid grid-cols-2 gap-2 border-t pt-4">
-                    <button onclick="exportarBackup()" class="bg-gray-800 text-white p-3 rounded-xl text-[10px] font-bold uppercase">Backup (Exportar)</button>
-                    <button onclick="importarBackup()" class="bg-gray-200 text-gray-600 p-3 rounded-xl text-[10px] font-bold uppercase">Restaurar (Importar)</button>
+                <div class="grid grid-cols-2 gap-3 border-t pt-4">
+                    <button onclick="exportarBackup()" class="bg-gray-800 text-white p-3 rounded-xl text-[10px] font-black uppercase">Exportar Backup</button>
+                    <button onclick="importarBackup()" class="bg-gray-200 text-gray-600 p-3 rounded-xl text-[10px] font-black uppercase">Restaurar Dados</button>
                 </div>
             </div>
         </section>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1"><span class="text-lg">➕</span><span class="text-[8px] font-bold uppercase">Entrada</span></button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1"><span class="text-lg">🚗</span><span class="text-[8px] font-bold uppercase">Pátio</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1"><span class="text-lg">📋</span><span class="text-[8px] font-bold uppercase">Relatório</span></button>
-        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1"><span class="text-lg">⚙️</span><span class="text-[8px] font-bold uppercase">Ajustes</span></button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50 px-2 pb-safe">
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-lg">➕</span><span class="text-[8px] font-black uppercase mt-1">Entrada</span></button>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">🚗</span><span class="text-[8px] font-black uppercase mt-1">Pátio</span></button>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">📋</span><span class="text-[8px] font-black uppercase mt-1">Relatório</span></button>
+        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">⚙️</span><span class="text-[8px] font-black uppercase mt-1">Ajustes</span></button>
     </nav>
 
     <script>
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
         let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO" };
+        let ultimaFotoBase64 = null;
+
         const SENHA_MESTRA = "0907";
 
-        // COMPRESSÃO DE IMAGEM OTIMIZADA
-        const comprimirFoto = (file) => {
+        // COMPRESSÃO AGRESSIVA PARA ECONOMIZAR ESPAÇO
+        const processarImagem = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -109,36 +117,29 @@
                     img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_SIZE = 400; // Resolução reduzida para economizar espaço
+                        const MAX_SIZE = 400; 
                         let width = img.width;
                         let height = img.height;
-
                         if (width > height) {
                             if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
                         } else {
                             if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
                         }
-
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        // Qualidade 0.4 (40%) para o menor tamanho de arquivo possível
                         resolve(canvas.toDataURL('image/jpeg', 0.4));
                     }
                 }
             });
         };
 
-        function mostrarPrevia(input) {
+        async function mostrarPrevia(input) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('img-previa').src = e.target.result;
-                    document.getElementById('container-previa').classList.remove('hidden');
-                    document.getElementById('label-foto').innerText = '✅ Foto Selecionada';
-                }
-                reader.readAsDataURL(input.files[0]);
+                ultimaFotoBase64 = await processarImagem(input.files[0]);
+                document.getElementById('img-previa').src = ultimaFotoBase64;
+                document.getElementById('container-previa').classList.remove('hidden');
             }
         }
 
@@ -164,24 +165,27 @@
             } else { alert("Senha incorreta"); }
         }
 
-        document.getElementById('form-entrada').addEventListener('submit', async (e) => {
+        document.getElementById('form-entrada').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
-            const fotoFile = document.getElementById('foto').files[0];
-            let fotoBase64 = id ? patio.find(v => v.id == id).foto : null;
             
-            if(fotoFile) fotoBase64 = await comprimirFoto(fotoFile);
-
             const dados = {
                 id: id ? Number(id) : Date.now(),
                 placa: document.getElementById('placa').value.toUpperCase(),
                 modelo: document.getElementById('modelo').value,
                 cliente: document.getElementById('cliente').value,
-                foto: fotoBase64,
+                foto: ultimaFotoBase64,
                 entrada: id ? patio.find(v => v.id == id).entrada : new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
             };
 
-            if(id) { patio[patio.findIndex(v => v.id == id)] = dados; } else { patio.unshift(dados); }
+            if(id) { 
+                const idx = patio.findIndex(v => v.id == id);
+                if(!dados.foto) dados.foto = patio[idx].foto;
+                patio[idx] = dados; 
+            } else { 
+                patio.unshift(dados); 
+            }
+            
             localStorage.setItem('patio_data', JSON.stringify(patio));
             cancelarEdicao(); renderizarPátio(); mudarAba('patio');
         });
@@ -192,13 +196,13 @@
             patio.forEach(v => {
                 container.innerHTML += `
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                    <img src="${v.foto || ''}" class="w-20 h-20 rounded-2xl object-cover bg-gray-50 border">
+                    <img src="${v.foto || ''}" class="w-20 h-20 rounded-2xl object-cover bg-gray-50 border border-gray-100">
                     <div class="flex-1 overflow-hidden">
-                        <div class="font-black text-xl leading-none mb-1">${v.placa}</div>
-                        <div class="text-[10px] text-blue-600 font-bold uppercase truncate">${v.cliente}</div>
+                        <div class="font-black text-xl tracking-tighter leading-none mb-1">${v.placa}</div>
+                        <div class="text-[10px] text-blue-600 font-black uppercase truncate">${v.cliente}</div>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="editarVeiculo(${v.id})" class="text-[9px] font-bold bg-gray-100 px-3 py-1 rounded-lg">EDITAR</button>
-                            <button onclick="darSaida(${v.id})" class="text-[9px] font-bold bg-green-600 text-white px-3 py-1 rounded-lg">SAÍDA</button>
+                            <button onclick="editarVeiculo(${v.id})" class="text-[9px] font-black bg-gray-100 px-3 py-1.5 rounded-lg uppercase">Editar</button>
+                            <button onclick="darSaida(${v.id})" class="text-[9px] font-black bg-green-600 text-white px-3 py-1.5 rounded-lg uppercase italic">Saída</button>
                         </div>
                     </div>
                 </div>`;
@@ -210,17 +214,20 @@
             historico.forEach(v => {
                 container.innerHTML += `
                 <div class="bg-white p-4 rounded-2xl border border-gray-100 flex gap-4 items-center">
-                    <img src="${v.foto || ''}" class="w-14 h-14 rounded-xl object-cover">
-                    <div class="flex-1">
-                        <div class="flex justify-between font-bold text-xs"><span>${v.placa}</span><span class="text-blue-500">${v.entrada} - ${v.saida}</span></div>
-                        <p class="text-[9px] text-gray-500 uppercase">${v.cliente} | ${v.modelo}</p>
+                    <img src="${v.foto || ''}" class="w-16 h-16 rounded-xl object-cover border border-gray-100">
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between font-black text-sm uppercase">
+                            <span>${v.placa}</span>
+                            <span class="text-blue-500 text-[10px]">${v.entrada} » ${v.saida}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase truncate">${v.cliente} | ${v.modelo}</p>
                     </div>
                 </div>`;
             });
         }
 
         window.darSaida = (id) => {
-            if(confirm("Confirmar saída?")) {
+            if(confirm("Confirmar a saída deste veículo?")) {
                 const v = patio.find(v => v.id === id);
                 historico.unshift({...v, saida: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})});
                 localStorage.setItem('patio_historico', JSON.stringify(historico));
@@ -236,7 +243,11 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('modelo').value = v.modelo;
             document.getElementById('cliente').value = v.cliente;
-            if(v.foto) { document.getElementById('img-previa').src = v.foto; document.getElementById('container-previa').classList.remove('hidden'); }
+            if(v.foto) {
+                ultimaFotoBase64 = v.foto;
+                document.getElementById('img-previa').src = v.foto;
+                document.getElementById('container-previa').classList.remove('hidden');
+            }
             document.getElementById('btn-submit').innerText = "Salvar Alterações";
             document.getElementById('btn-cancelar').classList.remove('hidden');
             mudarAba('entrada');
@@ -245,10 +256,10 @@
         window.cancelarEdicao = () => {
             document.getElementById('form-entrada').reset();
             document.getElementById('edit-id').value = '';
+            ultimaFotoBase64 = null;
             document.getElementById('container-previa').classList.add('hidden');
             document.getElementById('btn-submit').innerText = "Confirmar Entrada";
             document.getElementById('btn-cancelar').classList.add('hidden');
-            document.getElementById('label-foto').innerText = '📸 Câmera ou Galeria';
         };
 
         function mudarAba(aba) {
@@ -257,13 +268,14 @@
             document.getElementById('aba-' + aba).classList.add('active');
             document.getElementById('btn-nav-' + aba).classList.add('active');
             if(aba === 'relatorio') renderizarRelatorio();
+            window.scrollTo(0,0);
         }
 
         function salvarConfig() {
             config.nome = document.getElementById('config-nome').value.toUpperCase();
             localStorage.setItem('patio_config', JSON.stringify(config));
             document.getElementById('app-nome-display').innerText = config.nome;
-            alert("Nome salvo!");
+            alert("Nome salvo com sucesso!");
         }
 
         function exportarBackup() {
@@ -282,9 +294,9 @@
                 const reader = new FileReader();
                 reader.onload = () => {
                     const data = JSON.parse(reader.result);
-                    localStorage.setItem('patio_data', JSON.stringify(data.patio));
-                    localStorage.setItem('patio_historico', JSON.stringify(data.historico));
-                    localStorage.setItem('patio_config', JSON.stringify(data.config));
+                    localStorage.setItem('patio_data', JSON.stringify(data.patio || []));
+                    localStorage.setItem('patio_historico', JSON.stringify(data.historico || []));
+                    localStorage.setItem('patio_config', JSON.stringify(data.config || {nome: "PÁTIO PRO"}));
                     location.reload();
                 };
                 reader.readAsText(e.target.files[0]);
@@ -292,7 +304,7 @@
             input.click();
         }
 
-        window.limparHistorico = () => { if(confirm("Apagar histórico?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); }};
+        window.limparHistorico = () => { if(confirm("Deseja apagar o histórico permanente?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); }};
         
         document.getElementById('app-nome-display').innerText = config.nome;
         document.getElementById('config-nome').value = config.nome;

@@ -131,7 +131,7 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
         <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1">Entrada</span></button>
         <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1">Pátio</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-bold uppercase mt-1">Relatório</span></button>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1">Relatório</span></button>
         <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1">Ajustes</span></button>
     </nav>
 
@@ -162,7 +162,6 @@
             }
         }
 
-        // LICENÇA CORRIGIDA PARA NÃO TRAVAR
         function verificarLicenca() {
             let dataAtivacao = localStorage.getItem('data_ativacao');
             if (!dataAtivacao) { 
@@ -172,9 +171,7 @@
             const trintaDias = 30 * 24 * 60 * 60 * 1000;
             const decorrido = Date.now() - parseInt(dataAtivacao);
             const diasFaltando = Math.max(0, Math.ceil((trintaDias - decorrido) / (1000 * 60 * 60 * 24)));
-            
             document.getElementById('dias-restantes').innerText = diasFaltando + " DIAS RESTANTES";
-            
             if (decorrido > trintaDias) {
                 document.getElementById('bloqueio').style.display = 'flex';
             } else {
@@ -266,7 +263,7 @@
                     <div class="flex-1 overflow-hidden">
                         <div class="font-black text-lg tracking-tighter leading-none mb-1 text-gray-800">${v.placa}</div>
                         <div class="text-[10px] text-blue-600 font-bold uppercase truncate mb-0.5">${v.modelo}</div>
-                        <div class="text-[9px] text-gray-400 font-bold uppercase truncate mb-1 italic">Dono: ${v.cliente}</div>
+                        <div class="text-[9px] text-gray-400 font-bold uppercase truncate mb-1 italic">Cliente: ${v.cliente}</div>
                         <select onchange="mudarStatus(${v.id}, this.value)" class="text-[9px] font-black border-2 border-gray-100 p-1 rounded-lg w-full mb-1">
                             <option ${v.status == 'Diagnóstico' ? 'selected' : ''}>Diagnóstico</option>
                             <option ${v.status == 'Desmontagem' ? 'selected' : ''}>Desmontagem</option>

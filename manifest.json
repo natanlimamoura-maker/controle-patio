@@ -1,17 +1,15 @@
 {
-  "name": "Pátio Pro Profissional",
+  "name": "Pátio Pro Extreme",
   "short_name": "PátioPro",
-  "description": "Sistema de Gestão de Oficinas",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#050505",
-  "theme_color": "#dc2626",
+  "theme_color": "#e11d48",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3524/3524659.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/741/741407.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }

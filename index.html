@@ -3,56 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e40af">
     <link rel="manifest" href="manifest.json">
-    
     <title>Pátio Pro Elite</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilo para parecer App nativo */
-        body { 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
-            touch-action: manipulation;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        body { -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
-        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        #bloqueio { display: none; position: fixed; inset: 0; background: white; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24">
 
+    <div id="bloqueio">
+        <h2 class="text-xl font-bold mb-4">Licença Expirada</h2>
+        <input type="password" id="senha-licenca" placeholder="Digite a senha" class="border-2 p-4 rounded-xl w-full max-w-xs mb-4 text-center">
+        <button onclick="verificarSenha()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">Ativar</button>
+    </div>
+
     <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl">
         <div class="flex justify-between items-center">
-            <h1 class="text-xl font-black italic tracking-tighter">PÁTIO PRO</h1>
+            <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase">PÁTIO PRO</h1>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">0 No Pátio</span>
         </div>
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
-        
         <section id="aba-entrada" class="tab-content active">
             <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
-                <h2 class="text-lg font-bold mb-4 text-gray-700">Registrar Entrada</h2>
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
                     <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none font-black text-xl uppercase">
                     <input type="text" id="modelo" placeholder="MODELO" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none font-bold">
                     <input type="text" id="cliente" placeholder="NOME DO CLIENTE" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none font-bold">
-                    
                     <label class="flex flex-col items-center justify-center border-2 border-dashed border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50 active:bg-blue-100">
                         <span id="label-foto" class="font-bold text-sm">📸 Tirar Foto</span>
                         <input type="file" id="foto" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('label-foto').innerText = '✅ Foto Pronta'">
                     </label>
-                    
-                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-4 rounded-2xl shadow-lg active:scale-95 transition-all uppercase">Confirmar</button>
+                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-4 rounded-2xl shadow-lg uppercase">Confirmar</button>
                     <button type="button" id="btn-cancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-200 text-gray-500 font-bold p-3 rounded-2xl mt-2">CANCELAR</button>
                 </form>
             </div>
@@ -63,30 +56,60 @@
         </section>
 
         <section id="aba-relatorio" class="tab-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="font-bold text-gray-700">HISTÓRICO</h2>
-                <button onclick="limparHistorico()" class="text-[10px] text-red-500 font-bold uppercase">Limpar</button>
-            </div>
             <div id="lista-relatorio" class="space-y-3"></div>
+            <button onclick="limparHistorico()" class="w-full mt-6 text-red-500 font-bold text-xs p-4 bg-red-50 rounded-2xl uppercase">Limpar Histórico</button>
         </section>
 
+        <section id="aba-config" class="tab-content">
+            <div class="bg-white p-6 rounded-3xl shadow-md space-y-6">
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase">Nome do Estabelecimento</label>
+                    <input type="text" id="config-nome" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mt-1 outline-none font-bold">
+                    <button onclick="salvarConfig()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-xl mt-2">Salvar Nome</button>
+                </div>
+                <div class="border-t pt-4">
+                    <h3 class="font-bold text-gray-700 mb-2 uppercase text-sm">Backup de Dados</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="exportarBackup()" class="bg-gray-800 text-white p-3 rounded-xl text-xs font-bold">Exportar</button>
+                        <button onclick="importarBackup()" class="bg-gray-100 text-gray-600 p-3 rounded-xl text-xs font-bold">Importar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-20 safe-area-bottom z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center p-2 flex-1">
-            <span class="text-xl">➕</span><span class="text-[10px] font-bold uppercase">Entrada</span>
-        </button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center p-2 flex-1">
-            <span class="text-xl">🚗</span><span class="text-[10px] font-bold uppercase">Pátio</span>
-        </button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center p-2 flex-1">
-            <span class="text-xl">📋</span><span class="text-[10px] font-bold uppercase">Relatório</span>
-        </button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50 px-2">
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-lg">➕</span><span class="text-[8px] font-bold uppercase">Entrada</span></button>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">🚗</span><span class="text-[8px] font-bold uppercase">Pátio</span></button>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">📋</span><span class="text-[8px] font-bold uppercase">Relatório</span></button>
+        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-lg">⚙️</span><span class="text-[8px] font-bold uppercase">Ajustes</span></button>
     </nav>
 
     <script>
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO" };
+
+        // SISTEMA DE LICENÇA
+        const SENHA_MESTRA = "0907";
+        function verificarLicenca() {
+            let dataAtivacao = localStorage.getItem('data_ativacao');
+            if (!dataAtivacao) {
+                dataAtivacao = Date.now();
+                localStorage.setItem('data_ativacao', dataAtivacao);
+            }
+            const trintaDias = 30 * 24 * 60 * 60 * 1000;
+            if (Date.now() - dataAtivacao > trintaDias) {
+                document.getElementById('bloqueio').style.display = 'flex';
+            }
+        }
+        function verificarSenha() {
+            if (document.getElementById('senha-licenca').value === SENHA_MESTRA) {
+                localStorage.setItem('data_ativacao', Date.now());
+                document.getElementById('bloqueio').style.display = 'none';
+                alert("Licença renovada!");
+            } else { alert("Senha incorreta"); }
+        }
 
         function mudarAba(aba) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -96,6 +119,41 @@
             if(aba === 'relatorio') renderizarRelatorio();
         }
 
+        function salvarConfig() {
+            config.nome = document.getElementById('config-nome').value.toUpperCase();
+            localStorage.setItem('patio_config', JSON.stringify(config));
+            document.getElementById('app-nome-display').innerText = config.nome;
+            alert("Configuração salva!");
+        }
+
+        function exportarBackup() {
+            const data = { patio, historico, config };
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `backup_patio_${new Date().toLocaleDateString()}.json`;
+            a.click();
+        }
+
+        function importarBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const data = JSON.parse(reader.result);
+                    localStorage.setItem('patio_data', JSON.stringify(data.patio));
+                    localStorage.setItem('patio_historico', JSON.stringify(data.historico));
+                    localStorage.setItem('patio_config', JSON.stringify(data.config));
+                    location.reload();
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // --- LÓGICA DE REGISTRO IGUAL AO ANTERIOR ---
         const otimizarFoto = (file) => {
             return new Promise((res) => {
                 const reader = new FileReader();
@@ -129,33 +187,24 @@
                 entrada: id ? patio.find(v => v.id == id).entrada : new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
             };
 
-            if(id) {
-                const i = patio.findIndex(v => v.id == id);
-                patio[i] = dados;
-            } else {
-                patio.unshift(dados);
-            }
-
+            if(id) { patio[patio.findIndex(v => v.id == id)] = dados; } else { patio.unshift(dados); }
             localStorage.setItem('patio_data', JSON.stringify(patio));
-            cancelarEdicao();
-            renderizarPátio();
-            mudarAba('patio');
+            cancelarEdicao(); renderizarPátio(); mudarAba('patio');
         });
 
         function renderizarPátio() {
-            const container = document.getElementById('lista-veiculos');
-            container.innerHTML = '';
+            const container = document.getElementById('lista-veiculos'); container.innerHTML = '';
             document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
             patio.forEach(v => {
                 container.innerHTML += `
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
                     <img src="${v.foto || ''}" class="w-20 h-20 rounded-2xl object-cover bg-gray-50">
-                    <div class="flex-1">
-                        <div class="font-black text-xl tracking-tight">${v.placa}</div>
-                        <div class="text-xs text-blue-600 font-bold uppercase">${v.cliente}</div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="font-black text-xl tracking-tight truncate">${v.placa}</div>
+                        <div class="text-[10px] text-blue-600 font-bold uppercase truncate">${v.cliente}</div>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="editarVeiculo(${v.id})" class="text-[10px] font-bold bg-gray-100 px-3 py-1 rounded-lg">EDITAR</button>
-                            <button onclick="darSaida(${v.id})" class="text-[10px] font-bold bg-green-600 text-white px-3 py-1 rounded-lg">SAÍDA</button>
+                            <button onclick="editarVeiculo(${v.id})" class="text-[9px] font-bold bg-gray-100 px-3 py-1 rounded-lg uppercase">Editar</button>
+                            <button onclick="darSaida(${v.id})" class="text-[9px] font-bold bg-green-600 text-white px-3 py-1 rounded-lg uppercase">Saída</button>
                         </div>
                     </div>
                 </div>`;
@@ -163,15 +212,14 @@
         }
 
         function renderizarRelatorio() {
-            const container = document.getElementById('lista-relatorio');
-            container.innerHTML = '';
+            const container = document.getElementById('lista-relatorio'); container.innerHTML = '';
             historico.forEach(v => {
                 container.innerHTML += `
                 <div class="bg-white p-3 rounded-2xl border border-gray-100 flex gap-3 items-center opacity-80">
                     <img src="${v.foto || ''}" class="w-12 h-12 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <div class="flex justify-between font-bold text-sm uppercase"><span>${v.placa}</span><span class="text-gray-400 text-[10px]">${v.saida}</span></div>
-                        <div class="text-[10px] text-gray-500">${v.cliente} • ${v.modelo}</div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between font-bold text-[11px] uppercase"><span>${v.placa}</span><span class="text-gray-400">${v.saida}</span></div>
+                        <div class="text-[9px] text-gray-500 uppercase truncate">${v.cliente} • ${v.modelo}</div>
                     </div>
                 </div>`;
             });
@@ -194,7 +242,7 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('modelo').value = v.modelo;
             document.getElementById('cliente').value = v.cliente;
-            document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
+            document.getElementById('btn-submit').innerText = "ATUALIZAR";
             document.getElementById('btn-cancelar').classList.remove('hidden');
             mudarAba('entrada');
         };
@@ -204,9 +252,15 @@
             document.getElementById('edit-id').value = '';
             document.getElementById('btn-submit').innerText = "CONFIRMAR";
             document.getElementById('btn-cancelar').classList.add('hidden');
+            document.getElementById('label-foto').innerText = '📸 Tirar Foto';
         };
 
         window.limparHistorico = () => { if(confirm("Limpar relatório?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); }};
+        
+        // Inicialização
+        document.getElementById('app-nome-display').innerText = config.nome;
+        document.getElementById('config-nome').value = config.nome;
+        verificarLicenca();
         renderizarPátio();
     </script>
 </body>

@@ -78,7 +78,7 @@
         <div class="flex justify-between items-center text-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 uppercase tracking-widest italic">30 DIAS</span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 uppercase tracking-widest italic tracking-tight">30 DIAS</span>
             </div>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter italic">0 NO PÁTIO</span>
         </div>
@@ -225,16 +225,13 @@
             document.getElementById('detalhe-entrada').innerText = v.entrada;
             document.getElementById('detalhe-saida').innerText = v.saida;
             document.getElementById('detalhe-servico').innerText = v.servico;
-            
             document.getElementById('btn-excluir-relatorio').onclick = () => {
-                if(confirm("Excluir este registro permanentemente?")) {
+                if(confirm("Excluir este registro permanente?")) {
                     historico = historico.filter(h => h.id != id);
                     localStorage.setItem('patio_historico', JSON.stringify(historico));
-                    fecharDetalhes();
-                    renderizarRelatorio();
+                    fecharDetalhes(); renderizarRelatorio();
                 }
             };
-            
             document.getElementById('pagina-detalhes').style.display = 'flex';
         };
 
@@ -255,8 +252,9 @@
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
                     <img src="${v.foto || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
                     <div class="flex-1 overflow-hidden">
-                        <div class="font-black text-lg tracking-tighter leading-none mb-1">${v.placa}</div>
-                        <div class="text-[10px] text-blue-600 font-bold uppercase truncate mb-1">${v.modelo}</div>
+                        <div class="font-black text-lg tracking-tighter leading-none mb-1 text-gray-800">${v.placa}</div>
+                        <div class="text-[10px] text-blue-600 font-bold uppercase truncate mb-0.5">${v.modelo}</div>
+                        <div class="text-[9px] text-gray-400 font-bold uppercase truncate mb-1 italic">Dono: ${v.cliente}</div>
                         <select onchange="mudarStatus(${v.id}, this.value)" class="text-[9px] font-black border-2 border-gray-100 p-1 rounded-lg w-full mb-1">
                             <option ${v.status == 'Diagnóstico' ? 'selected' : ''}>Diagnóstico</option>
                             <option ${v.status == 'Desmontagem' ? 'selected' : ''}>Desmontagem</option>

@@ -28,7 +28,10 @@
 
     <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl">
         <div class="flex justify-between items-center">
-            <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase">PÁTIO PRO</h1>
+            <div>
+                <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase leading-none">PÁTIO PRO</h1>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70">Calculando licença...</span>
+            </div>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">0 No Pátio</span>
         </div>
     </header>
@@ -62,6 +65,10 @@
 
         <section id="aba-config" class="tab-content">
             <div class="bg-white p-6 rounded-3xl shadow-md space-y-6">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                    <h3 class="text-blue-800 font-black text-xs uppercase mb-1">Status da Assinatura</h3>
+                    <p id="status-assinatura-detalhe" class="text-blue-600 text-[11px] font-bold uppercase"></p>
+                </div>
                 <div>
                     <label class="text-xs font-bold text-gray-400 uppercase">Nome do Estabelecimento</label>
                     <input type="text" id="config-nome" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mt-1 outline-none font-bold">
@@ -90,7 +97,6 @@
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
         let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO" };
 
-        // SISTEMA DE LICENÇA
         const SENHA_MESTRA = "0907";
         function verificarLicenca() {
             let dataAtivacao = localStorage.getItem('data_ativacao');
@@ -99,7 +105,13 @@
                 localStorage.setItem('data_ativacao', dataAtivacao);
             }
             const trintaDias = 30 * 24 * 60 * 60 * 1000;
-            if (Date.now() - dataAtivacao > trintaDias) {
+            const decorrido = Date.now() - dataAtivacao;
+            const diasFaltando = Math.max(0, Math.ceil((trintaDias - decorrido) / (1000 * 60 * 60 * 24)));
+            
+            document.getElementById('dias-restantes').innerText = diasFaltando + " dias restantes";
+            document.getElementById('status-assinatura-detalhe').innerText = "Vence em " + diasFaltando + " dias";
+
+            if (decorrido > trintaDias) {
                 document.getElementById('bloqueio').style.display = 'flex';
             }
         }
@@ -107,7 +119,8 @@
             if (document.getElementById('senha-licenca').value === SENHA_MESTRA) {
                 localStorage.setItem('data_ativacao', Date.now());
                 document.getElementById('bloqueio').style.display = 'none';
-                alert("Licença renovada!");
+                verificarLicenca();
+                alert("Licença renovada por 30 dias!");
             } else { alert("Senha incorreta"); }
         }
 
@@ -131,7 +144,7 @@
             const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = `backup_patio_${new Date().toLocaleDateString()}.json`;
+            a.href = url; a.download = `backup_patio.json`;
             a.click();
         }
 
@@ -139,7 +152,6 @@
             const input = document.createElement('input');
             input.type = 'file';
             input.onchange = e => {
-                const file = e.target.files[0];
                 const reader = new FileReader();
                 reader.onload = () => {
                     const data = JSON.parse(reader.result);
@@ -148,12 +160,11 @@
                     localStorage.setItem('patio_config', JSON.stringify(data.config));
                     location.reload();
                 };
-                reader.readAsText(file);
+                reader.readAsText(e.target.files[0]);
             };
             input.click();
         }
 
-        // --- LÓGICA DE REGISTRO IGUAL AO ANTERIOR ---
         const otimizarFoto = (file) => {
             return new Promise((res) => {
                 const reader = new FileReader();
@@ -257,7 +268,6 @@
 
         window.limparHistorico = () => { if(confirm("Limpar relatório?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); }};
         
-        // Inicialização
         document.getElementById('app-nome-display').innerText = config.nome;
         document.getElementById('config-nome').value = config.nome;
         verificarLicenca();

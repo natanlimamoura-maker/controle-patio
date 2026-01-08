@@ -178,13 +178,14 @@
         }
 
         function checkPass() {
-            if (document.getElementById('pass-input').value === '0907') {
-                localStorage.setItem('patiopro_expiry', new Date().getTime() + (30 * 24 * 60 * 60 * 1000));
-                location.reload();
-            } else {
-                document.getElementById('lock-msg').innerText = "SENHA INCORRETA";
-            }
-        }
+    // .trim() remove espaços e garante que o número seja lido corretamente
+    if (document.getElementById('pass-input').value.trim() === '0907') {
+        localStorage.setItem('patiopro_expiry', new Date().getTime() + (30 * 24 * 60 * 60 * 1000));
+        location.reload();
+    } else {
+        document.getElementById('lock-msg').innerText = "SENHA INCORRETA";
+    }
+}
 
         // --- DOWNLOAD DIRETO DO ORÇAMENTO (SEM TELA DE IMPRESSÃO) ---
         function downloadOrcamento() {

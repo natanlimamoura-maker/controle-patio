@@ -15,7 +15,8 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
-        #bloqueio, #modal-saida { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        #bloqueio, #modal-saida, #pagina-detalhes { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
@@ -30,17 +31,42 @@
         </div>
     </div>
 
+    <div id="pagina-detalhes">
+        <header class="bg-blue-700 text-white p-5 w-full flex items-center gap-4 shadow-lg">
+            <button onclick="fecharDetalhes()" class="text-xl">←</button>
+            <h1 class="text-lg font-black uppercase italic">Dados do Registro</h1>
+        </header>
+        <div class="p-5 w-full max-w-xl space-y-4">
+            <div id="detalhe-foto-container" class="w-full h-64 bg-gray-200 rounded-3xl overflow-hidden border-4 border-white shadow-md">
+                <img id="detalhe-foto" class="w-full h-full object-cover">
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl"></p></div>
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold"></p></div>
+                </div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase">Modelo/Marca</label><p id="detalhe-modelo" class="font-bold text-blue-600 uppercase"></p></div>
+                <div class="grid grid-cols-2 gap-4 border-t pt-4">
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Entrada</label><p id="detalhe-entrada" class="font-bold text-gray-600"></p></div>
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Saída</label><p id="detalhe-saida" class="font-bold text-gray-600"></p></div>
+                </div>
+                <div class="border-t pt-4">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Serviço Realizado</label>
+                    <p id="detalhe-servico" class="font-bold text-green-600 italic uppercase"></p>
+                </div>
+            </div>
+            <button id="btn-excluir-relatorio" class="w-full bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs border border-red-100 shadow-sm">Excluir Registro Permanente</button>
+        </div>
+    </div>
+
     <div id="modal-saida">
         <div class="modal-content">
             <h3 class="font-black text-blue-700 uppercase italic mb-4">Finalizar Registro</h3>
             <input type="hidden" id="saida-id-temp">
-            
             <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Data de Saída</label>
             <input type="text" id="input-data-saida" placeholder="Ex: 08/01" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl mb-4 outline-none font-bold text-center">
-            
             <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Serviço Realizado</label>
             <input type="text" id="input-servico-final" placeholder="Ex: Troca de Oleo" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl mb-6 outline-none font-bold uppercase">
-            
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="fecharModalSaida()" class="bg-gray-100 text-gray-500 font-bold p-4 rounded-2xl uppercase text-[10px]">Cancelar</button>
                 <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white font-black p-4 rounded-2xl shadow-lg uppercase text-[10px]">Concluir</button>
@@ -63,23 +89,18 @@
             <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
-                    
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Data da Entrada</label>
                     <input type="text" id="input-data-entrada" placeholder="Ex: 08/01" required class="w-full bg-gray-50 border-2 border-gray-100 p-3 rounded-2xl outline-none font-bold text-center uppercase">
-
                     <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none font-black text-xl uppercase text-center">
                     <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none font-bold">
                     <input type="text" id="cliente" placeholder="NOME DO CLIENTE" required class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl outline-none font-bold">
-                    
                     <div id="container-previa" class="hidden w-full h-40 rounded-2xl overflow-hidden border-2 border-blue-100">
                         <img id="img-previa" class="w-full h-full object-cover">
                     </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50 active:bg-blue-100"><span class="font-bold text-[10px] uppercase">📸 Câmera</span><input type="file" id="foto-camera" accept="image/*" capture="environment" class="hidden" onchange="mostrarPrevia(this)"></label>
                         <label class="flex flex-col items-center justify-center border-2 border-gray-200 p-4 rounded-2xl text-gray-600 cursor-pointer bg-gray-50 active:bg-gray-100"><span class="font-bold text-[10px] uppercase">🖼️ Galeria</span><input type="file" id="foto-galeria" accept="image/*" class="hidden" onchange="mostrarPrevia(this)"></label>
                     </div>
-                    
                     <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-5 rounded-2xl shadow-lg uppercase tracking-wider">Registrar</button>
                 </form>
             </div>
@@ -195,6 +216,30 @@
             location.reload();
         };
 
+        window.abrirDetalhes = (id) => {
+            const v = historico.find(v => v.id == id);
+            document.getElementById('detalhe-foto').src = v.foto || '';
+            document.getElementById('detalhe-placa').innerText = v.placa;
+            document.getElementById('detalhe-cliente').innerText = v.cliente;
+            document.getElementById('detalhe-modelo').innerText = v.modelo;
+            document.getElementById('detalhe-entrada').innerText = v.entrada;
+            document.getElementById('detalhe-saida').innerText = v.saida;
+            document.getElementById('detalhe-servico').innerText = v.servico;
+            
+            document.getElementById('btn-excluir-relatorio').onclick = () => {
+                if(confirm("Excluir este registro permanentemente?")) {
+                    historico = historico.filter(h => h.id != id);
+                    localStorage.setItem('patio_historico', JSON.stringify(historico));
+                    fecharDetalhes();
+                    renderizarRelatorio();
+                }
+            };
+            
+            document.getElementById('pagina-detalhes').style.display = 'flex';
+        };
+
+        window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
+
         window.mudarStatus = (id, novoStatus) => {
             const idx = patio.findIndex(v => v.id == id);
             patio[idx].status = novoStatus;
@@ -231,7 +276,7 @@
             const r = document.getElementById('lista-relatorio'); r.innerHTML = '';
             historico.forEach(v => {
                 r.innerHTML += `
-                <div class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center shadow-sm">
+                <div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center shadow-sm active:bg-gray-50">
                     <img src="${v.foto || ''}" class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
                     <div class="flex-1 overflow-hidden">
                         <div class="font-black text-sm uppercase leading-none">${v.placa}</div>

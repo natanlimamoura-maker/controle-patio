@@ -25,8 +25,9 @@
 
     <div id="bloqueio">
         <div class="modal-content text-center">
-            <h2 class="text-xl font-bold mb-4 uppercase">Licença Expirada</h2>
-            <input type="password" id="senha-licenca" placeholder="Senha 0907" class="border-2 p-4 rounded-xl w-full mb-4 text-center outline-none">
+            <h2 class="text-xl font-bold mb-4 uppercase text-blue-700">Licença Expirada</h2>
+            <p class="text-[10px] text-gray-400 font-bold uppercase mb-4">Insira a senha de ativação para continuar</p>
+            <input type="password" id="senha-licenca" placeholder="Senha 0907" class="border-2 p-4 rounded-xl w-full mb-4 text-center outline-none focus:border-blue-600">
             <button onclick="verificarSenha()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold shadow-lg uppercase">Ativar App</button>
         </div>
     </div>
@@ -78,7 +79,7 @@
         <div class="flex justify-between items-center text-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 uppercase tracking-widest italic tracking-tight">30 DIAS</span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 uppercase tracking-widest italic tracking-tight italic">VERIFICANDO...</span>
             </div>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter italic">0 NO PÁTIO</span>
         </div>
@@ -161,13 +162,24 @@
             }
         }
 
+        // LICENÇA CORRIGIDA PARA NÃO TRAVAR
         function verificarLicenca() {
             let dataAtivacao = localStorage.getItem('data_ativacao');
-            if (!dataAtivacao) { dataAtivacao = Date.now(); localStorage.setItem('data_ativacao', dataAtivacao); }
-            const decorrido = Date.now() - dataAtivacao;
-            const diasFaltando = Math.max(0, Math.ceil((30 * 24 * 60 * 60 * 1000 - decorrido) / (1000 * 60 * 60 * 24)));
+            if (!dataAtivacao) { 
+                dataAtivacao = Date.now(); 
+                localStorage.setItem('data_ativacao', dataAtivacao); 
+            }
+            const trintaDias = 30 * 24 * 60 * 60 * 1000;
+            const decorrido = Date.now() - parseInt(dataAtivacao);
+            const diasFaltando = Math.max(0, Math.ceil((trintaDias - decorrido) / (1000 * 60 * 60 * 24)));
+            
             document.getElementById('dias-restantes').innerText = diasFaltando + " DIAS RESTANTES";
-            if (decorrido > (30 * 24 * 60 * 60 * 1000)) document.getElementById('bloqueio').style.display = 'flex';
+            
+            if (decorrido > trintaDias) {
+                document.getElementById('bloqueio').style.display = 'flex';
+            } else {
+                document.getElementById('bloqueio').style.display = 'none';
+            }
         }
 
         function verificarSenha() {
@@ -226,7 +238,7 @@
             document.getElementById('detalhe-saida').innerText = v.saida;
             document.getElementById('detalhe-servico').innerText = v.servico;
             document.getElementById('btn-excluir-relatorio').onclick = () => {
-                if(confirm("Excluir este registro permanente?")) {
+                if(confirm("Excluir este registro?")) {
                     historico = historico.filter(h => h.id != id);
                     localStorage.setItem('patio_historico', JSON.stringify(historico));
                     fecharDetalhes(); renderizarRelatorio();

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1e40af">
     <link rel="manifest" href="manifest.json">
     <title>Pátio Pro Elite</title>
@@ -14,22 +15,42 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
-        #bloqueio { display: none; position: fixed; inset: 0; background: white; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #bloqueio, #modal-saida { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800">
 
     <div id="bloqueio">
-        <h2 class="text-xl font-bold mb-4">Licença Expirada</h2>
-        <input type="password" id="senha-licenca" placeholder="Senha 0907" class="border-2 p-4 rounded-xl w-full max-w-xs mb-4 text-center">
-        <button onclick="verificarSenha()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg">Ativar App</button>
+        <div class="modal-content text-center">
+            <h2 class="text-xl font-bold mb-4">Licença Expirada</h2>
+            <input type="password" id="senha-licenca" placeholder="Senha 0907" class="border-2 p-4 rounded-xl w-full mb-4 text-center outline-none focus:border-blue-500">
+            <button onclick="verificarSenha()" class="bg-blue-600 text-white w-full py-4 rounded-xl font-bold shadow-lg uppercase">Ativar App</button>
+        </div>
+    </div>
+
+    <div id="modal-saida">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-blue-700 uppercase italic">Finalizar Veículo</h3>
+                <button onclick="fecharModalSaida()" class="text-gray-400 text-xl">✕</button>
+            </div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase mb-4 leading-tight">Registre o serviço realizado antes de confirmar a saída.</p>
+            <input type="hidden" id="saida-id-temp">
+            <input type="text" id="input-servico" placeholder="EX: LAVAGEM COMPLETA" class="w-full bg-gray-50 border-2 border-gray-100 p-4 rounded-2xl mb-4 outline-none focus:border-blue-500 font-bold uppercase">
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="fecharModalSaida()" class="bg-gray-100 text-gray-500 font-bold p-4 rounded-2xl uppercase text-xs">Cancelar</button>
+                <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white font-black p-4 rounded-2xl shadow-lg shadow-green-100 uppercase text-xs">Dar Saída</button>
+            </div>
+        </div>
     </div>
 
     <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl">
         <div class="flex justify-between items-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic tracking-tighter uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic tracking-tight">Verificando...</span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic tracking-tight italic">Verificando...</span>
             </div>
             <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">0 NO PÁTIO</span>
         </div>
@@ -70,7 +91,6 @@
         </section>
 
         <section id="aba-relatorio" class="tab-content">
-            <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-2">Histórico Detalhado</h2>
             <div id="lista-relatorio" class="space-y-3"></div>
             <button onclick="limparHistorico()" class="w-full mt-8 text-red-500 font-bold text-[10px] p-4 bg-red-50 rounded-2xl uppercase tracking-[0.2em] border border-red-100">Limpar Relatório</button>
         </section>
@@ -81,7 +101,7 @@
                     <p id="status-assinatura-detalhe"></p>
                 </div>
                 <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Título do Estabelecimento</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Título do App</label>
                     <input type="text" id="config-nome" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mt-1 outline-none font-bold text-blue-900 uppercase">
                     <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl mt-3 shadow-md uppercase text-xs">Salvar Nome</button>
                 </div>
@@ -159,9 +179,7 @@
         document.getElementById('form-entrada').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
-            const agora = new Date();
-            // APENAS A DATA (DIA/MÊS)
-            const dataSomente = agora.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+            const dataSomente = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
 
             const dados = {
                 id: id ? Number(id) : Date.now(),
@@ -182,11 +200,37 @@
             cancelarEdicao(); renderizarPátio(); mudarAba('patio');
         });
 
+        // FUNÇÕES DO MODAL DE SAÍDA
+        window.abrirModalSaida = (id) => {
+            document.getElementById('saida-id-temp').value = id;
+            document.getElementById('input-servico').value = '';
+            document.getElementById('modal-saida').style.display = 'flex';
+        };
+
+        window.fecharModalSaida = () => {
+            document.getElementById('modal-saida').style.display = 'none';
+        };
+
+        window.confirmarSaidaFinal = () => {
+            const id = document.getElementById('saida-id-temp').value;
+            const servico = document.getElementById('input-servico').value || "Finalizado";
+            const v = patio.find(v => v.id == id);
+            const dataSomenteSaida = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+
+            historico.unshift({ ...v, saida: dataSomenteSaida, servico: servico });
+            localStorage.setItem('patio_historico', JSON.stringify(historico));
+            patio = patio.filter(v => v.id != id);
+            localStorage.setItem('patio_data', JSON.stringify(patio));
+            
+            fecharModalSaida();
+            renderizarPátio();
+        };
+
         function renderizarPátio() {
             const container = document.getElementById('lista-veiculos'); container.innerHTML = '';
             document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
             if (patio.length === 0) {
-                container.innerHTML = '<div class="text-center py-20 text-gray-300 font-bold uppercase italic text-sm">Pátio Vazio</div>';
+                container.innerHTML = '<div class="text-center py-20 text-gray-300 font-bold uppercase italic text-xs">Pátio Vazio</div>';
                 return;
             }
             patio.forEach(v => {
@@ -199,7 +243,7 @@
                         <div class="text-[9px] text-gray-400 font-bold uppercase truncate">${v.cliente} • ${v.entrada}</div>
                         <div class="flex gap-2 mt-3">
                             <button onclick="editarVeiculo(${v.id})" class="text-[9px] font-black bg-gray-100 text-gray-500 px-4 py-2 rounded-xl uppercase tracking-widest">Editar</button>
-                            <button onclick="darSaida(${v.id})" class="text-[9px] font-black bg-green-600 text-white px-4 py-2 rounded-xl shadow-md shadow-green-100 uppercase italic tracking-widest">Saída</button>
+                            <button onclick="abrirModalSaida(${v.id})" class="text-[9px] font-black bg-green-600 text-white px-4 py-2 rounded-xl shadow-md shadow-green-100 uppercase italic tracking-widest">Saída</button>
                         </div>
                     </div>
                 </div>`;
@@ -209,7 +253,7 @@
         function renderizarRelatorio() {
             const container = document.getElementById('lista-relatorio'); container.innerHTML = '';
             if (historico.length === 0) {
-                container.innerHTML = '<div class="text-center py-20 text-gray-300 font-bold uppercase italic text-sm">Nenhum registro</div>';
+                container.innerHTML = '<div class="text-center py-20 text-gray-300 font-bold uppercase italic text-xs">Nenhum registro</div>';
                 return;
             }
             historico.forEach(v => {
@@ -219,10 +263,10 @@
                     <div class="flex-1 overflow-hidden">
                         <div class="flex justify-between items-start">
                             <span class="font-black text-lg tracking-tighter leading-none text-gray-800">${v.placa}</span>
-                            <span class="text-[8px] bg-blue-50 text-blue-500 font-black px-2 py-1 rounded-md uppercase">Finalizado</span>
+                            <span class="text-[8px] bg-blue-50 text-blue-500 font-black px-2 py-1 rounded-md uppercase tracking-tighter">Finalizado</span>
                         </div>
                         <p class="text-[10px] text-blue-600 font-black uppercase truncate mt-0.5">${v.modelo} | ${v.cliente}</p>
-                        <p class="text-[9px] text-green-600 font-black italic uppercase mt-1">✓ ${v.servico || 'Finalizado'}</p>
+                        <p class="text-[9px] text-green-600 font-black italic uppercase mt-1 leading-none">✓ ${v.servico}</p>
                         <div class="mt-2 pt-2 border-t border-gray-50 flex justify-between text-[8px] font-bold text-gray-400 uppercase">
                             <span>E: ${v.entrada}</span>
                             <span>S: ${v.saida}</span>
@@ -231,27 +275,6 @@
                 </div>`;
             });
         }
-
-        window.darSaida = (id) => {
-            const servicoRealizado = prompt("Qual serviço foi realizado neste veículo?");
-            if (servicoRealizado !== null) {
-                const v = patio.find(v => v.id === id);
-                const agora = new Date();
-                // APENAS A DATA (DIA/MÊS)
-                const dataSomenteSaida = agora.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
-                
-                historico.unshift({
-                    ...v, 
-                    saida: dataSomenteSaida,
-                    servico: servicoRealizado || "Serviço Finalizado"
-                });
-                
-                localStorage.setItem('patio_historico', JSON.stringify(historico));
-                patio = patio.filter(v => v.id !== id);
-                localStorage.setItem('patio_data', JSON.stringify(patio));
-                renderizarPátio();
-            }
-        };
 
         window.editarVeiculo = (id) => {
             const v = patio.find(v => v.id == id);
@@ -293,7 +316,7 @@
                 config.nome = novoNome;
                 localStorage.setItem('patio_config', JSON.stringify(config));
                 document.getElementById('app-nome-display').innerText = config.nome;
-                alert("Configuração salva!");
+                alert("Nome salvo!");
             }
         }
 

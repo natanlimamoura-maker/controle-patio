@@ -106,7 +106,9 @@
                 </div>
                 <button onclick="addRow()" class="text-xs font-black">+ ADICIONAR ITEM</button>
                 <div class="text-right text-2xl font-black text-emerald-500" id="orc-total">R$ 0,00</div>
-                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Gerar Arquivo Orçamento</button>
+                
+                <button onclick="downloadOrcamento()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">BAIXAR ARQUIVO ORÇAMENTO</button>
+                
                 <button onclick="alert('Enviando WhatsApp...')" class="btn-wpp">Enviar WhatsApp</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
@@ -159,6 +161,7 @@
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentPhotos = [];
 
+        // --- LICENÇA ---
         function checkLicense() {
             let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
@@ -183,8 +186,8 @@
             }
         }
 
-        // --- FUNÇÃO CORRIGIDA: SEM PRINT, APENAS VISUALIZAÇÃO/DOWNLOAD ---
-        function generatePDF() {
+        // --- DOWNLOAD DIRETO DO ORÇAMENTO (SEM TELA DE IMPRESSÃO) ---
+        function downloadOrcamento() {
             const cliente = document.getElementById('orc-cliente').value || "Cliente";
             const veiculo = document.getElementById('orc-veiculo').value || "Veiculo";
             const total = document.getElementById('orc-total').innerText;
@@ -199,44 +202,18 @@
                 }
             });
 
-            // Criamos um HTML completo
-            const htmlCompleto = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Orcamento_${cliente}</title>
-                    <style>
-                        body{font-family:sans-serif;padding:20px;color:#333}
-                        .header{text-align:center;border-bottom:3px solid #e11d48;padding-bottom:10px;margin-bottom:20px}
-                        table{width:100%;border-collapse:collapse;margin:20px 0}
-                        th{background:#f4f4f4;text-align:left;padding:10px}
-                        td{padding:10px;border-bottom:1px solid #eee}
-                        .total{text-align:right;font-size:24px;color:#e11d48;font-weight:bold;margin-top:20px}
-                    </style>
-                </head>
-                <body>
-                    <div class="header"><h1>${nomeApp}</h1><p>ORÇAMENTO DE SERVIÇOS</p></div>
-                    <p><strong>CLIENTE:</strong> ${cliente}</p>
-                    <p><strong>VEÍCULO:</strong> ${veiculo}</p>
-                    <p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p>
-                    <table>
-                        <thead><tr><th>DESCRIÇÃO</th><th style="text-align:right">VALOR</th></tr></thead>
-                        <tbody>${itensHtml}</tbody>
-                    </table>
-                    <div class="total">TOTAL: ${total}</div>
-                </body>
-                </html>
-            `;
+            const docContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:30px;color:#333}.h{text-align:center;border-bottom:3px solid #e11d48;margin-bottom:20px}table{width:100%;border-collapse:collapse}th{background:#f4f4f4;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.t{text-align:right;font-size:24px;color:#e11d48;font-weight:bold}</style></head><body><div class="h"><h1>${nomeApp}</h1><p>ORÇAMENTO</p></div><p>CLIENTE: ${cliente}<br>VEÍCULO: ${veiculo}<br>DATA: ${new Date().toLocaleDateString()}</p><table><thead><tr><th>ITEM</th><th style="text-align:right">VALOR</th></tr></thead><tbody>${itensHtml}</tbody></table><p class="t">TOTAL: ${total}</p></body></html>`;
 
-            // Transformamos em um Blob e abrimos em nova aba (mais seguro contra o diálogo de impressão)
-            const blob = new Blob([htmlCompleto], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            
-            // Abre o documento em uma nova aba
-            window.open(url, '_blank');
+            const blob = new Blob([docContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Orcamento_${cliente.replace(/\s+/g, '_')}.html`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
+        // --- FUNÇÕES DE NAVEGAÇÃO E CRUD ---
         function updateName() {
             const n = document.getElementById('cfg-nome').value.toUpperCase();
             if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); }

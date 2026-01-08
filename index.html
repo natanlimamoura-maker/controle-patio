@@ -4,71 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1e40af">
-    <title>Pátio Pro Elite v3</title>
+    <title>Pátio Pro Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .nav-button.active { color: #2563eb; border-top: 3px solid #2563eb; background: #f8fafc; }
+        .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 1rem; }
+        .card-shadow { box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.07); }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-24 font-sans text-gray-800">
+<body class="bg-[#f3f4f6] min-h-screen pb-24 font-sans text-gray-800">
 
-    <header class="bg-blue-700 text-white p-4 shadow-lg sticky top-0 z-50">
+    <header class="bg-blue-600 text-white px-5 py-6 shadow-xl rounded-b-[2.5rem] sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black italic tracking-tighter">PÁTIO PRO</h1>
-            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-lg text-[10px] font-bold uppercase">0 No Pátio</span>
+            <div>
+                <h1 class="text-2xl font-black italic tracking-tighter">PÁTIO PRO</h1>
+                <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest" id="data-atual"></p>
+            </div>
+            <span id="contador" class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black border border-white/30">
+                0 NO PÁTIO
+            </span>
         </div>
     </header>
 
-    <main class="container mx-auto p-4 max-w-xl">
+    <main class="container mx-auto p-5 max-w-xl">
         
-        <section id="aba-entrada" class="tab-content active animate-in fade-in">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-200">
-                <h2 class="text-lg font-bold mb-6 flex items-center gap-2 text-blue-700">📝 Registrar Entrada</h2>
+        <section id="aba-entrada" class="tab-content active animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div class="bg-white p-7 rounded-[2rem] card-shadow border border-gray-100">
+                <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                    <span class="bg-blue-100 p-2 rounded-xl">📝</span> Nova Entrada
+                </h2>
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
-                    <input type="text" id="placa" placeholder="PLACA DO VEÍCULO" required class="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none uppercase font-black text-xl bg-gray-50">
-                    <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none bg-gray-50 font-medium">
-                    <input type="text" id="cliente" placeholder="NOME DO CLIENTE" required class="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-blue-500 outline-none bg-gray-50 font-medium">
-                    <label class="flex flex-col items-center justify-center gap-2 w-full bg-blue-50 border-2 border-dashed border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer active:bg-blue-100 transition-colors">
-                        <span id="label-foto" class="font-bold text-sm text-center">📸 Tirar/Alterar Foto</span>
-                        <input type="file" id="foto" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('label-foto').innerText = '✅ Foto Selecionada'">
+                    
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Placa do Veículo</label>
+                        <input type="text" id="placa" placeholder="ABC-1234" required 
+                            class="w-full bg-gray-50 border-2 border-gray-50 p-4 rounded-2xl focus:border-blue-500 focus:bg-white outline-none uppercase font-black text-2xl transition-all">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">Modelo e Cliente</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="modelo" placeholder="Modelo" required class="w-full bg-gray-50 border-2 border-gray-50 p-4 rounded-2xl focus:border-blue-500 focus:bg-white outline-none font-bold">
+                            <input type="text" id="cliente" placeholder="Nome" required class="w-full bg-gray-50 border-2 border-gray-50 p-4 rounded-2xl focus:border-blue-500 focus:bg-white outline-none font-bold">
+                        </div>
+                    </div>
+                    
+                    <label class="flex flex-col items-center justify-center gap-2 w-full bg-blue-50 border-2 border-dashed border-blue-200 p-5 rounded-2xl text-blue-600 cursor-pointer active:bg-blue-100 transition-all">
+                        <span id="label-foto" class="font-bold text-sm">📸 Tirar Foto</span>
+                        <input type="file" id="foto" accept="image/*" capture="environment" class="hidden" onchange="document.getElementById('label-foto').innerText = '✅ Foto Carregada'">
                     </label>
-                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-5 rounded-2xl shadow-xl shadow-blue-100 active:scale-95 transition-all uppercase">Confirmar Entrada</button>
-                    <button type="button" id="btn-cancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-200 text-gray-600 font-bold p-3 rounded-2xl uppercase text-sm mt-2">Cancelar Edição</button>
+                    
+                    <button type="submit" id="btn-submit" class="w-full bg-blue-600 text-white font-black p-5 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase tracking-wide">
+                        Confirmar Entrada
+                    </button>
+                    <button type="button" id="btn-cancelar" onclick="cancelarEdicao()" class="hidden w-full bg-gray-100 text-gray-500 font-bold p-3 rounded-2xl uppercase text-[10px] mt-2">
+                        Cancelar Alterações
+                    </button>
                 </form>
             </div>
         </section>
 
-        <section id="aba-patio" class="tab-content animate-in fade-in">
-            <div class="mb-4">
-                <input type="text" id="busca" oninput="filtrarVeiculos()" placeholder="🔍 Buscar no pátio..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white">
+        <section id="aba-patio" class="tab-content animate-in fade-in duration-300">
+            <div class="relative mb-6">
+                <input type="text" id="busca" oninput="filtrarVeiculos()" placeholder="Pesquisar placa ou nome..." 
+                    class="w-full p-5 pl-12 rounded-[1.5rem] border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium">
+                <span class="absolute left-5 top-5 opacity-30">🔍</span>
             </div>
             <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
-        <section id="aba-relatorio" class="tab-content animate-in fade-in">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-gray-700 uppercase italic">Histórico de Hoje</h2>
-                <button onclick="limparHistorico()" class="text-[10px] bg-red-100 text-red-600 px-3 py-1 rounded-full font-bold">LIMPAR TUDO</button>
+        <section id="aba-relatorio" class="tab-content animate-in fade-in duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-gray-800 italic uppercase">Histórico</h2>
+                <button onclick="limparHistorico()" class="text-[10px] bg-red-100 text-red-600 px-4 py-2 rounded-full font-black uppercase">Limpar</button>
             </div>
             <div id="lista-relatorio" class="space-y-3"></div>
         </section>
-
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center justify-center w-full h-full gap-1">
-            <span class="text-xl">➕</span><span class="text-[9px] font-bold uppercase">Entrada</span>
+    <nav class="fixed bottom-6 left-5 right-5 bg-white/80 backdrop-blur-lg border border-white/50 h-20 rounded-[2rem] card-shadow flex justify-around items-center z-50 px-2">
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center justify-center flex-1 h-14 transition-all">
+            <span class="text-xl">➕</span><span class="text-[9px] font-black uppercase mt-1">Entrada</span>
         </button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center justify-center w-full h-full gap-1">
-            <span class="text-xl">🚗</span><span class="text-[9px] font-bold uppercase">Pátio</span>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center justify-center flex-1 h-14 transition-all">
+            <span class="text-xl">🚗</span><span class="text-[9px] font-black uppercase mt-1">Pátio</span>
         </button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center justify-center w-full h-full gap-1">
-            <span class="text-xl">📋</span><span class="text-[9px] font-bold uppercase">Relatório</span>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center justify-center flex-1 h-14 transition-all">
+            <span class="text-xl">📋</span><span class="text-[9px] font-black uppercase mt-1">Relatório</span>
         </button>
     </nav>
 
@@ -76,12 +103,15 @@
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
 
+        document.getElementById('data-atual').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
+
         function mudarAba(nomeAba) {
             document.querySelectorAll('.tab-content').forEach(aba => aba.classList.remove('active'));
             document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
             document.getElementById('aba-' + nomeAba).classList.add('active');
             document.getElementById('btn-nav-' + nomeAba).classList.add('active');
             if(nomeAba === 'relatorio') renderizarRelatorio();
+            window.scrollTo(0,0);
         }
 
         const redimensionarImagem = (file) => {
@@ -117,17 +147,14 @@
             if(fotoFile) fotoBase64 = await redimensionarImagem(fotoFile);
 
             if (id) {
-                const index = patio.findIndex(v => v.id == id);
-                patio[index].placa = placa;
-                patio[index].modelo = modelo;
-                patio[index].cliente = cliente;
-                if(fotoBase64) patio[index].foto = fotoBase64;
+                const idx = patio.findIndex(v => v.id == id);
+                patio[idx] = {...patio[idx], placa, modelo, cliente};
+                if(fotoBase64) patio[idx].foto = fotoBase64;
             } else {
                 patio.unshift({
                     id: Date.now(),
                     placa, modelo, cliente, foto: fotoBase64,
-                    entrada: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-                    timestampEntrada: new Date().getTime()
+                    entrada: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
                 });
             }
 
@@ -138,14 +165,10 @@
         });
 
         window.removerVeiculo = (id) => {
-            if(confirm("Deseja confirmar a SAÍDA definitiva?")) {
-                const veiculo = patio.find(v => v.id === id);
-                const saidaHora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-                
-                // Adiciona ao histórico com detalhes
-                historico.unshift({ ...veiculo, saida: saidaHora });
+            if(confirm("Confirmar SAÍDA?")) {
+                const v = patio.find(v => v.id === id);
+                historico.unshift({ ...v, saida: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) });
                 localStorage.setItem('patio_historico', JSON.stringify(historico));
-
                 patio = patio.filter(v => v.id !== id);
                 localStorage.setItem('patio_data', JSON.stringify(patio));
                 renderizar(patio);
@@ -158,7 +181,7 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('modelo').value = v.modelo;
             document.getElementById('cliente').value = v.cliente;
-            document.getElementById('btn-submit').innerText = "SALVAR ALTERAÇÕES";
+            document.getElementById('btn-submit').innerText = "ATUALIZAR DADOS";
             document.getElementById('btn-cancelar').classList.remove('hidden');
             mudarAba('entrada');
         };
@@ -168,7 +191,7 @@
             document.getElementById('edit-id').value = '';
             document.getElementById('btn-submit').innerText = "CONFIRMAR ENTRADA";
             document.getElementById('btn-cancelar').classList.add('hidden');
-            document.getElementById('label-foto').innerText = '📸 Tirar/Alterar Foto';
+            document.getElementById('label-foto').innerText = '📸 Tirar Foto';
         };
 
         function renderizar(dados) {
@@ -177,20 +200,18 @@
             document.getElementById('contador').innerText = `${patio.length} NO PÁTIO`;
             dados.forEach(v => {
                 lista.innerHTML += `
-                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col p-4 gap-3">
-                        <div class="flex items-center gap-4">
-                            <div class="w-20 h-20 rounded-2xl bg-gray-50 overflow-hidden border border-gray-100 flex-shrink-0">
-                                ${v.foto ? `<img src="${v.foto}" class="w-full h-full object-cover">` : `<div class="flex items-center justify-center h-full text-[8px] text-gray-300 font-bold uppercase">Sem Foto</div>`}
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-black text-gray-900 text-xl tracking-tighter">${v.placa}</h3>
-                                <p class="text-xs font-bold text-blue-600 uppercase mb-1">${v.cliente}</p>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase italic">Entrada: ${v.entrada}</p>
-                            </div>
+                    <div class="bg-white rounded-[2rem] p-4 card-shadow flex items-center gap-4 border border-white">
+                        <div class="w-24 h-24 rounded-2xl bg-gray-100 overflow-hidden flex-shrink-0 border-2 border-gray-50">
+                            ${v.foto ? `<img src="${v.foto}" class="w-full h-full object-cover">` : `<div class="h-full flex items-center justify-center text-[8px] text-gray-300 font-bold uppercase">Sem Foto</div>`}
                         </div>
-                        <div class="flex gap-2 border-t pt-3 border-gray-50">
-                            <button onclick="editarVeiculo(${v.id})" class="flex-1 bg-gray-50 text-gray-500 font-bold p-3 rounded-xl text-[10px] uppercase">Editar</button>
-                            <button onclick="removerVeiculo(${v.id})" class="flex-1 bg-green-600 text-white font-bold p-3 rounded-xl text-[10px] uppercase shadow-md active:bg-green-700">Dar Saída</button>
+                        <div class="flex-1 overflow-hidden">
+                            <h3 class="font-black text-xl text-gray-900 tracking-tighter">${v.placa}</h3>
+                            <p class="text-[11px] font-black text-blue-600 uppercase truncate">${v.cliente}</p>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase">${v.modelo} • ${v.entrada}</p>
+                            <div class="flex gap-2 mt-2">
+                                <button onclick="editarVeiculo(${v.id})" class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase">Editar</button>
+                                <button onclick="removerVeiculo(${v.id})" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase shadow-md shadow-green-100">Saída</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -200,27 +221,21 @@
         function renderizarRelatorio() {
             const lista = document.getElementById('lista-relatorio');
             lista.innerHTML = '';
-            if(historico.length === 0) {
-                lista.innerHTML = '<p class="text-center py-10 text-gray-400 text-sm">Nenhuma saída registrada hoje.</p>';
-                return;
-            }
+            if(historico.length === 0) { lista.innerHTML = '<p class="text-center py-10 text-gray-400 text-xs">Sem histórico.</p>'; return; }
             historico.forEach(v => {
                 lista.innerHTML += `
-                    <div class="bg-white p-3 rounded-2xl flex items-center gap-3 border border-gray-200 shadow-sm opacity-80">
-                        <img src="${v.foto || ''}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                    <div class="bg-white/60 p-3 rounded-2xl flex items-center gap-3 border border-white/50 shadow-sm">
+                        <img src="${v.foto || ''}" class="w-10 h-10 rounded-lg object-cover bg-gray-200">
                         <div class="flex-1">
-                            <div class="flex justify-between items-center">
-                                <span class="font-black text-sm">${v.placa}</span>
-                                <span class="text-[9px] text-gray-400 font-bold">${v.entrada} » ${v.saida}</span>
-                            </div>
-                            <p class="text-[10px] text-gray-500 uppercase">${v.cliente} • ${v.modelo}</p>
+                            <div class="flex justify-between font-black text-xs"><span>${v.placa}</span><span class="text-blue-500 text-[10px]">${v.entrada} » ${v.saida}</span></div>
+                            <p class="text-[9px] text-gray-500 font-bold uppercase">${v.cliente} • ${v.modelo}</p>
                         </div>
                     </div>
                 `;
             });
         }
 
-        window.limparHistorico = () => { if(confirm("Limpar todo o relatório?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); } };
+        window.limparHistorico = () => { if(confirm("Limpar relatório?")) { historico = []; localStorage.setItem('patio_historico', JSON.stringify(historico)); renderizarRelatorio(); } };
         function filtrarVeiculos() {
             const t = document.getElementById('busca').value.toUpperCase();
             const f = patio.filter(v => v.placa.includes(t) || v.modelo.toUpperCase().includes(t) || v.cliente.toUpperCase().includes(t));
@@ -230,3 +245,4 @@
     </script>
 </body>
 </html>
+

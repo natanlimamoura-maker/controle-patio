@@ -106,7 +106,7 @@
                 </div>
                 <button onclick="addRow()" class="text-xs font-black">+ ADICIONAR ITEM</button>
                 <div class="text-right text-2xl font-black text-emerald-500" id="orc-total">R$ 0,00</div>
-                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Gerar PDF / Imprimir</button>
+                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Salvar Orçamento</button>
                 <button onclick="alert('Enviando WhatsApp...')" class="btn-wpp">Enviar WhatsApp</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
@@ -151,6 +151,7 @@
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
+
     </main>
 
     <script>
@@ -183,10 +184,10 @@
             }
         }
 
-        // --- GERAR PDF ---
+        // --- SALVAR ORÇAMENTO ---
         function generatePDF() {
-            const cliente = document.getElementById('orc-cliente').value || "Não informado";
-            const veiculo = document.getElementById('orc-veiculo').value || "Não informado";
+            const cliente = document.getElementById('orc-cliente').value || "Cliente";
+            const veiculo = document.getElementById('orc-veiculo').value || "Veiculo";
             const total = document.getElementById('orc-total').innerText;
             const nomeApp = localStorage.getItem('patiopro_name') || 'PÁTIO PRO';
             
@@ -199,13 +200,16 @@
                 }
             });
 
-            const win = window.open('', '', 'width=800,height=600');
-            win.document.write(`<html><head><title>Orçamento</title><style>body{font-family:sans-serif;padding:30px}header{text-align:center;border-bottom:2px solid #e11d48}table{width:100%;border-collapse:collapse;margin:20px 0}.total{text-align:right;font-size:22px;color:#e11d48;font-weight:900}</style></head><body><header><h1>${nomeApp}</h1><p>ORÇAMENTO DE SERVIÇOS</p></header><div style="margin:20px 0"><p><strong>CLIENTE:</strong> ${cliente}</p><p><strong>VEÍCULO:</strong> ${veiculo}</p><p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p></div><table><thead><tr style="background:#f4f4f4"><th style="padding:10px;text-align:left">DESCRIÇÃO</th><th style="padding:10px;text-align:right">VALOR</th></tr></thead><tbody>${itensHtml}</tbody></table><div class="total">TOTAL: ${total}</div></body></html>`);
-            win.document.close();
-            setTimeout(() => { win.print(); win.close(); }, 500);
+            const conteudo = `<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:30px;color:#333}header{text-align:center;border-bottom:2px solid #e11d48;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin:20px 0}.total{text-align:right;font-size:22px;color:#e11d48;font-weight:900}</style></head><body><header><h1>${nomeApp}</h1><p>ORÇAMENTO</p></header><div><p><strong>CLIENTE:</strong> ${cliente}</p><p><strong>VEÍCULO:</strong> ${veiculo}</p><p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p></div><table><thead><tr style="background:#f4f4f4"><th style="padding:10px;text-align:left">DESCRIÇÃO</th><th style="padding:10px;text-align:right">VALOR</th></tr></thead><tbody>${itensHtml}</tbody></table><div class="total">TOTAL: ${total}</div></body></html>`;
+
+            const blob = new Blob([conteudo], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Orcamento_${cliente.replace(/\s+/g, '_')}.html`;
+            a.click();
         }
 
-        // --- CONFIGS E BACKUP ---
+        // --- AJUSTES ---
         function updateName() {
             const n = document.getElementById('cfg-nome').value.toUpperCase();
             if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); }
@@ -234,7 +238,7 @@
             reader.readAsText(input.files[0]);
         }
 
-        // --- FUNÇÕES DE NAVEGAÇÃO E CRUD ---
+        // --- NAVEGAÇÃO E CRUD ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');

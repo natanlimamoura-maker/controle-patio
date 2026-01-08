@@ -6,12 +6,13 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-title" content="Pátio Pro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3524/3524659.png">
 
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Pátio Pro","short_name":"PátioPro","start_url":".","display":"standalone","background_color":"#050505","theme_color":"#050505","icons":[{"src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2RjMjYyNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMi4yMiAyYTIgMiAwIDAxMS45NCAxLjQ1TDE0LjY4IDZIMTlsMiAyLTIuNTQgOC40NkEyIDIgMCAwMTE2LjU0IDIySDcuNDZhMiAyIDAgMDEtMS45Mi0xLjU0TDMgOGwyLTJoNC4zMmwuNTItMi41NUEyIDIgMCAwMTEyLjIyIDJ6Ii8+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMyIgcj0iMyIvPjwvc3ZnPg==","sizes":"512x512","type":"image/svg+xml"}]}'>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#dc2626">
 
-    <title>PÁTIO PRO v14.0</title>
+    <title>PÁTIO PRO v15.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -32,9 +33,9 @@
 <body class="pb-20">
 
     <div id="bloqueio">
-        <h2 class="text-red-600 font-black text-3xl italic mb-4 text-center">LICENÇA EXPIRADA</h2>
+        <h2 class="text-red-600 font-black text-3xl italic mb-4 text-center uppercase">Acesso Bloqueado</h2>
         <input id="chave-ativacao" type="password" placeholder="SENHA MESTRA" class="mb-4 text-center">
-        <button onclick="verificarChave()" class="btn-red w-full max-w-xs">Ativar</button>
+        <button onclick="verificarChave()" class="btn-red w-full max-w-xs">Liberar Sistema</button>
     </div>
 
     <header class="p-5 sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-white/5 flex justify-between items-center">
@@ -43,24 +44,23 @@
     </header>
 
     <main class="p-4 max-w-lg mx-auto space-y-4">
-
         <section id="menu" class="grid grid-cols-2 gap-3 pt-2">
             <button onclick="show('entrada')" class="glass p-6 rounded-3xl text-center active:scale-95 transition-transform">
                 <span class="text-2xl">➕</span>
-                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase">Entrada</p>
+                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase text-center">Entrada</p>
             </button>
             <button onclick="show('patio')" class="glass p-6 rounded-3xl text-center border-b-2 border-red-600 relative active:scale-95 transition-transform">
                 <span class="text-2xl">🚗</span>
-                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase">Pátio</p>
+                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase text-center">Pátio</p>
                 <div id="mini-contador" class="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg">0</div>
             </button>
             <button onclick="show('orcamento')" class="glass p-6 rounded-3xl text-center active:scale-95 transition-transform">
                 <span class="text-2xl">📄</span>
-                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase">Orçamento</p>
+                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase text-center">Orçamento</p>
             </button>
             <button onclick="show('historico')" class="glass p-6 rounded-3xl text-center active:scale-95 transition-transform">
                 <span class="text-2xl">📜</span>
-                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase">Histórico</p>
+                <p class="text-[9px] font-black mt-2 text-zinc-400 uppercase text-center">Histórico</p>
             </button>
             <button onclick="show('balanco')" class="glass p-8 rounded-3xl text-center bg-green-900/5 col-span-2 border border-green-900/20 active:scale-95 transition-transform">
                 <span class="text-2xl">💰</span>
@@ -83,20 +83,15 @@
         <section id="orcamento" class="hidden">
             <button onclick="show('menu')" class="btn-back">← Voltar</button>
             <div class="glass p-5 rounded-3xl space-y-3 mb-3">
-                <p class="text-[10px] font-black text-red-600 italic uppercase">Dados Cadastrais</p>
+                <p class="text-[10px] font-black text-red-600 italic uppercase">Dados Cliente</p>
                 <input id="orc-cliente" placeholder="NOME DO CLIENTE">
-                <div class="grid grid-cols-2 gap-2">
-                    <input id="orc-fone" placeholder="WHATSAPP">
-                    <input id="orc-doc" placeholder="CPF/CNPJ">
-                </div>
-                <input id="orc-endereco" placeholder="ENDEREÇO">
-                <div class="grid grid-cols-2 gap-2">
-                    <input id="orc-modelo" placeholder="VEÍCULO">
-                    <input id="orc-placa" placeholder="PLACA" class="uppercase">
-                </div>
+                <input id="orc-fone" placeholder="WHATSAPP">
+                <input id="orc-doc" placeholder="CPF/CNPJ">
+                <input id="orc-modelo" placeholder="VEÍCULO">
+                <input id="orc-placa" placeholder="PLACA" class="uppercase">
             </div>
-            <div class="glass p-5 rounded-3xl space-y-3 shadow-xl">
-                <p class="text-[10px] font-black text-red-600 italic uppercase">Serviços e Valores</p>
+            <div class="glass p-5 rounded-3xl space-y-3">
+                <p class="text-[10px] font-black text-red-600 italic uppercase">Serviços</p>
                 <div id="itens-servico" class="space-y-2">
                     <div class="flex gap-2 item-linha">
                         <input class="flex-1 s-nome" placeholder="Serviço/Peça">
@@ -105,10 +100,9 @@
                 </div>
                 <button onclick="addLinhaServico()" class="text-[9px] font-black text-zinc-500 uppercase">+ Item</button>
                 <div class="border-t border-white/10 pt-3 flex justify-between items-center">
-                    <span class="text-xs font-black">TOTAL:</span>
-                    <span id="orc-total-display" class="text-xl font-black text-green-500">R$ 0,00</span>
+                    <span id="orc-total-display" class="text-xl font-black text-green-500">Total: R$ 0,00</span>
                 </div>
-                <button onclick="gerarPDF()" class="btn-red">Gerar PDF e Salvar</button>
+                <button onclick="gerarPDF()" class="btn-red">Gerar Orçamento PDF</button>
             </div>
         </section>
 
@@ -125,7 +119,6 @@
         <section id="balanco" class="hidden">
             <button onclick="show('menu')" class="btn-back">← Voltar</button>
             <div class="glass p-10 rounded-[2.5rem] border-t-4 border-green-600 text-center mb-4">
-                <p class="text-[10px] font-black text-zinc-500 uppercase">Total do Mês</p>
                 <h2 id="totalMes" class="text-4xl font-black italic">R$ 0,00</h2>
             </div>
             <div id="listaFaturamento" class="space-y-2"></div>
@@ -135,18 +128,17 @@
             <button onclick="show('menu')" class="btn-back">← Voltar</button>
             <div class="glass p-6 rounded-[2rem] space-y-4">
                 <input id="input-nome-oficina" placeholder="NOME DA OFICINA">
-                <button onclick="salvarConfig()" class="btn-red">Salvar Nome</button>
-                <button onclick="baixarBackup()" class="w-full bg-zinc-900 py-4 rounded-xl text-xs font-black uppercase">Exportar Backup</button>
-                <button onclick="limparTudo()" class="text-[8px] text-zinc-800 w-full">Zerar Dados</button>
+                <button onclick="salvarConfig()" class="btn-red">Salvar</button>
+                <button onclick="baixarBackup()" class="w-full bg-zinc-900 py-4 rounded-xl text-xs font-black">BACKUP .JSON</button>
+                <button onclick="limparTudo()" class="text-[8px] text-zinc-800 w-full">ZERAR SISTEMA</button>
             </div>
         </section>
-
     </main>
 
     <script>
         const { jsPDF } = window.jspdf;
         const KEY = 'patio_pro_master_v13';
-        let db = [];
+        let db = JSON.parse(localStorage.getItem(KEY)) || [];
         let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO", expiracao: new Date().getTime() + (30*24*60*60*1000) };
 
         function salvarNoBanco() { localStorage.setItem(KEY, JSON.stringify(db)); }
@@ -166,6 +158,11 @@
             [...f].forEach(file => { const r = new FileReader(); r.onload = e => { fotos.push(e.target.result); lidos++; if(lidos === f.length) done(); }; r.readAsDataURL(file); });
         }
 
+        function darSaida(id) {
+            const v = db.find(x => x.id === id); const val = Number(prompt("Valor Final:", 0));
+            if(val) { v.valor = val; v.ativo = false; v.saida = new Date().toISOString(); salvarNoBanco(); location.reload(); }
+        }
+
         function addLinhaServico() {
             const div = document.createElement('div'); div.className = "flex gap-2 item-linha";
             div.innerHTML = `<input class="flex-1 s-nome" placeholder="Serviço"><input class="w-24 s-valor" type="number" placeholder="R$" oninput="calcularTotalOrc()">`;
@@ -174,23 +171,22 @@
 
         function calcularTotalOrc() {
             let t = 0; document.querySelectorAll('.s-valor').forEach(i => t += (Number(i.value) || 0));
-            document.getElementById('orc-total-display').innerText = t.toLocaleString('pt-br',{style:'currency',currency:'BRL'});
+            document.getElementById('orc-total-display').innerText = `Total: ` + t.toLocaleString('pt-br',{style:'currency',currency:'BRL'});
             return t;
         }
 
         async function gerarPDF() {
             const doc = new jsPDF(); const c = document.getElementById('orc-cliente').value; const t = calcularTotalOrc();
             doc.setFont("helvetica", "bold"); doc.text(config.nome, 105, 20, { align: "center" });
-            doc.setFontSize(10); doc.text("ORÇAMENTO", 105, 28, { align: "center" });
-            doc.text(`CLIENTE: ${c.toUpperCase()}`, 10, 45);
-            let y = 60;
+            doc.text(`CLIENTE: ${c.toUpperCase()}`, 10, 40);
+            let y = 50;
             document.querySelectorAll('.item-linha').forEach(l => {
                 const n = l.querySelector('.s-nome').value; const v = Number(l.querySelector('.s-valor').value);
-                if(n) { doc.text(`${n.toUpperCase()} - R$ ${v.toFixed(2)}`, 10, y); y += 7; }
+                if(n) { doc.text(`${n.toUpperCase()} - R$ ${v.toFixed(2)}`, 10, y); y += 10; }
             });
-            doc.text(`TOTAL: R$ ${t.toFixed(2)}`, 10, y + 10);
+            doc.text(`TOTAL GERAL: R$ ${t.toFixed(2)}`, 10, y + 10);
             db.push({ id: Date.now(), cliente: c, valor: t, saida: new Date().toISOString(), ativo: false });
-            salvarNoBanco(); doc.save(`Orc.pdf`); location.reload();
+            salvarNoBanco(); doc.save(`Orcamento.pdf`); location.reload();
         }
 
         function render() {
@@ -198,7 +194,7 @@
             let a = 0, f = 0; lp.innerHTML = ""; lh.innerHTML = ""; lb.innerHTML = "";
             db.slice().reverse().forEach(v => {
                 if(v.ativo) {
-                    a++; lp.innerHTML += `<div class="glass p-5 rounded-3xl mb-4"><h3 class="text-xl font-black text-red-600 uppercase">${v.placa}</h3><p class="text-[10px] font-black opacity-50 uppercase">${v.cliente}</p><div class="flex gap-2 mt-2 overflow-x-auto">${v.fotos.map(img => `<img src="${img}" class="w-16 h-16 rounded-lg object-cover">`).join("")}</div><button onclick="darSaida(${v.id})" class="btn-red w-full mt-3">DAR SAÍDA</button></div>`;
+                    a++; lp.innerHTML += `<div class="glass p-5 rounded-3xl mb-4"><h3 class="text-xl font-black text-red-600 uppercase italic">${v.placa}</h3><p class="text-[10px] font-black opacity-50 uppercase">${v.cliente} | ${v.modelo}</p><div class="flex gap-2 mt-2 overflow-x-auto">${v.fotos.map(img => `<img src="${img}" class="w-16 h-16 rounded-lg object-cover">`).join("")}</div><button onclick="darSaida(${v.id})" class="btn-red w-full mt-3">DAR SAÍDA</button></div>`;
                 } else {
                     const htm = `<div class="glass p-3 rounded-xl flex justify-between text-xs mb-1"><span>${v.placa || v.cliente}</span><span class="text-green-500 font-black">R$ ${v.valor.toFixed(2)}</span></div>`;
                     lh.innerHTML += htm; f += v.valor; lb.innerHTML += htm;
@@ -208,21 +204,19 @@
             document.getElementById('totalMes').innerText = f.toLocaleString('pt-br',{style:'currency',currency:'BRL'});
         }
 
-        function darSaida(id) {
-            const v = db.find(x => x.id === id); const val = Number(prompt("Valor?", 0));
-            if(val) { v.valor = val; v.ativo = false; v.saida = new Date().toISOString(); salvarNoBanco(); render(); }
-        }
-
+        function verificarChave() { if(document.getElementById('chave-ativacao').value === "meuapp") { config.expiracao = new Date().getTime() + (30*24*60*60*1000); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); } }
         function salvarConfig() { config.nome = document.getElementById('input-nome-oficina').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
         function baixarBackup() { const a = document.createElement('a'); a.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db))); a.setAttribute("download", "backup.json"); a.click(); }
         function limparTudo() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
 
-        // Recuperação e Init
-        const ant = localStorage.getItem('patio_pro_master_v13');
-        if(ant) db = JSON.parse(ant);
         if (new Date().getTime() > config.expiracao) document.getElementById('bloqueio').style.display='flex';
         document.getElementById('header-nome').innerText = config.nome;
         render();
+
+        // Service Worker Simples para validação PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch", (e) => e.respondWith(fetch(e.request)));');
+        }
     </script>
 </body>
 </html>

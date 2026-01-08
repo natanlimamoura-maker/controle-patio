@@ -106,7 +106,7 @@
                 </div>
                 <button onclick="addRow()" class="text-xs font-black">+ ADICIONAR ITEM</button>
                 <div class="text-right text-2xl font-black text-emerald-500" id="orc-total">R$ 0,00</div>
-                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Salvar Orçamento</button>
+                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Gerar Arquivo Orçamento</button>
                 <button onclick="alert('Enviando WhatsApp...')" class="btn-wpp">Enviar WhatsApp</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
@@ -159,7 +159,6 @@
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentPhotos = [];
 
-        // --- LÓGICA DE LICENÇA (30 DIAS) ---
         function checkLicense() {
             let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
@@ -184,7 +183,7 @@
             }
         }
 
-        // --- SALVAR ORÇAMENTO (DOWNLOAD DIRETO) ---
+        // --- FUNÇÃO CORRIGIDA: SEM PRINT, APENAS VISUALIZAÇÃO/DOWNLOAD ---
         function generatePDF() {
             const cliente = document.getElementById('orc-cliente').value || "Cliente";
             const veiculo = document.getElementById('orc-veiculo').value || "Veiculo";
@@ -200,16 +199,44 @@
                 }
             });
 
-            const conteudo = `<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;padding:30px;color:#333}header{text-align:center;border-bottom:2px solid #e11d48;padding-bottom:10px}table{width:100%;border-collapse:collapse;margin:20px 0}.total{text-align:right;font-size:22px;color:#e11d48;font-weight:900}</style></head><body><header><h1>${nomeApp}</h1><p>ORÇAMENTO</p></header><div><p><strong>CLIENTE:</strong> ${cliente}</p><p><strong>VEÍCULO:</strong> ${veiculo}</p><p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p></div><table><thead><tr style="background:#f4f4f4"><th style="padding:10px;text-align:left">DESCRIÇÃO</th><th style="padding:10px;text-align:right">VALOR</th></tr></thead><tbody>${itensHtml}</tbody></table><div class="total">TOTAL: ${total}</div></body></html>`;
+            // Criamos um HTML completo
+            const htmlCompleto = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Orcamento_${cliente}</title>
+                    <style>
+                        body{font-family:sans-serif;padding:20px;color:#333}
+                        .header{text-align:center;border-bottom:3px solid #e11d48;padding-bottom:10px;margin-bottom:20px}
+                        table{width:100%;border-collapse:collapse;margin:20px 0}
+                        th{background:#f4f4f4;text-align:left;padding:10px}
+                        td{padding:10px;border-bottom:1px solid #eee}
+                        .total{text-align:right;font-size:24px;color:#e11d48;font-weight:bold;margin-top:20px}
+                    </style>
+                </head>
+                <body>
+                    <div class="header"><h1>${nomeApp}</h1><p>ORÇAMENTO DE SERVIÇOS</p></div>
+                    <p><strong>CLIENTE:</strong> ${cliente}</p>
+                    <p><strong>VEÍCULO:</strong> ${veiculo}</p>
+                    <p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p>
+                    <table>
+                        <thead><tr><th>DESCRIÇÃO</th><th style="text-align:right">VALOR</th></tr></thead>
+                        <tbody>${itensHtml}</tbody>
+                    </table>
+                    <div class="total">TOTAL: ${total}</div>
+                </body>
+                </html>
+            `;
 
-            const blob = new Blob([conteudo], { type: 'text/html' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `Orcamento_${cliente.replace(/\s+/g, '_')}.html`;
-            a.click();
+            // Transformamos em um Blob e abrimos em nova aba (mais seguro contra o diálogo de impressão)
+            const blob = new Blob([htmlCompleto], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            // Abre o documento em uma nova aba
+            window.open(url, '_blank');
         }
 
-        // --- AJUSTES ---
         function updateName() {
             const n = document.getElementById('cfg-nome').value.toUpperCase();
             if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); }
@@ -238,7 +265,6 @@
             reader.readAsText(input.files[0]);
         }
 
-        // --- SISTEMA ORIGINAL (FOTOS E CRUD) ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
@@ -308,7 +334,6 @@
         function addRow() { const d = document.createElement('div'); d.className="flex gap-2 mt-2"; d.innerHTML=`<input class="flex-1 n-i" placeholder="Item"><input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()">`; document.getElementById('orc-itens').appendChild(d); }
         function calcTotal() { let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0)); document.getElementById('orc-total').innerText = "R$ " + t.toFixed(2); }
 
-        // Inicialização
         checkLicense();
         loadConfigs();
         render();

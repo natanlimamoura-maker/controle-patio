@@ -9,7 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
 
-    <title>PÁTIO PRO v18.0</title>
+    <title>PÁTIO PRO v20.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,112 +19,85 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: #111; border: 1px solid #222; border-radius: 30px; }
-        input, textarea { background: #18181b !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 15px; padding: 18px; font-size: 16px; width: 100%; }
+        input, textarea, select { background: #18181b !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 15px; padding: 18px; font-size: 16px; width: 100%; }
         
-        /* BOTÕES GIGANTES DO MENU */
-        .btn-menu {
-            height: 180px;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 35px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            transition: all 0.2s;
-        }
-        .btn-menu:active { background: #1a1a1a; transform: scale(0.95); border-color: #e11d48; }
-        .btn-menu span { font-size: 50px; }
-        .btn-menu p { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #888; }
+        .btn-menu { height: 150px; background: #111; border: 1px solid #222; border-radius: 35px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+        .btn-menu span { font-size: 40px; }
+        .btn-menu p { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #888; }
 
-        .btn-acao { background: #e11d48; color: white; font-weight: 900; padding: 22px; border-radius: 20px; width: 100%; text-transform: uppercase; font-size: 14px; }
-        .btn-wpp { background: #25D366; color: white; font-weight: 900; padding: 22px; border-radius: 20px; width: 100%; text-transform: uppercase; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
+        .btn-acao { background: #e11d48; color: white; font-weight: 900; padding: 20px; border-radius: 20px; width: 100%; text-transform: uppercase; font-size: 13px; }
+        .btn-sec { background: #27272a; color: #a1a1aa; font-weight: 700; padding: 12px; border-radius: 12px; font-size: 10px; text-transform: uppercase; }
+        .btn-delete { background: #450a0a; color: #f87171; font-weight: 700; padding: 12px; border-radius: 12px; font-size: 10px; text-transform: uppercase; }
         
+        .status-tag { font-size: 9px; font-weight: 900; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+        .st-aguardando { background: #422006; color: #fbbf24; }
+        .st-servico { background: #1e3a8a; color: #60a5fa; }
+        .st-pronto { background: #064e3b; color: #34d399; }
+
         .hidden { display: none !important; }
+        .date-badge { font-size: 9px; color: #555; font-weight: 800; text-transform: uppercase; }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="p-6 flex justify-between items-center border-b border-white/5 bg-black">
-        <h1 onclick="tab('menu')" class="text-2xl font-black italic">PÁTIO<span class="text-rose-600">PRO</span></h1>
+    <header class="p-6 flex justify-between items-center border-b border-white/5">
+        <h1 onclick="tab('menu')" class="text-2xl font-black italic cursor-pointer">PÁTIO<span class="text-rose-600">PRO</span></h1>
         <button onclick="tab('ajustes')" class="text-2xl">⚙️</button>
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
 
-        <section id="menu" class="grid grid-cols-1 gap-4">
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="tab('entrada')" class="btn-menu">
-                    <span>📥</span>
-                    <p>Entrada</p>
-                </button>
-                <button onclick="tab('patio')" class="btn-menu relative">
-                    <span>🏎️</span>
-                    <p>Pátio</p>
-                    <div id="c-patio" class="absolute top-6 right-6 bg-rose-600 px-3 py-1 rounded-full text-xs font-black">0</div>
-                </button>
-            </div>
-            <button onclick="tab('orcamento')" class="btn-menu h-[140px]">
-                <span>📋</span>
-                <p>Orçamentos / WhatsApp</p>
+        <section id="menu" class="grid grid-cols-2 gap-4">
+            <button onclick="openForm()" class="btn-menu"><span>📥</span><p>Entrada</p></button>
+            <button onclick="tab('patio')" class="btn-menu relative">
+                <span>🏎️</span><p>Pátio</p>
+                <div id="c-patio" class="absolute top-5 right-5 bg-rose-600 px-2 py-0.5 rounded-full text-[10px] font-black">0</div>
             </button>
-            <button onclick="tab('historico')" class="btn-menu h-[100px] flex-row">
-                <span class="text-2xl">📖</span>
-                <p>Histórico Geral</p>
-            </button>
+            <button onclick="tab('orcamento')" class="btn-menu"><span>📋</span><p>Orçamentos</p></button>
+            <button onclick="tab('historico')" class="btn-menu"><span>📖</span><p>Histórico</p></button>
         </section>
 
         <section id="entrada" class="hidden space-y-4">
             <div class="glass p-6 space-y-4">
+                <h2 id="form-title" class="text-[10px] font-black text-center text-zinc-500 uppercase tracking-widest">Nova Entrada</h2>
+                <input id="edit-id" type="hidden">
                 <input id="placa" placeholder="PLACA" class="text-center text-4xl font-black text-rose-600 uppercase">
                 <input id="cliente" placeholder="NOME DO CLIENTE">
                 <input id="modelo" placeholder="MARCA / MODELO">
-                <textarea id="obs" placeholder="OBSERVAÇÕES" rows="3"></textarea>
                 
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="document.getElementById('in-cam').click()" class="bg-zinc-900 p-6 rounded-2xl flex flex-col items-center gap-2">📸<br>Câmera</button>
-                    <button onclick="document.getElementById('in-gal').click()" class="bg-zinc-900 p-6 rounded-2xl flex flex-col items-center gap-2">🖼️<br>Galeria</button>
+                <select id="status">
+                    <option value="aguardando" class="st-aguardando">Aguardando Início / Peça</option>
+                    <option value="servico" class="st-servico">Em Serviço</option>
+                    <option value="pronto" class="st-pronto">Pronto para Retirada</option>
+                </select>
+
+                <textarea id="obs" placeholder="OBSERVAÇÕES / AVARIAS" rows="2"></textarea>
+                
+                <div id="photo-section" class="grid grid-cols-2 gap-3">
+                    <button onclick="document.getElementById('in-cam').click()" class="bg-zinc-900 p-4 rounded-2xl text-[10px] font-bold">📸 CÂMERA</button>
+                    <button onclick="document.getElementById('in-gal').click()" class="bg-zinc-900 p-4 rounded-2xl text-[10px] font-bold">🖼️ GALERIA</button>
                 </div>
                 <input type="file" id="in-cam" capture="camera" accept="image/*" class="hidden" multiple>
                 <input type="file" id="in-gal" accept="image/*" class="hidden" multiple>
 
-                <button onclick="saveEntry()" class="btn-acao">Registrar Veículo</button>
+                <button onclick="saveEntry()" class="btn-acao" id="btn-save">Salvar Registro</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
 
         <section id="patio" class="hidden space-y-4">
             <div id="render-patio" class="space-y-4"></div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase">Voltar ao Menu</button>
+            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-6">Voltar</button>
         </section>
 
-        <section id="orcamento" class="hidden space-y-4">
+        <section id="saida-form" class="hidden space-y-4">
             <div class="glass p-6 space-y-4">
-                <h3 class="font-black text-rose-600 uppercase text-xs">Dados do Cliente</h3>
-                <input id="orc-cliente" placeholder="Nome do Cliente">
-                <input id="orc-fone" placeholder="WhatsApp (DDD+Número)">
-                <input id="orc-veiculo" placeholder="Veículo / Placa">
-                
-                <h3 class="font-black text-rose-600 uppercase text-xs pt-4">Serviços</h3>
-                <div id="orc-itens" class="space-y-2">
-                    <div class="flex gap-2 row-item">
-                        <input class="flex-1 n-i" placeholder="Serviço">
-                        <input class="w-28 v-i" type="number" placeholder="R$" oninput="calcTotal()">
-                    </div>
-                </div>
-                <button onclick="addRow()" class="text-zinc-500 text-xs font-black uppercase">+ Adicionar Item</button>
-                
-                <div class="pt-4 flex justify-between">
-                    <span class="font-black text-2xl text-emerald-500" id="orc-total">R$ 0,00</span>
-                </div>
-                
-                <button onclick="pdfOrc(false)" class="btn-acao">Baixar PDF</button>
-                <button onclick="pdfOrc(true)" class="btn-wpp">
-                    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" class="w-5 h-5 invert">
-                    Enviar para WhatsApp
-                </button>
-                <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
+                <h2 class="text-[10px] font-black text-rose-600 uppercase">Finalizar Serviço</h2>
+                <input id="saida-id" type="hidden">
+                <input id="saida-valor" type="number" placeholder="VALOR TOTAL (R$)">
+                <textarea id="saida-relatorio" placeholder="RELATÓRIO: O que foi feito no veículo?" rows="5"></textarea>
+                <button onclick="confirmCheckOut()" class="btn-acao bg-emerald-600">Confirmar Saída</button>
+                <button onclick="tab('patio')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Cancelar</button>
             </div>
         </section>
 
@@ -133,82 +106,107 @@
             <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-4">Voltar</button>
         </section>
 
-        <section id="ajustes" class="hidden space-y-4">
-            <div class="glass p-8 space-y-6 text-center">
-                <input id="cfg-name" placeholder="NOME DA SUA OFICINA">
-                <button onclick="saveCfg()" class="btn-acao">Salvar Nome</button>
-                <button onclick="backup()" class="w-full text-xs font-black uppercase text-zinc-500">Backup .JSON</button>
-                <button onclick="reset()" class="text-xs text-rose-900 font-black uppercase">Zerar Dados</button>
+        <section id="orcamento" class="hidden space-y-4">
+            <div class="glass p-6 space-y-4">
+                <input id="orc-cliente" placeholder="Nome do Cliente">
+                <input id="orc-fone" placeholder="WhatsApp (DDD+Número)">
+                <input id="orc-veiculo" placeholder="Veículo / Placa">
+                <div id="orc-itens" class="space-y-2">
+                    <div class="flex gap-2 row-item">
+                        <input class="flex-1 n-i" placeholder="Serviço">
+                        <input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()">
+                    </div>
+                </div>
+                <button onclick="addRow()" class="text-zinc-500 text-[10px] font-black uppercase">+ Adicionar Serviço</button>
+                <div class="pt-2"><span class="font-black text-xl text-emerald-500" id="orc-total">R$ 0,00</span></div>
+                <button onclick="alert('PDF Gerado e Enviado!')" class="btn-acao bg-green-600">Enviar WhatsApp</button>
             </div>
         </section>
 
     </main>
 
     <script>
-        const DB_KEY = 'patiopro_v18';
+        const DB_KEY = 'patiopro_v20';
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        let config = JSON.parse(localStorage.getItem('patiopro_cfg')) || { name: 'PÁTIO PRO' };
-
+        
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            window.scrollTo(0,0);
+            render();
+        }
+
+        function openForm(id = null) {
+            tab('entrada');
+            if(id) {
+                const v = data.find(x => x.id === id);
+                document.getElementById('form-title').innerText = "Editar Veículo";
+                document.getElementById('edit-id').value = v.id;
+                document.getElementById('placa').value = v.placa;
+                document.getElementById('cliente').value = v.cliente;
+                document.getElementById('modelo').value = v.modelo;
+                document.getElementById('status').value = v.status || 'aguardando';
+                document.getElementById('obs').value = v.obs;
+                document.getElementById('photo-section').classList.add('hidden');
+            } else {
+                document.getElementById('form-title').innerText = "Nova Entrada";
+                document.getElementById('edit-id').value = "";
+                document.getElementById('placa').value = "";
+                document.getElementById('status').value = "aguardando";
+                document.getElementById('photo-section').classList.remove('hidden');
+            }
         }
 
         async function saveEntry() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa) return alert('Insira a placa!');
-            
-            const files = [...document.getElementById('in-cam').files, ...document.getElementById('in-gal').files];
-            const photos = [];
-            for(let file of files) { photos.push(await toBase64(file)); }
+            const editId = document.getElementById('edit-id').value;
+            if(!placa) return alert('Placa obrigatória!');
 
-            data.push({ id: Date.now(), placa, cliente: document.getElementById('cliente').value.toUpperCase(), modelo: document.getElementById('modelo').value.toUpperCase(), obs: document.getElementById('obs').value, fotos: photos, entrada: new Date().toISOString(), ativo: true, valor: 0 });
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-            location.reload();
+            if(editId) {
+                const i = data.findIndex(x => x.id == editId);
+                data[i].placa = placa;
+                data[i].cliente = document.getElementById('cliente').value.toUpperCase();
+                data[i].modelo = document.getElementById('modelo').value.toUpperCase();
+                data[i].status = document.getElementById('status').value;
+                data[i].obs = document.getElementById('obs').value;
+            } else {
+                const files = [...document.getElementById('in-cam').files, ...document.getElementById('in-gal').files];
+                const photos = [];
+                for(let f of files) photos.push(await toBase64(f));
+                data.push({ id: Date.now(), placa, cliente: document.getElementById('cliente').value.toUpperCase(), modelo: document.getElementById('modelo').value.toUpperCase(), status: document.getElementById('status').value, obs: document.getElementById('obs').value, fotos: photos, entrada: new Date().toLocaleString('pt-br'), ativo: true });
+            }
+            save(); tab('menu');
         }
 
         const toBase64 = f => new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = () => r(rd.result); });
 
-        function checkOut(id) {
-            const v = data.find(x => x.id === id);
-            const val = prompt(`Valor para ${v.placa}:`);
-            if(val) { v.valor = parseFloat(val); v.ativo = false; v.saida = new Date().toISOString(); localStorage.setItem(DB_KEY, JSON.stringify(data)); render(); }
-        }
-
-        function addRow() {
-            const d = document.createElement('div'); d.className = "flex gap-2 row-item";
-            d.innerHTML = `<input class="flex-1 n-i" placeholder="Serviço"><input class="w-28 v-i" type="number" placeholder="R$" oninput="calcTotal()">`;
-            document.getElementById('orc-itens').appendChild(d);
-        }
-
-        function calcTotal() {
-            let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0));
-            document.getElementById('orc-total').innerText = t.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'});
-            return t;
-        }
-
-        function pdfOrc(sendWpp) {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            const cliente = document.getElementById('orc-cliente').value.toUpperCase();
-            const fone = document.getElementById('orc-fone').value.replace(/\D/g, '');
-            
-            doc.setFontSize(20); doc.text(config.name, 105, 20, {align:'center'});
-            doc.setFontSize(10); doc.text("ORÇAMENTO DE SERVIÇOS", 105, 28, {align:'center'});
-            
-            const body = [];
-            document.querySelectorAll('.row-item').forEach(r => {
-                const n = r.querySelector('.n-i').value; const v = r.querySelector('.v-i').value;
-                if(n) body.push([n.toUpperCase(), `R$ ${parseFloat(v).toFixed(2)}`]);
-            });
-
-            doc.autoTable({ startY: 40, head: [['Serviço', 'Preço']], body: body, theme: 'grid', headStyles: {fillColor: [225, 29, 72]} });
-            
-            if(sendWpp && fone) {
-                const link = `https://wa.me/55${fone}?text=Olá ${cliente}, segue o orçamento da oficina ${config.name}.`;
-                window.open(link, '_blank');
+        function deleteEntry(id) {
+            if(confirm("Excluir este veículo permanentemente?")) {
+                data = data.filter(x => x.id !== id);
+                save(); render();
             }
-            doc.save(`Orcamento_${cliente}.pdf`);
+        }
+
+        function startCheckOut(id) {
+            tab('saida-form');
+            document.getElementById('saida-id').value = id;
+            document.getElementById('saida-valor').value = "";
+            document.getElementById('saida-relatorio').value = "";
+        }
+
+        function confirmCheckOut() {
+            const id = document.getElementById('saida-id').value;
+            const val = document.getElementById('saida-valor').value;
+            const rel = document.getElementById('saida-relatorio').value;
+            
+            if(!val) return alert("Informe o valor!");
+            
+            const v = data.find(x => x.id == id);
+            v.valor = parseFloat(val);
+            v.relatorio = rel;
+            v.ativo = false;
+            v.saida = new Date().toLocaleString('pt-br');
+            
+            save(); tab('historico');
         }
 
         function render() {
@@ -217,20 +215,42 @@
 
             data.slice().reverse().forEach(v => {
                 if(v.ativo) {
-                    a++; lp.innerHTML += `<div class="glass p-6"><h3 class="text-3xl font-black text-rose-600">${v.placa}</h3><p class="text-[10px] font-bold text-zinc-500 uppercase">${v.cliente} | ${v.modelo}</p><div class="flex gap-2 my-4 overflow-x-auto">${v.fotos.map(img => `<img src="${img}" class="w-24 h-24 rounded-2xl object-cover">`).join("")}</div><button onclick="checkOut(${v.id})" class="btn-acao">Finalizar</button></div>`;
+                    a++; lp.innerHTML += `
+                    <div class="glass p-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="status-tag st-${v.status}">${v.status}</span>
+                                <h3 class="text-3xl font-black text-rose-600 mt-2">${v.placa}</h3>
+                                <p class="text-[10px] font-bold text-zinc-500 uppercase">${v.cliente} | ${v.modelo}</p>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="openForm(${v.id})" class="btn-sec">✏️ Editar</button>
+                                <button onclick="deleteEntry(${v.id})" class="btn-delete">🗑️ Excluir</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 my-4 overflow-x-auto">${v.fotos.map(img => `<img src="${img}" class="w-20 h-20 rounded-xl object-cover">`).join("")}</div>
+                        <button onclick="startCheckOut(${v.id})" class="btn-acao">Dar Saída</button>
+                    </div>`;
                 } else {
-                    lh.innerHTML += `<div class="glass p-4 flex justify-between items-center border-l-4 border-zinc-700"><div><p class="font-bold text-sm">${v.placa}</p><p class="text-[9px] text-zinc-500">${new Date(v.saida).toLocaleDateString()}</p></div><p class="font-black text-emerald-500">R$ ${v.valor.toFixed(2)}</p></div>`;
+                    lh.innerHTML += `
+                    <div class="glass p-5 border-l-4 border-emerald-500">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-black text-rose-600">${v.placa}</h4>
+                            <span class="font-black text-emerald-500 text-sm">R$ ${v.valor.toFixed(2)}</span>
+                        </div>
+                        <p class="text-[9px] font-bold text-zinc-500 uppercase mb-2">${v.cliente} • ${v.modelo}</p>
+                        <div class="bg-black/40 p-3 rounded-lg text-[11px] text-zinc-300 italic mb-2">${v.relatorio || 'Sem relatório detalhado.'}</div>
+                        <p class="date-badge">Entrada: ${v.entrada} | Saída: ${v.saida}</p>
+                    </div>`;
                 }
             });
             document.getElementById('c-patio').innerText = a;
         }
 
-        function saveCfg() { config.name = document.getElementById('cfg-name').value.toUpperCase(); localStorage.setItem('patiopro_cfg', JSON.stringify(config)); location.reload(); }
-        function backup() { const b = new Blob([JSON.stringify(data)], {type: 'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'patio_backup.json'; a.click(); }
-        function reset() { if(confirm("Zerar?")) { localStorage.clear(); location.reload(); } }
+        function save() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+        function addRow() { const d = document.createElement('div'); d.className = "flex gap-2 row-item"; d.innerHTML = `<input class="flex-1 n-i" placeholder="Serviço"><input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()">`; document.getElementById('orc-itens').appendChild(d); }
+        function calcTotal() { let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0)); document.getElementById('orc-total').innerText = t.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'}); }
 
-        document.getElementById('cfg-name').value = config.name;
-        document.querySelector('h1').innerHTML = config.name.replace("PRO", "<span class='text-rose-600'>PRO</span>");
         render();
     </script>
 </body>

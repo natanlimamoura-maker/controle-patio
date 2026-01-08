@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PÁTIO PRO v7.4</title>
+    <title>PÁTIO PRO v7.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -11,75 +11,77 @@
         body { background-color: #050505; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .menu-card { background: linear-gradient(145deg, #111, #080808); border: 1px solid #1a1a1a; transition: all 0.2s; }
-        .menu-card:active { transform: scale(0.95); }
         input, textarea { background: #0a0a0a !important; border: 1px solid #222 !important; color: white !important; outline: none; }
-        input:focus { border-color: #dc2626 !important; }
         .upcode-footer { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.05); text-transform: uppercase; letter-spacing: 4px; pointer-events: none; }
+        #bloqueio { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
     </style>
 </head>
 <body class="pb-10">
 
+    <div id="bloqueio">
+        <div class="mb-6 text-6xl">🔒</div>
+        <h2 class="text-red-600 font-black text-3xl uppercase italic mb-2">Acesso Expirado</h2>
+        <p class="text-zinc-500 text-[10px] mb-8 uppercase font-bold tracking-widest">Sua licença de 30 dias venceu.<br>Insira a senha UpCode para liberar.</p>
+        <input id="chave-ativacao" type="password" placeholder="SENHA DE ATIVAÇÃO" class="w-full max-w-xs p-4 rounded-2xl text-center mb-4 border border-zinc-800">
+        <button onclick="verificarChave()" class="w-full max-w-xs bg-red-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg shadow-red-600/20">Ativar Sistema</button>
+    </div>
+
     <div class="upcode-footer">Desenvolvido por UpCode</div>
 
     <header class="p-6 sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-md border-b border-white/5 flex justify-between items-center">
-        <h1 onclick="irParaMenu()" class="text-xl font-black italic uppercase tracking-tighter cursor-pointer">PÁTIO<span class="text-red-600">PRO</span></h1>
-        <div id="contador" class="bg-red-600/20 border border-red-600/30 text-red-500 text-[10px] font-black px-4 py-2 rounded-full italic">0 VEÍCULOS</div>
+        <h1 onclick="irParaMenu()" class="text-xl font-black italic uppercase tracking-tighter cursor-pointer" id="header-nome">PÁTIO<span class="text-red-600">PRO</span></h1>
+        <div id="contador" class="bg-red-600/20 border border-red-600/30 text-red-500 text-[10px] font-black px-4 py-2 rounded-full italic uppercase">0 Veículos</div>
     </header>
 
     <main class="p-5 max-w-lg mx-auto">
         
-        <section id="aba-menu" class="space-y-6 pt-4">
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="trocarAba('entrada')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center">
-                    <span class="text-4xl mb-3">➕</span>
-                    <span class="text-[10px] font-black uppercase text-zinc-400">Entrada</span>
-                </button>
-                <button onclick="trocarAba('patio')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center border-b-2 border-red-600">
-                    <span class="text-4xl mb-3">🚛</span>
-                    <span class="text-[10px] font-black uppercase text-zinc-400">Pátio</span>
-                </button>
-                <button onclick="trocarAba('orcamento')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center">
-                    <span class="text-4xl mb-3">📄</span>
-                    <span class="text-[10px] font-black uppercase text-zinc-400">Orçamento</span>
-                </button>
-                <button onclick="trocarAba('balanco')" class="menu-card p-8 rounded-[2.5rem] flex flex-col items-center bg-green-900/10 border-green-600/20">
-                    <span class="text-4xl mb-3">💰</span>
-                    <span class="text-[10px] font-black uppercase text-green-500">Balanço</span>
-                </button>
-            </div>
+        <section id="aba-menu" class="grid grid-cols-2 gap-4 pt-4">
+            <button onclick="trocarAba('entrada')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center border border-white/5">
+                <span class="text-3xl mb-2">➕</span>
+                <span class="text-[9px] font-black text-zinc-400">ENTRADA</span>
+            </button>
+            <button onclick="trocarAba('patio')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center border-b-2 border-red-600">
+                <span class="text-3xl mb-2">🚛</span>
+                <span class="text-[9px] font-black text-zinc-400">PÁTIO</span>
+            </button>
+            <button onclick="trocarAba('orcamento')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center border border-white/5">
+                <span class="text-3xl mb-2">📄</span>
+                <span class="text-[9px] font-black text-zinc-400">ORÇAMENTO</span>
+            </button>
+            <button onclick="trocarAba('relatorios')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center border border-white/5">
+                <span class="text-3xl mb-2">📜</span>
+                <span class="text-[9px] font-black text-zinc-400">HISTÓRICO</span>
+            </button>
+            <button onclick="trocarAba('balanco')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center bg-green-900/5 border border-green-900/20">
+                <span class="text-3xl mb-2">💰</span>
+                <span class="text-[9px] font-black text-green-500">BALANÇO</span>
+            </button>
+            <button onclick="trocarAba('ajustes')" class="menu-card p-6 rounded-[2rem] flex flex-col items-center border border-white/5">
+                <span class="text-3xl mb-2">⚙️</span>
+                <span class="text-[9px] font-black text-zinc-400">AJUSTES</span>
+            </button>
         </section>
 
-        <section id="aba-balanco" class="hidden space-y-6">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
-            <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-green-600">
-                <p class="text-[10px] font-black text-zinc-500 uppercase mb-2">Faturamento Mensal</p>
-                <h2 id="total-mensal" class="text-4xl font-black text-white italic">R$ 0,00</h2>
-                <p id="mes-atual" class="text-[10px] text-green-500 font-bold mt-2 uppercase"></p>
-            </div>
-            <div id="lista-faturamento" class="space-y-3">
-                </div>
-        </section>
-
-        <section id="aba-orcamento" class="hidden space-y-4">
-            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
-            <div class="glass p-6 rounded-[2.5rem] space-y-3">
-                <input id="orc-cliente" type="text" placeholder="CLIENTE" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
-                <input id="orc-valor" type="number" placeholder="VALOR R$" class="w-full p-4 rounded-xl text-xl font-black text-green-500">
-                <textarea id="orc-servico" placeholder="SERVIÇOS" class="w-full p-4 rounded-xl text-xs font-bold uppercase h-24"></textarea>
-                <button onclick="gerarOrcamento()" class="w-full bg-red-600 py-5 rounded-2xl font-black text-[10px] uppercase">Gerar e Salvar</button>
-            </div>
-        </section>
-
-        <section id="aba-entrada" class="hidden space-y-6">
+        <section id="aba-ajustes" class="hidden space-y-6">
             <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
             <div class="glass p-6 rounded-[2.5rem] space-y-4">
-                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-2xl text-red-600 text-center uppercase">
-                <input id="cliente" type="text" placeholder="NOME CLIENTE" class="w-full p-4 rounded-xl text-xs font-bold uppercase">
-                <input id="fotoInput" type="file" accept="image/*" capture="camera" class="hidden">
-                <label for="fotoInput" class="flex flex-col items-center justify-center p-10 border-2 border-dashed border-zinc-800 rounded-3xl bg-zinc-900/40 cursor-pointer">
-                    <span class="text-4xl">📸</span>
-                </label>
-                <button onclick="salvarEntrada()" class="w-full bg-red-600 py-5 rounded-2xl font-black text-[10px] uppercase">Registrar Entrada</button>
+                <h3 class="text-[10px] font-black text-red-600 uppercase italic tracking-widest">Configurações Gerais</h3>
+                <input id="input-nome-oficina" type="text" placeholder="NOME DA OFICINA" class="w-full p-4 rounded-xl text-xs font-bold uppercase border border-zinc-800">
+                <button onclick="salvarConfig()" class="w-full bg-white text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-widest">Salvar Alterações</button>
+            </div>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4 text-center">
+                <p id="info-licenca" class="text-[9px] font-black uppercase text-zinc-500"></p>
+                <button onclick="baixarBackup()" class="w-full bg-zinc-900 text-white py-4 rounded-xl text-[10px] font-black uppercase italic border border-white/5">Exportar Backup (.JSON)</button>
+                <button onclick="limparTudo()" class="text-[8px] text-zinc-800 font-black uppercase">Reiniciar Banco de Dados</button>
+            </div>
+        </section>
+
+        <section id="aba-entrada" class="hidden space-y-4">
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4">
+                <input id="placa" type="text" placeholder="PLACA" class="w-full p-4 rounded-2xl font-black text-2xl text-red-600 text-center uppercase border border-zinc-800">
+                <input id="cliente" type="text" placeholder="NOME CLIENTE" class="w-full p-4 rounded-xl text-xs font-bold uppercase border border-zinc-800">
+                <button onclick="salvarEntrada()" class="w-full bg-red-600 py-5 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-red-600/20">Registrar Entrada</button>
             </div>
         </section>
 
@@ -88,23 +90,73 @@
             <div id="lista-patio" class="space-y-4"></div>
         </section>
 
-        <section id="aba-ajustes" class="hidden space-y-6">
+        <section id="aba-relatorios" class="hidden space-y-4">
             <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
-            <div class="glass p-6 rounded-[2rem] space-y-4">
-                <button onclick="baixarBackup()" class="w-full bg-white/10 py-4 rounded-xl text-[10px] font-black uppercase italic">Exportar Backup Completo (.JSON)</button>
+            <div id="lista-historico" class="space-y-3"></div>
+        </section>
+
+        <section id="aba-balanco" class="hidden space-y-4">
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
+            <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-green-600 mb-4">
+                <p class="text-[9px] font-black text-zinc-500 uppercase mb-2">Faturamento Mensal</p>
+                <h2 id="total-mensal" class="text-4xl font-black text-white italic">R$ 0,00</h2>
+            </div>
+            <div id="lista-faturamento" class="space-y-2"></div>
+        </section>
+
+        <section id="aba-orcamento" class="hidden space-y-4">
+            <button onclick="irParaMenu()" class="text-zinc-500 text-[10px] font-black uppercase">← Voltar</button>
+            <div class="glass p-6 rounded-[2.5rem] space-y-3">
+                <input id="orc-cliente" type="text" placeholder="CLIENTE" class="w-full p-4 rounded-xl text-xs font-bold uppercase border border-zinc-800">
+                <input id="orc-valor" type="number" placeholder="VALOR R$" class="w-full p-4 rounded-xl text-xl font-black text-green-500 border border-zinc-800">
+                <textarea id="orc-servico" placeholder="DESCREVA O SERVIÇO" class="w-full p-4 rounded-xl text-xs font-bold h-24 uppercase border border-zinc-800"></textarea>
+                <button onclick="gerarOrcamento()" class="w-full bg-red-600 py-5 rounded-2xl font-black text-[10px] uppercase shadow-lg">Gerar Orçamento</button>
             </div>
         </section>
 
     </main>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('patio_pro_v74')) || [];
-        let config = { nomeOficina: "PÁTIO PRO" };
+        // --- BANCO DE DADOS E CONFIGURAÇÃO ---
+        let db = JSON.parse(localStorage.getItem('patio_pro_v78')) || [];
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { 
+            nomeOficina: "PÁTIO PRO", 
+            expiracao: new Date().getTime() + (30 * 24 * 60 * 60 * 1000) 
+        };
 
         function init() {
+            // Verificação de Licença
+            const agora = new Date().getTime();
+            if (agora > config.expiracao) {
+                document.getElementById('bloqueio').style.display = 'flex';
+            }
+
+            document.getElementById('header-nome').innerText = config.nomeOficina;
+            document.getElementById('input-nome-oficina').value = config.nomeOficina;
+            
+            const diasRestantes = Math.max(0, Math.ceil((config.expiracao - agora) / (1000 * 60 * 60 * 24)));
+            document.getElementById('info-licenca').innerText = `LICENÇA ATIVA: ${diasRestantes} DIAS`;
+
             atualizarContador();
-            renderizarPatio();
-            renderizarBalanco();
+            renderizarTudo();
+        }
+
+        function verificarChave() {
+            const senha = document.getElementById('chave-ativacao').value;
+            if(senha === "meuapp") {
+                config.expiracao = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('patio_config', JSON.stringify(config));
+                alert("ACESSO LIBERADO POR MAIS 30 DIAS!");
+                location.reload();
+            } else {
+                alert("SENHA INCORRETA!");
+            }
+        }
+
+        function salvarConfig() {
+            config.nomeOficina = document.getElementById('input-nome-oficina').value.toUpperCase();
+            localStorage.setItem('patio_config', JSON.stringify(config));
+            location.reload();
         }
 
         function atualizarContador() {
@@ -112,127 +164,84 @@
             document.getElementById('contador').innerText = `${ativos} VEÍCULOS`;
         }
 
-        // --- GESTÃO FINANCEIRA ---
-        function registrarNoFinanceiro(cliente, valor, tipo) {
-            db.push({
-                id: Date.now(),
-                cliente: cliente,
-                valor: parseFloat(valor),
-                data: new Date().toISOString(),
-                tipo: tipo, // 'orcamento' ou 'saida'
-                ativo: false
+        function renderizarTudo() {
+            const p = document.getElementById('lista-patio');
+            const h = document.getElementById('lista-historico');
+            const f = document.getElementById('lista-faturamento');
+            const dTotal = document.getElementById('total-mensal');
+            const mesAtual = new Date().getMonth();
+            let totalMês = 0;
+
+            p.innerHTML = ""; h.innerHTML = ""; f.innerHTML = "";
+
+            db.slice().reverse().forEach(v => {
+                if(v.ativo) {
+                    p.innerHTML += `
+                    <div class="glass p-4 rounded-3xl flex justify-between items-center border border-white/5">
+                        <div><h3 class="text-xl font-black italic uppercase">${v.placa}</h3><p class="text-[9px] text-red-500 font-black">${v.cliente}</p></div>
+                        <button onclick="darSaida(${v.id})" class="bg-red-600 px-6 py-2 rounded-xl text-[10px] font-black italic shadow-lg shadow-red-600/20">SAÍDA</button>
+                    </div>`;
+                } else {
+                    // Histórico Geral
+                    h.innerHTML += `
+                    <div class="glass p-4 rounded-2xl flex justify-between items-center opacity-60">
+                        <div><h4 class="text-sm font-black uppercase text-white">${v.placa || v.cliente}</h4><p class="text-[8px] text-zinc-500 uppercase">${new Date(v.dataSaida).toLocaleDateString()}</p></div>
+                        <p class="text-xs font-bold text-zinc-400 text-right">R$ ${v.valor.toFixed(2)}</p>
+                    </div>`;
+
+                    // Balanço Mensal
+                    if(new Date(v.dataSaida).getMonth() === mesAtual) {
+                        totalMês += v.valor;
+                        f.innerHTML += `
+                        <div class="glass p-4 rounded-xl flex justify-between items-center border-l-2 border-green-600">
+                            <p class="text-[10px] font-black uppercase">${v.placa || v.cliente}</p>
+                            <p class="text-[10px] font-black text-green-500">R$ ${v.valor.toFixed(2)}</p>
+                        </div>`;
+                    }
+                }
             });
-            localStorage.setItem('patio_pro_v74', JSON.stringify(db));
+            dTotal.innerText = `R$ ${totalMês.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
         }
 
-        function renderizarBalanco() {
-            const lista = document.getElementById('lista-faturamento');
-            const displayTotal = document.getElementById('total-mensal');
-            const dataAtual = new Date();
-            const mesCorrente = dataAtual.getMonth();
-            const anoCorrente = dataAtual.getFullYear();
-            
-            document.getElementById('mes-atual').innerText = dataAtual.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-
-            let total = 0;
-            lista.innerHTML = "";
-
-            // Filtra registros que tenham valor e sejam do mês atual
-            const lancamentos = db.filter(item => {
-                const dataItem = new Date(item.data);
-                return item.valor > 0 && dataItem.getMonth() === mesCorrente && dataItem.getFullYear() === anoCorrente;
-            });
-
-            lancamentos.reverse().forEach(item => {
-                total += item.valor;
-                lista.innerHTML += `
-                    <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-4 border-green-600">
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-white">${item.cliente}</p>
-                            <p class="text-[8px] text-zinc-500 uppercase">${new Date(item.data).toLocaleDateString()}</p>
-                        </div>
-                        <p class="text-sm font-black text-green-500">R$ ${item.valor.toFixed(2)}</p>
-                    </div>
-                `;
-            });
-
-            displayTotal.innerText = `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        }
-
-        // --- ORÇAMENTO ---
-        function gerarOrcamento() {
-            const cliente = document.getElementById('orc-cliente').value;
-            const valor = document.getElementById('orc-valor').value;
-            if(!cliente || !valor) return alert("Preencha Nome e Valor");
-
-            registrarNoFinanceiro(cliente.toUpperCase(), valor, 'orcamento');
-            alert("Orçamento salvo no Balanço!");
-            location.reload();
-        }
-
-        // --- ENTRADA E SAÍDA ---
         function salvarEntrada() {
             const placa = document.getElementById('placa').value.toUpperCase();
-            if(!placa) return alert("Placa obrigatória");
-            db.push({
-                id: Date.now(),
-                placa: placa,
-                cliente: document.getElementById('cliente').value.toUpperCase(),
-                data: new Date().toISOString(),
-                ativo: true,
-                valor: 0
-            });
-            localStorage.setItem('patio_pro_v74', JSON.stringify(db));
-            location.reload();
+            if(!placa) return alert("PLACA É OBRIGATÓRIA");
+            db.push({ id: Date.now(), placa, cliente: document.getElementById('cliente').value.toUpperCase() || "NÃO INFORMADO", dataEntrada: new Date().toISOString(), ativo: true, valor: 0 });
+            persistir();
         }
 
         function darSaida(id) {
-            const valor = prompt("Valor final do serviço (R$):", "0.00");
+            const valor = prompt("VALOR FINAL DO SERVIÇO (R$):", "0.00");
             if (valor === null) return;
-
             const i = db.findIndex(x => x.id === id);
-            db[i].ativo = false;
-            db[i].valor = parseFloat(valor);
-            db[i].dataSaida = new Date().toISOString();
-            
-            localStorage.setItem('patio_pro_v74', JSON.stringify(db));
-            location.reload();
+            db[i].ativo = false; db[i].valor = parseFloat(valor); db[i].dataSaida = new Date().toISOString();
+            persistir();
         }
 
-        function renderizarPatio() {
-            const p = document.getElementById('lista-patio');
-            p.innerHTML = "";
-            db.filter(v => v.ativo).reverse().forEach(v => {
-                p.innerHTML += `
-                <div class="glass p-4 rounded-3xl flex justify-between items-center border border-white/5">
-                    <div>
-                        <h3 class="text-xl font-black italic uppercase">${v.placa}</h3>
-                        <p class="text-[9px] text-red-500 font-black uppercase">${v.cliente || 'AVULSO'}</p>
-                    </div>
-                    <button onclick="darSaida(${v.id})" class="bg-red-600 px-6 py-2 rounded-xl text-[10px] font-black italic">SAÍDA</button>
-                </div>`;
-            });
+        function gerarOrcamento() {
+            const cliente = document.getElementById('orc-cliente').value.toUpperCase();
+            const valor = document.getElementById('orc-valor').value;
+            if(!cliente || !valor) return alert("PREENCHA OS DADOS!");
+            db.push({ id: Date.now(), cliente, valor: parseFloat(valor), dataSaida: new Date().toISOString(), ativo: false });
+            persistir();
+            alert("ORÇAMENTO SALVO NO BALANÇO!");
         }
 
-        // --- SISTEMA ---
+        function persistir() { localStorage.setItem('patio_pro_v78', JSON.stringify(db)); location.reload(); }
+
         function baixarBackup() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "patio_pro_full_backup.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "BACKUP_PATIO_PRO.json"); a.click();
         }
 
         function trocarAba(aba) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById('aba-' + aba).classList.remove('hidden');
-            if(aba === 'balanco') renderizarBalanco();
             window.scrollTo(0,0);
         }
 
         function irParaMenu() { trocarAba('menu'); }
+        function limparTudo() { if(confirm("DESEJA APAGAR TODO O BANCO DE DADOS?")) { localStorage.clear(); location.reload(); } }
 
         init();
     </script>

@@ -21,11 +21,8 @@
         .btn-menu-full p { font-size: 18px; font-weight: 900; text-transform: uppercase; color: #fff; text-align: left; }
         .btn-menu-full small { font-size: 10px; color: #666; font-weight: 800; text-transform: uppercase; display: block; }
         .btn-acao { background: #e11d48; color: white; font-weight: 900; padding: 20px; border-radius: 20px; width: 100%; text-transform: uppercase; }
-        .btn-wpp { background: #25D366; color: white; font-weight: 900; padding: 20px; border-radius: 20px; width: 100%; text-transform: uppercase; }
         .hidden { display: none !important; }
         label { font-size: 10px; font-weight: 900; color: #e11d48; text-transform: uppercase; display: block; margin-bottom: 5px; margin-left: 10px; }
-        #preview-container { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
-        .thumb-img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; border: 2px solid #e11d48; flex-shrink: 0; }
     </style>
 </head>
 <body class="pb-10">
@@ -33,9 +30,12 @@
     <div id="lock-screen" class="fixed inset-0 bg-black z-[100] flex items-center justify-center p-6 hidden">
         <div class="glass p-8 w-full max-w-sm text-center space-y-6">
             <h2 class="text-2xl font-black italic">PÁTIO<span class="text-rose-600">PRO</span></h2>
-            <p class="text-xs text-zinc-400 uppercase font-bold tracking-widest">Ativação Necessária</p>
-            <input type="password" id="pass-input" placeholder="SENHA DE ACESSO" class="text-center">
-            <button onclick="checkPass()" class="btn-acao">Ativar Licença</button>
+            <div class="bg-rose-900/20 p-4 rounded-2xl">
+                <p class="text-rose-500 text-xs font-bold uppercase tracking-widest">Licença Expirada</p>
+                <p class="text-[10px] text-zinc-400 mt-1">Renove o acesso para continuar utilizando o sistema.</p>
+            </div>
+            <input type="password" id="pass-input" placeholder="SENHA DE RENOVAÇÃO" class="text-center">
+            <button onclick="checkPass()" class="btn-acao">Renovar 30 Dias</button>
             <p id="lock-msg" class="text-rose-500 text-[10px] font-bold uppercase"></p>
         </div>
     </div>
@@ -44,13 +44,11 @@
         <h1 onclick="tab('menu')" class="text-2xl font-black italic cursor-pointer">
             <span id="display-nome-app">PÁTIO</span><span class="text-rose-600">PRO</span>
         </h1>
-        <div class="flex items-center gap-4">
-            <span id="days-left" class="text-[9px] font-black bg-zinc-800 px-2 py-1 rounded text-zinc-400"></span>
-            <button onclick="tab('ajustes')" class="text-xl">⚙️</button>
-        </div>
+        <button onclick="tab('ajustes')" class="text-xl">⚙️</button>
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
+        
         <section id="menu">
             <button onclick="openForm()" class="btn-menu-full"><span class="icon-huge">📥</span><div><p>Nova Entrada</p><small>Registrar veículo</small></div></button>
             <button onclick="tab('patio')" class="btn-menu-full"><span class="icon-huge">🏎️</span><div><p>Pátio</p><small id="c-patio">0 veículos</small></div></button>
@@ -63,106 +61,83 @@
                 <h2 class="text-center font-black text-xs text-rose-600 uppercase">Configurações</h2>
                 
                 <div>
-                    <label>Nome do Estabelecimento</label>
+                    <label>Nome do Aplicativo</label>
                     <div class="flex gap-2">
                         <input id="cfg-nome" placeholder="PÁTIO PRO">
-                        <button onclick="updateName()" class="bg-rose-600 px-4 rounded-xl font-bold text-xs uppercase">OK</button>
+                        <button onclick="updateName()" class="bg-rose-600 px-4 rounded-xl font-bold text-xs">SALVAR</button>
                     </div>
+                </div>
+
+                <div class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
+                    <label>Status da Licença</label>
+                    <p id="days-info" class="text-xs font-bold text-emerald-500 mt-1 uppercase"></p>
                 </div>
 
                 <hr class="border-white/5">
 
-                <div>
+                <div class="space-y-3">
                     <label>Dados e Backup</label>
-                    <div class="space-y-3 mt-2">
-                        <button onclick="exportData()" class="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-xl font-bold text-xs text-zinc-300">📤 EXPORTAR BACKUP (JSON)</button>
-                        <button onclick="document.getElementById('in-import').click()" class="w-full bg-zinc-900 border border-zinc-800 p-4 rounded-xl font-bold text-xs text-zinc-300">📥 IMPORTAR BACKUP</button>
-                        <input type="file" id="in-import" class="hidden" accept=".json" onchange="importData(this)">
-                    </div>
+                    <button onclick="exportData()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-xs text-zinc-300">📤 EXPORTAR DADOS (BACKUP)</button>
+                    <button onclick="document.getElementById('in-import').click()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-xs text-zinc-300">📥 IMPORTAR DADOS</button>
+                    <input type="file" id="in-import" class="hidden" accept=".json" onchange="importData(this)">
                 </div>
 
-                <button onclick="resetAll()" class="w-full text-rose-800 font-black text-[9px] uppercase pt-4">Zerar todo o sistema</button>
+                <button onclick="resetAll()" class="w-full text-rose-800 font-black text-[9px] uppercase pt-4 opacity-50">Limpar todo o sistema</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
 
         <section id="entrada" class="hidden space-y-4">
-             <div class="glass p-6 space-y-4">
-                <h2 class="text-center font-black text-xs text-zinc-500 uppercase">Ficha de Entrada</h2>
-                <div><label>Data</label><input type="date" id="data-entrada"></div>
-                <input id="placa" placeholder="PLACA" class="text-center text-4xl font-black text-rose-600 uppercase">
-                <input id="cliente" placeholder="NOME DO CLIENTE">
-                <input id="modelo" placeholder="VEÍCULO">
-                <button onclick="saveEntry()" class="btn-acao">Salvar Entrada</button>
-                <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
-            </div>
-        </section>
-
-        <section id="patio" class="hidden space-y-4">
-            <div id="render-patio" class="space-y-4"></div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-6">Voltar</button>
-        </section>
-
-        <section id="historico" class="hidden space-y-3">
-            <div id="render-hist" class="space-y-2"></div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-4">Voltar</button>
-        </section>
-
-        <section id="orcamento" class="hidden space-y-4">
             <div class="glass p-6 space-y-4">
-                <h2 class="text-center font-black text-xs text-rose-600 uppercase">Orçamento</h2>
-                <input id="orc-cliente" placeholder="Cliente"><input id="orc-fone" placeholder="WhatsApp">
-                <div id="orc-itens" class="space-y-2">
-                    <div class="flex gap-2"><input class="flex-1 n-i" placeholder="Item"><input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()"></div>
-                </div>
-                <button onclick="addRow()" class="text-[10px] font-black text-rose-500">+ ADICIONAR ITEM</button>
-                <div class="text-right text-2xl font-black text-emerald-500" id="orc-total">R$ 0,00</div>
-                <button onclick="alert('Enviando WhatsApp...')" class="btn-wpp">Enviar WhatsApp</button>
-                <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
-            </div>
-        </section>
+               <h2 class="text-center font-black text-xs text-zinc-500 uppercase">Ficha de Entrada</h2>
+               <input id="placa" placeholder="PLACA" class="text-center text-4xl font-black text-rose-600 uppercase">
+               <input id="cliente" placeholder="NOME DO CLIENTE">
+               <input id="modelo" placeholder="VEÍCULO">
+               <button onclick="saveEntry()" class="btn-acao">Salvar Entrada</button>
+               <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
+           </div>
+       </section>
 
-        <section id="saida-form" class="hidden space-y-4">
-            <div class="glass p-6 space-y-4">
-                <input id="saida-id" type="hidden">
-                <input id="saida-valor" type="number" placeholder="VALOR TOTAL (R$)">
-                <textarea id="saida-relatorio" placeholder="O QUE FOI FEITO?" rows="3"></textarea>
-                <button onclick="confirmCheckOut()" class="btn-acao">Finalizar</button>
-                <button onclick="tab('patio')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Cancelar</button>
-            </div>
-        </section>
-
+       <section id="patio" class="hidden space-y-4"><div id="render-patio"></div><button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-6">Voltar</button></section>
+       <section id="historico" class="hidden space-y-3"><div id="render-hist"></div><button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-4">Voltar</button></section>
     </main>
 
     <script>
         const DB_KEY = 'patiopro_v26';
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
 
-        // --- LÓGICA DE LICENÇA ---
+        // --- LÓGICA DE LICENÇA (30 DIAS) ---
         function checkLicense() {
-            const expiry = localStorage.getItem('patiopro_expiry');
+            let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
 
-            if (!expiry || now > expiry) {
+            // Se for o primeiro acesso, define a primeira licença de 30 dias
+            if (!expiry) {
+                expiry = now + (30 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('patiopro_expiry', expiry);
+            }
+
+            if (now > expiry) {
                 document.getElementById('lock-screen').classList.remove('hidden');
             } else {
                 const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
-                document.getElementById('days-left').innerText = daysLeft + " DIAS RESTANTES";
+                document.getElementById('days-info').innerText = daysLeft + " dias de acesso restante";
             }
         }
 
         function checkPass() {
             const pass = document.getElementById('pass-input').value;
             if (pass === 'meuapp') {
-                const expiryDate = new Date().getTime() + (30 * 24 * 60 * 60 * 1000); // 30 dias
-                localStorage.setItem('patiopro_expiry', expiryDate);
+                const newExpiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+                localStorage.setItem('patiopro_expiry', newExpiry);
+                alert("Licença renovada por mais 30 dias!");
                 location.reload();
             } else {
                 document.getElementById('lock-msg').innerText = "SENHA INCORRETA";
             }
         }
 
-        // --- NOME E CONFIGS ---
+        // --- CUSTOMIZAÇÃO ---
         function updateName() {
             const nome = document.getElementById('cfg-nome').value.toUpperCase();
             if(!nome) return;
@@ -180,34 +155,30 @@
         // --- BACKUP ---
         function exportData() {
             const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup_patio_${new Date().toLocaleDateString()}.json`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `backup_patio.json`;
             a.click();
         }
 
         function importData(input) {
             const reader = new FileReader();
             reader.onload = function() {
-                try {
-                    data = JSON.parse(reader.result);
-                    save(); render();
-                    alert("Dados importados com sucesso!");
-                } catch(e) { alert("Erro no arquivo!"); }
+                data = JSON.parse(reader.result);
+                save(); render();
+                alert("Backup restaurado!");
             };
             reader.readAsText(input.files[0]);
         }
 
-        // --- NAVEGAÇÃO E CRUD ---
+        // --- FUNÇÕES DE NAVEGAÇÃO ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             render();
         }
 
-        function openForm() { tab('entrada'); document.getElementById('data-entrada').valueAsDate = new Date(); }
-
+        function openForm() { tab('entrada'); }
         function saveEntry() {
             const p = document.getElementById('placa').value.toUpperCase();
             if(!p) return;
@@ -216,36 +187,31 @@
         }
 
         function render() {
-            const lp = document.getElementById('render-patio'); 
+            const lp = document.getElementById('render-patio');
             const lh = document.getElementById('render-hist');
             let a = 0; lp.innerHTML = ""; lh.innerHTML = "";
             data.slice().reverse().forEach(v => {
                 if(v.ativo) {
-                    a++; lp.innerHTML += `<div class="glass p-6 mb-4"><div class="flex justify-between"><h3>${v.placa}</h3><span>${v.entrada}</span></div><p class="text-xs text-zinc-500">${v.modelo}</p><button onclick="startCheckOut(${v.id})" class="btn-acao mt-4 text-xs">Dar Saída</button></div>`;
+                    a++; lp.innerHTML += `<div class="glass p-6 mb-4 flex justify-between"><div><h3 class="text-xl font-black">${v.placa}</h3><p class="text-[10px] text-zinc-500">${v.modelo}</p></div><button onclick="startOut(${v.id})" class="text-rose-600 font-black text-xs">SAÍDA</button></div>`;
                 } else {
-                    lh.innerHTML += `<div class="glass p-4 mb-2 flex justify-between"><span>${v.placa}</span><span class="text-emerald-500 font-black">R$ ${v.valor}</span></div>`;
+                    lh.innerHTML += `<div class="glass p-4 mb-2 flex justify-between text-xs"><span>${v.placa}</span><span class="text-emerald-500 font-bold">R$ ${v.valor}</span></div>`;
                 }
             });
             document.getElementById('c-patio').innerText = a + " veículos";
         }
 
-        function startCheckOut(id) { tab('saida-form'); document.getElementById('saida-id').value = id; }
-
-        function confirmCheckOut() {
-            const id = document.getElementById('saida-id').value;
+        function startOut(id) { 
+            const valor = prompt("Valor do serviço:"); 
+            if(!valor) return;
             const v = data.find(x => x.id == id);
-            v.valor = document.getElementById('saida-valor').value;
-            v.relatorio = document.getElementById('saida-relatorio').value;
-            v.ativo = false;
-            save(); tab('menu');
+            v.valor = valor; v.ativo = false;
+            save(); render();
         }
 
         function save() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
-        function addRow() { const d = document.createElement('div'); d.className="flex gap-2 mt-2"; d.innerHTML=`<input class="flex-1 n-i" placeholder="Item"><input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()">`; document.getElementById('orc-itens').appendChild(d); }
-        function calcTotal() { let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0)); document.getElementById('orc-total').innerText = "R$ " + t.toFixed(2); }
         function resetAll() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
 
-        // Inicialização
+        // Init
         checkLicense();
         loadConfigs();
         render();

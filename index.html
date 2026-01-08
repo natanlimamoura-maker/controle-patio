@@ -159,7 +159,7 @@
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentPhotos = [];
 
-        // --- LICENÇA ---
+        // --- LÓGICA DE LICENÇA (30 DIAS) ---
         function checkLicense() {
             let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
@@ -184,7 +184,7 @@
             }
         }
 
-        // --- SALVAR ORÇAMENTO ---
+        // --- SALVAR ORÇAMENTO (DOWNLOAD DIRETO) ---
         function generatePDF() {
             const cliente = document.getElementById('orc-cliente').value || "Cliente";
             const veiculo = document.getElementById('orc-veiculo').value || "Veiculo";
@@ -238,7 +238,7 @@
             reader.readAsText(input.files[0]);
         }
 
-        // --- NAVEGAÇÃO E CRUD ---
+        // --- SISTEMA ORIGINAL (FOTOS E CRUD) ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
@@ -308,6 +308,7 @@
         function addRow() { const d = document.createElement('div'); d.className="flex gap-2 mt-2"; d.innerHTML=`<input class="flex-1 n-i" placeholder="Item"><input class="w-24 v-i" type="number" placeholder="R$" oninput="calcTotal()">`; document.getElementById('orc-itens').appendChild(d); }
         function calcTotal() { let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0)); document.getElementById('orc-total').innerText = "R$ " + t.toFixed(2); }
 
+        // Inicialização
         checkLicense();
         loadConfigs();
         render();

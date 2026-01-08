@@ -5,415 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3524/3524659.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/741/741407.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#050505">
 
-    <title>PÁTIO PRO v17.0</title>
+    <title>PÁTIO PRO v18.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-
-        :root { --red: #e11d48; --card: #111111; --bg: #050505; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .glass { background: #111; border: 1px solid #222; border-radius: 30px; }
+        input, textarea { background: #18181b !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 15px; padding: 18px; font-size: 16px; width: 100%; }
         
-        body { 
-            background: var(--bg); 
-            color: #f4f4f5; 
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-
-        .glass-card {
-            background: var(--card);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        input, textarea {
-            background: #18181b !important;
-            border: 1px solid #27272a !important;
-            color: #fff !important;
-            border-radius: 14px;
-            padding: 14px;
-            font-size: 16px;
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        input:focus { border-color: var(--red) !important; outline: none; }
-
-        .btn-main {
-            background: var(--red);
-            color: white;
-            font-weight: 700;
-            padding: 18px;
-            border-radius: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 13px;
-            width: 100%;
-            transition: transform 0.1s;
-        }
-
-        .btn-main:active { transform: scale(0.97); }
-
-        .menu-btn {
+        /* BOTÕES GIGANTES DO MENU */
+        .btn-menu {
+            height: 180px;
             background: #111;
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 28px;
-            padding: 24px;
+            border: 1px solid #222;
+            border-radius: 35px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 15px;
+            transition: all 0.2s;
         }
+        .btn-menu:active { background: #1a1a1a; transform: scale(0.95); border-color: #e11d48; }
+        .btn-menu span { font-size: 50px; }
+        .btn-menu p { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #888; }
 
-        .hidden { display: none !important; }
-        .active-tab { border-bottom: 3px solid var(--red); color: var(--red); }
+        .btn-acao { background: #e11d48; color: white; font-weight: 900; padding: 22px; border-radius: 20px; width: 100%; text-transform: uppercase; font-size: 14px; }
+        .btn-wpp { background: #25D366; color: white; font-weight: 900; padding: 22px; border-radius: 20px; width: 100%; text-transform: uppercase; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
         
-        /* Loading animation */
-        .loader { width: 20px; height: 20px; border: 3px solid #fff; border-bottom-color: transparent; border-radius: 50%; display: none; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-10">
 
-    <div id="bloqueio" class="fixed inset-0 bg-black z-[9999] hidden flex-col items-center justify-center p-8 text-center">
-        <div class="mb-6 text-5xl">🔒</div>
-        <h2 class="text-2xl font-extrabold mb-2 uppercase">Licença Expirada</h2>
-        <p class="text-zinc-500 text-sm mb-8">O período de teste terminou. Insira a chave mestre para liberar o acesso.</p>
-        <input id="key-input" type="password" placeholder="Chave de Ativação" class="text-center mb-4">
-        <button onclick="checkKey()" class="btn-main">Ativar Agora</button>
-    </div>
-
-    <header class="p-6 sticky top-0 z-40 bg-black/70 backdrop-blur-xl flex justify-between items-center border-b border-white/5">
-        <div>
-            <h1 onclick="tab('menu')" class="text-xl font-black italic tracking-tighter cursor-pointer">
-                PÁTIO<span class="text-rose-600">PRO</span>
-            </h1>
-            <p id="view-title" class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">Painel de Controle</p>
-        </div>
-        <button onclick="tab('ajustes')" class="w-10 h-10 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center">⚙️</button>
+    <header class="p-6 flex justify-between items-center border-b border-white/5 bg-black">
+        <h1 onclick="tab('menu')" class="text-2xl font-black italic">PÁTIO<span class="text-rose-600">PRO</span></h1>
+        <button onclick="tab('ajustes')" class="text-2xl">⚙️</button>
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
 
-        <section id="menu" class="grid grid-cols-2 gap-4 animate-in">
-            <button onclick="tab('entrada')" class="menu-btn">
-                <span class="text-3xl">📥</span>
-                <span class="text-[10px] font-extrabold uppercase text-zinc-400">Nova Entrada</span>
+        <section id="menu" class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="tab('entrada')" class="btn-menu">
+                    <span>📥</span>
+                    <p>Entrada</p>
+                </button>
+                <button onclick="tab('patio')" class="btn-menu relative">
+                    <span>🏎️</span>
+                    <p>Pátio</p>
+                    <div id="c-patio" class="absolute top-6 right-6 bg-rose-600 px-3 py-1 rounded-full text-xs font-black">0</div>
+                </button>
+            </div>
+            <button onclick="tab('orcamento')" class="btn-menu h-[140px]">
+                <span>📋</span>
+                <p>Orçamentos / WhatsApp</p>
             </button>
-            <button onclick="tab('patio')" class="menu-btn relative">
-                <span class="text-3xl">🏎️</span>
-                <span class="text-[10px] font-extrabold uppercase text-zinc-400">Veículos no Pátio</span>
-                <div id="count-patio" class="absolute top-4 right-4 bg-rose-600 text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full">0</div>
-            </button>
-            <button onclick="tab('orcamento')" class="menu-btn">
-                <span class="text-3xl">📋</span>
-                <span class="text-[10px] font-extrabold uppercase text-zinc-400">Orçamentos</span>
-            </button>
-            <button onclick="tab('historico')" class="menu-btn">
-                <span class="text-3xl">📖</span>
-                <span class="text-[10px] font-extrabold uppercase text-zinc-400">Histórico Geral</span>
-            </button>
-            <button onclick="tab('balanco')" class="menu-btn col-span-2 flex-row gap-6 bg-emerald-500/5 border-emerald-500/10">
-                <span class="text-3xl">💹</span>
-                <div class="text-left">
-                    <span class="text-[10px] font-extrabold uppercase text-emerald-500 block">Faturamento Mensal</span>
-                    <span id="label-faturamento" class="text-xl font-black">R$ 0,00</span>
-                </div>
+            <button onclick="tab('historico')" class="btn-menu h-[100px] flex-row">
+                <span class="text-2xl">📖</span>
+                <p>Histórico Geral</p>
             </button>
         </section>
 
         <section id="entrada" class="hidden space-y-4">
-            <div class="glass-card p-6 space-y-4">
-                <input id="placa" placeholder="PLACA DO VEÍCULO" class="text-center text-3xl font-black text-rose-600 uppercase placeholder:text-zinc-800">
-                <input id="cliente" placeholder="Nome do Cliente">
-                <input id="modelo" placeholder="Marca / Modelo">
-                <textarea id="obs" placeholder="Relato do cliente e observações de avarias..." rows="4"></textarea>
+            <div class="glass p-6 space-y-4">
+                <input id="placa" placeholder="PLACA" class="text-center text-4xl font-black text-rose-600 uppercase">
+                <input id="cliente" placeholder="NOME DO CLIENTE">
+                <input id="modelo" placeholder="MARCA / MODELO">
+                <textarea id="obs" placeholder="OBSERVAÇÕES" rows="3"></textarea>
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="document.getElementById('in-cam').click()" class="bg-zinc-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-white/5">
-                        <span class="text-xl">📸</span>
-                        <span class="text-[9px] font-bold uppercase">Câmera</span>
-                    </button>
-                    <button onclick="document.getElementById('in-gal').click()" class="bg-zinc-800 p-4 rounded-xl flex flex-col items-center gap-2 border border-white/5">
-                        <span class="text-xl">🖼️</span>
-                        <span class="text-[9px] font-bold uppercase">Galeria</span>
-                    </button>
+                    <button onclick="document.getElementById('in-cam').click()" class="bg-zinc-900 p-6 rounded-2xl flex flex-col items-center gap-2">📸<br>Câmera</button>
+                    <button onclick="document.getElementById('in-gal').click()" class="bg-zinc-900 p-6 rounded-2xl flex flex-col items-center gap-2">🖼️<br>Galeria</button>
                 </div>
-                <input type="file" id="in-cam" capture="camera" accept="image/*" class="hidden" multiple onchange="updatePhotoLabel()">
-                <input type="file" id="in-gal" accept="image/*" class="hidden" multiple onchange="updatePhotoLabel()">
-                <p id="photo-label" class="text-[10px] text-center text-zinc-500 font-bold italic"></p>
+                <input type="file" id="in-cam" capture="camera" accept="image/*" class="hidden" multiple>
+                <input type="file" id="in-gal" accept="image/*" class="hidden" multiple>
 
-                <button onclick="saveEntry()" class="btn-main flex items-center justify-center gap-3">
-                    <span id="btn-text">Confirmar Entrada</span>
-                    <div class="loader" id="loader"></div>
-                </button>
+                <button onclick="saveEntry()" class="btn-acao">Registrar Veículo</button>
+                <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-bold text-[10px] uppercase">Cancelar e Voltar</button>
         </section>
 
         <section id="patio" class="hidden space-y-4">
-            <div id="render-patio" class="grid gap-4"></div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-bold text-[10px] uppercase p-4">Voltar ao Menu</button>
+            <div id="render-patio" class="space-y-4"></div>
+            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase">Voltar ao Menu</button>
         </section>
 
         <section id="orcamento" class="hidden space-y-4">
-            <div class="glass-card p-6 space-y-4">
-                <h3 class="text-xs font-black uppercase text-rose-600">Dados do Cliente</h3>
+            <div class="glass p-6 space-y-4">
+                <h3 class="font-black text-rose-600 uppercase text-xs">Dados do Cliente</h3>
                 <input id="orc-cliente" placeholder="Nome do Cliente">
+                <input id="orc-fone" placeholder="WhatsApp (DDD+Número)">
                 <input id="orc-veiculo" placeholder="Veículo / Placa">
                 
-                <h3 class="text-xs font-black uppercase text-rose-600 pt-2">Itens do Orçamento</h3>
+                <h3 class="font-black text-rose-600 uppercase text-xs pt-4">Serviços</h3>
                 <div id="orc-itens" class="space-y-2">
-                    <div class="flex gap-2 item-row">
-                        <input class="flex-1 it-name" placeholder="Descrição">
-                        <input class="w-28 it-val" type="number" placeholder="R$" oninput="calcTotal()">
+                    <div class="flex gap-2 row-item">
+                        <input class="flex-1 n-i" placeholder="Serviço">
+                        <input class="w-28 v-i" type="number" placeholder="R$" oninput="calcTotal()">
                     </div>
                 </div>
-                <button onclick="addRow()" class="text-zinc-500 text-[10px] font-black uppercase">+ Adicionar Linha</button>
+                <button onclick="addRow()" class="text-zinc-500 text-xs font-black uppercase">+ Adicionar Item</button>
                 
-                <div class="border-t border-white/5 pt-4 flex justify-between items-center">
-                    <span class="text-xs font-bold text-zinc-400 uppercase">Total Geral</span>
-                    <span id="orc-total" class="text-2xl font-black text-emerald-500">R$ 0,00</span>
+                <div class="pt-4 flex justify-between">
+                    <span class="font-black text-2xl text-emerald-500" id="orc-total">R$ 0,00</span>
                 </div>
-                <button onclick="pdfOrc()" class="btn-main">Gerar PDF Profissional</button>
+                
+                <button onclick="pdfOrc(false)" class="btn-acao">Baixar PDF</button>
+                <button onclick="pdfOrc(true)" class="btn-wpp">
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" class="w-5 h-5 invert">
+                    Enviar para WhatsApp
+                </button>
+                <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
 
         <section id="historico" class="hidden space-y-3">
             <div id="render-hist" class="space-y-2"></div>
-            <button onclick="tab('menu')" class="w-full text-zinc-600 font-bold text-[10px] uppercase p-4">Voltar</button>
-        </section>
-
-        <section id="balanco" class="hidden space-y-4">
-            <div class="glass-card p-8 text-center bg-emerald-500/5">
-                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Total Recebido (Mês)</p>
-                <h2 id="total-mes" class="text-4xl font-black">R$ 0,00</h2>
-            </div>
-            <div id="render-fat" class="space-y-2"></div>
+            <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase p-4">Voltar</button>
         </section>
 
         <section id="ajustes" class="hidden space-y-4">
-            <div class="glass-card p-6 space-y-6">
-                <div>
-                    <label class="text-[10px] font-black text-zinc-500 uppercase mb-2 block">Nome da Empresa</label>
-                    <input id="cfg-name" placeholder="Sua Oficina">
-                </div>
-                <button onclick="saveCfg()" class="btn-main">Atualizar Configurações</button>
-                <hr class="border-white/5">
-                <button onclick="backup()" class="w-full py-4 text-[10px] font-black uppercase border border-white/10 rounded-xl">💾 Exportar Banco de Dados</button>
-                <button onclick="reset()" class="w-full py-2 text-rose-900 text-[9px] font-black uppercase">⚠️ Apagar Todos os Dados</button>
+            <div class="glass p-8 space-y-6 text-center">
+                <input id="cfg-name" placeholder="NOME DA SUA OFICINA">
+                <button onclick="saveCfg()" class="btn-acao">Salvar Nome</button>
+                <button onclick="backup()" class="w-full text-xs font-black uppercase text-zinc-500">Backup .JSON</button>
+                <button onclick="reset()" class="text-xs text-rose-900 font-black uppercase">Zerar Dados</button>
             </div>
         </section>
 
     </main>
 
     <script>
-        const DB_KEY = 'patiopro_db_v17';
+        const DB_KEY = 'patiopro_v18';
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        let config = JSON.parse(localStorage.getItem('patiopro_cfg')) || { name: 'PÁTIO PRO', exp: new Date().getTime() + (30*24*60*60*1000) };
+        let config = JSON.parse(localStorage.getItem('patiopro_cfg')) || { name: 'PÁTIO PRO' };
 
-        // NAVEGAÇÃO
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            const titles = { menu: 'Painel de Controle', entrada: 'Nova Entrada', patio: 'Veículos Internos', orcamento: 'Gerador de Orçamentos', historico: 'Registros Antigos', balanco: 'Balanço Financeiro', ajustes: 'Configurações' };
-            document.getElementById('view-title').innerText = titles[id];
             window.scrollTo(0,0);
         }
 
-        // FOTOS
-        function updatePhotoLabel() {
-            const c = document.getElementById('in-cam').files.length + document.getElementById('in-gal').files.length;
-            document.getElementById('photo-label').innerText = c > 0 ? `${c} imagem(ns) selecionada(s)` : '';
-        }
-
-        // SALVAR ENTRADA
         async function saveEntry() {
             const placa = document.getElementById('placa').value.toUpperCase();
             if(!placa) return alert('Insira a placa!');
-
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('btn-text').innerText = 'Processando...';
-
+            
             const files = [...document.getElementById('in-cam').files, ...document.getElementById('in-gal').files];
             const photos = [];
+            for(let file of files) { photos.push(await toBase64(file)); }
 
-            for(let file of files) {
-                const b64 = await toBase64(file);
-                photos.push(b64);
-            }
-
-            const entry = {
-                id: Date.now(),
-                placa,
-                cliente: document.getElementById('cliente').value.toUpperCase(),
-                modelo: document.getElementById('modelo').value.toUpperCase(),
-                obs: document.getElementById('obs').value,
-                fotos: photos,
-                entrada: new Date().toISOString(),
-                ativo: true,
-                valor: 0
-            };
-
-            data.push(entry);
-            saveData();
+            data.push({ id: Date.now(), placa, cliente: document.getElementById('cliente').value.toUpperCase(), modelo: document.getElementById('modelo').value.toUpperCase(), obs: document.getElementById('obs').value, fotos: photos, entrada: new Date().toISOString(), ativo: true, valor: 0 });
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
             location.reload();
         }
 
-        const toBase64 = file => new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-        });
+        const toBase64 = f => new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(f); rd.onload = () => r(rd.result); });
 
-        // SAÍDA
         function checkOut(id) {
-            const item = data.find(x => x.id === id);
-            const val = prompt(`Valor total do serviço para ${item.placa}:`, "0");
-            if(val !== null) {
-                item.valor = parseFloat(val);
-                item.ativo = false;
-                item.saida = new Date().toISOString();
-                saveData();
-                render();
-            }
+            const v = data.find(x => x.id === id);
+            const val = prompt(`Valor para ${v.placa}:`);
+            if(val) { v.valor = parseFloat(val); v.ativo = false; v.saida = new Date().toISOString(); localStorage.setItem(DB_KEY, JSON.stringify(data)); render(); }
         }
 
-        // ORÇAMENTO
         function addRow() {
-            const div = document.createElement('div');
-            div.className = "flex gap-2 item-row";
-            div.innerHTML = `<input class="flex-1 it-name" placeholder="Descrição"><input class="w-28 it-val" type="number" placeholder="R$" oninput="calcTotal()">`;
-            document.getElementById('orc-itens').appendChild(div);
+            const d = document.createElement('div'); d.className = "flex gap-2 row-item";
+            d.innerHTML = `<input class="flex-1 n-i" placeholder="Serviço"><input class="w-28 v-i" type="number" placeholder="R$" oninput="calcTotal()">`;
+            document.getElementById('orc-itens').appendChild(d);
         }
 
         function calcTotal() {
-            let t = 0;
-            document.querySelectorAll('.it-val').forEach(i => t += parseFloat(i.value || 0));
+            let t = 0; document.querySelectorAll('.v-i').forEach(i => t += parseFloat(i.value || 0));
             document.getElementById('orc-total').innerText = t.toLocaleString('pt-br', {style: 'currency', currency: 'BRL'});
             return t;
         }
 
-        function pdfOrc() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        function pdfOrc(sendWpp) {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
             const cliente = document.getElementById('orc-cliente').value.toUpperCase();
-            const veiculo = document.getElementById('orc-veiculo').value.toUpperCase();
+            const fone = document.getElementById('orc-fone').value.replace(/\D/g, '');
             
-            doc.setFontSize(22); doc.setTextColor(225, 29, 72);
-            doc.text(config.name, 105, 20, {align:'center'});
+            doc.setFontSize(20); doc.text(config.name, 105, 20, {align:'center'});
+            doc.setFontSize(10); doc.text("ORÇAMENTO DE SERVIÇOS", 105, 28, {align:'center'});
             
-            doc.setFontSize(10); doc.setTextColor(100);
-            doc.text("ORÇAMENTO TÉCNICO DE SERVIÇOS", 105, 28, {align:'center'});
-            
-            doc.autoTable({
-                startY: 40,
-                head: [['Campo', 'Informação']],
-                body: [['Cliente', cliente], ['Veículo', veiculo], ['Data', new Date().toLocaleDateString()]],
-                theme: 'striped', headStyles: {fillColor: [30, 30, 30]}
+            const body = [];
+            document.querySelectorAll('.row-item').forEach(r => {
+                const n = r.querySelector('.n-i').value; const v = r.querySelector('.v-i').value;
+                if(n) body.push([n.toUpperCase(), `R$ ${parseFloat(v).toFixed(2)}`]);
             });
 
-            const rows = [];
-            document.querySelectorAll('.item-row').forEach(row => {
-                const n = row.querySelector('.it-name').value;
-                const v = row.querySelector('.it-val').value;
-                if(n) rows.push([n.toUpperCase(), `R$ ${parseFloat(v).toFixed(2)}`]);
-            });
-
-            doc.autoTable({
-                startY: doc.lastAutoTable.finalY + 10,
-                head: [['Descrição do Serviço/Peça', 'Preço']],
-                body: rows,
-                foot: [['TOTAL GERAL', `R$ ${calcTotal().toFixed(2)}`]],
-                theme: 'grid', headStyles: {fillColor: [225, 29, 72]}
-            });
-
+            doc.autoTable({ startY: 40, head: [['Serviço', 'Preço']], body: body, theme: 'grid', headStyles: {fillColor: [225, 29, 72]} });
+            
+            if(sendWpp && fone) {
+                const link = `https://wa.me/55${fone}?text=Olá ${cliente}, segue o orçamento da oficina ${config.name}.`;
+                window.open(link, '_blank');
+            }
             doc.save(`Orcamento_${cliente}.pdf`);
         }
 
-        // RENDERIZAÇÃO
         function render() {
-            const lp = document.getElementById('render-patio');
-            const lh = document.getElementById('render-hist');
-            const lf = document.getElementById('render-fat');
-            let ativos = 0, fat = 0, mes = new Date().getMonth();
-
-            lp.innerHTML = ""; lh.innerHTML = ""; lf.innerHTML = "";
+            const lp = document.getElementById('render-patio'); const lh = document.getElementById('render-hist');
+            let a = 0; lp.innerHTML = ""; lh.innerHTML = "";
 
             data.slice().reverse().forEach(v => {
                 if(v.ativo) {
-                    ativos++;
-                    lp.innerHTML += `
-                    <div class="glass-card p-5">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-2xl font-black text-rose-600 tracking-tighter">${v.placa}</h3>
-                                <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${v.cliente} • ${v.modelo}</p>
-                            </div>
-                            <span class="text-[9px] bg-zinc-800 px-2 py-1 rounded text-zinc-400 font-bold">${new Date(v.entrada).toLocaleDateString()}</span>
-                        </div>
-                        <div class="flex gap-2 overflow-x-auto pb-4">
-                            ${v.fotos.map(img => `<img src="${img}" class="w-20 h-20 rounded-xl object-cover border border-white/5">`).join("")}
-                        </div>
-                        <button onclick="checkOut(${v.id})" class="btn-main py-3">Finalizar e Dar Saída</button>
-                    </div>`;
+                    a++; lp.innerHTML += `<div class="glass p-6"><h3 class="text-3xl font-black text-rose-600">${v.placa}</h3><p class="text-[10px] font-bold text-zinc-500 uppercase">${v.cliente} | ${v.modelo}</p><div class="flex gap-2 my-4 overflow-x-auto">${v.fotos.map(img => `<img src="${img}" class="w-24 h-24 rounded-2xl object-cover">`).join("")}</div><button onclick="checkOut(${v.id})" class="btn-acao">Finalizar</button></div>`;
                 } else {
-                    const row = `
-                    <div class="glass-card p-4 flex justify-between items-center border-l-4 border-emerald-500">
-                        <div>
-                            <p class="font-bold text-sm">${v.placa || v.cliente}</p>
-                            <p class="text-[9px] text-zinc-500 uppercase font-bold">${new Date(v.saida).toLocaleDateString()}</p>
-                        </div>
-                        <p class="font-black text-emerald-500">R$ ${v.valor.toFixed(2)}</p>
-                    </div>`;
-                    lh.innerHTML += row;
-                    if(new Date(v.saida).getMonth() === mes) { fat += v.valor; lf.innerHTML += row; }
+                    lh.innerHTML += `<div class="glass p-4 flex justify-between items-center border-l-4 border-zinc-700"><div><p class="font-bold text-sm">${v.placa}</p><p class="text-[9px] text-zinc-500">${new Date(v.saida).toLocaleDateString()}</p></div><p class="font-black text-emerald-500">R$ ${v.valor.toFixed(2)}</p></div>`;
                 }
             });
-
-            document.getElementById('count-patio').innerText = ativos;
-            const formattedFat = fat.toLocaleString('pt-br', {style:'currency', currency:'BRL'});
-            document.getElementById('label-faturamento').innerText = formattedFat;
-            document.getElementById('total-mes').innerText = formattedFat;
+            document.getElementById('c-patio').innerText = a;
         }
 
-        // SISTEMA
-        function saveData() { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
-        function saveCfg() { 
-            config.name = document.getElementById('cfg-name').value.toUpperCase(); 
-            localStorage.setItem('patiopro_cfg', JSON.stringify(config)); 
-            location.reload(); 
-        }
-        function checkKey() {
-            if(document.getElementById('key-input').value === 'meuapp') {
-                config.exp = new Date().getTime() + (30*24*60*60*1000);
-                localStorage.setItem('patiopro_cfg', JSON.stringify(config));
-                location.reload();
-            }
-        }
-        function backup() {
-            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'patiopro_backup.json'; a.click();
-        }
-        function reset() { if(confirm("APAGAR TUDO?")) { localStorage.clear(); location.reload(); } }
+        function saveCfg() { config.name = document.getElementById('cfg-name').value.toUpperCase(); localStorage.setItem('patiopro_cfg', JSON.stringify(config)); location.reload(); }
+        function backup() { const b = new Blob([JSON.stringify(data)], {type: 'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'patio_backup.json'; a.click(); }
+        function reset() { if(confirm("Zerar?")) { localStorage.clear(); location.reload(); } }
 
-        // INIT
-        if(new Date().getTime() > config.exp) document.getElementById('bloqueio').classList.remove('hidden');
         document.getElementById('cfg-name').value = config.name;
         document.querySelector('h1').innerHTML = config.name.replace("PRO", "<span class='text-rose-600'>PRO</span>");
         render();
-
     </script>
 </body>
 </html>

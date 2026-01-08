@@ -106,7 +106,8 @@
                 </div>
                 <button onclick="addRow()" class="text-xs font-black">+ ADICIONAR ITEM</button>
                 <div class="text-right text-2xl font-black text-emerald-500" id="orc-total">R$ 0,00</div>
-                <button onclick="alert('Enviando...')" class="btn-wpp">Enviar WhatsApp</button>
+                <button onclick="generatePDF()" class="w-full bg-zinc-800 text-white font-black text-[10px] uppercase py-4 rounded-2xl">Gerar PDF / Imprimir</button>
+                <button onclick="alert('Enviando WhatsApp...')" class="btn-wpp">Enviar WhatsApp</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
@@ -136,24 +137,20 @@
                         <button onclick="updateName()" class="bg-rose-600 px-4 rounded-xl font-bold text-xs">OK</button>
                     </div>
                 </div>
-
                 <div class="text-left border-t border-white/5 pt-4">
                     <label>Licença</label>
                     <p id="lic-status" class="text-xs font-bold text-emerald-500 mt-1"></p>
                 </div>
-
                 <div class="border-t border-white/5 pt-4 space-y-3">
                     <label>Backup</label>
                     <button onclick="exportData()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-[10px]">EXPORTAR DADOS</button>
                     <button onclick="document.getElementById('in-import').click()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-[10px]">IMPORTAR DADOS</button>
                     <input type="file" id="in-import" class="hidden" accept=".json" onchange="importData(this)">
                 </div>
-
                 <button onclick="localStorage.clear(); location.reload();" class="text-rose-600 font-black text-[10px] block w-full">ZERAR TODOS OS DADOS</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
-
     </main>
 
     <script>
@@ -161,7 +158,7 @@
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentPhotos = [];
 
-        // --- LÓGICA DE LICENÇA ---
+        // --- LICENÇA ---
         function checkLicense() {
             let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
@@ -186,7 +183,29 @@
             }
         }
 
-        // --- NOME E BACKUP ---
+        // --- GERAR PDF ---
+        function generatePDF() {
+            const cliente = document.getElementById('orc-cliente').value || "Não informado";
+            const veiculo = document.getElementById('orc-veiculo').value || "Não informado";
+            const total = document.getElementById('orc-total').innerText;
+            const nomeApp = localStorage.getItem('patiopro_name') || 'PÁTIO PRO';
+            
+            let itensHtml = "";
+            document.querySelectorAll('#orc-itens > div').forEach(div => {
+                const nome = div.querySelector('.n-i').value;
+                const preco = div.querySelector('.v-i').value;
+                if(nome) {
+                    itensHtml += `<tr><td style="padding:10px;border-bottom:1px solid #eee;">${nome}</td><td style="padding:10px;border-bottom:1px solid #eee;text-align:right;">R$ ${parseFloat(preco).toFixed(2)}</td></tr>`;
+                }
+            });
+
+            const win = window.open('', '', 'width=800,height=600');
+            win.document.write(`<html><head><title>Orçamento</title><style>body{font-family:sans-serif;padding:30px}header{text-align:center;border-bottom:2px solid #e11d48}table{width:100%;border-collapse:collapse;margin:20px 0}.total{text-align:right;font-size:22px;color:#e11d48;font-weight:900}</style></head><body><header><h1>${nomeApp}</h1><p>ORÇAMENTO DE SERVIÇOS</p></header><div style="margin:20px 0"><p><strong>CLIENTE:</strong> ${cliente}</p><p><strong>VEÍCULO:</strong> ${veiculo}</p><p><strong>DATA:</strong> ${new Date().toLocaleDateString()}</p></div><table><thead><tr style="background:#f4f4f4"><th style="padding:10px;text-align:left">DESCRIÇÃO</th><th style="padding:10px;text-align:right">VALOR</th></tr></thead><tbody>${itensHtml}</tbody></table><div class="total">TOTAL: ${total}</div></body></html>`);
+            win.document.close();
+            setTimeout(() => { win.print(); win.close(); }, 500);
+        }
+
+        // --- CONFIGS E BACKUP ---
         function updateName() {
             const n = document.getElementById('cfg-nome').value.toUpperCase();
             if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); }
@@ -202,7 +221,7 @@
             const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `backup.json`;
+            a.download = `backup_patio.json`;
             a.click();
         }
 
@@ -215,7 +234,7 @@
             reader.readAsText(input.files[0]);
         }
 
-        // --- FUNÇÕES ORIGINAIS ---
+        // --- FUNÇÕES DE NAVEGAÇÃO E CRUD ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');

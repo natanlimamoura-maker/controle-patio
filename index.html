@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PÁTIO PRO v11.5</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { background:#050505; color:#fff; font-family:'Inter', sans-serif; -webkit-tap-highlight-color:transparent; overflow-x: hidden; }
+        .glass { background:rgba(18,18,18,.9); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,.05); }
+        input, textarea, select { background:#0a0a0a !important; border:1px solid #222 !important; color:#fff !important; outline:none; width:100%; padding:1rem; border-radius:1rem; font-size:0.875rem; }
+        input:focus { border-color:#dc2626 !important; }
+        .menu-card { transition: transform 0.2s; }
+        .menu-card:active { transform: scale(0.95); }
+        .upcode-footer { position:fixed; bottom:10px; left:0; width:100%; text-align:center; font-size:8px; font-weight:900; color:rgba(255,255,255,0.05); text-transform:uppercase; letter-spacing:4px; pointer-events:none; }
+        #bloqueio { display:none; position:fixed; inset:0; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div id="bloqueio">
+        <div class="mb-6 text-6xl">🔒</div>
+        <h2 class="text-red-600 font-black text-3xl uppercase italic mb-2">Acesso Expirado</h2>
+        <p class="text-zinc-500 text-[10px] mb-8 uppercase font-bold tracking-widest">Sua licença de 30 dias venceu.<br>Insira a senha mestra para liberar.</p>
+        <input id="chave-ativacao" type="password" placeholder="SENHA DE ATIVAÇÃO" class="text-center mb-4 border-zinc-800">
+        <button onclick="verificarChave()" class="w-full max-w-xs bg-red-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-lg shadow-red-600/20">Ativar Sistema</button>
+    </div>
+
+    <div class="upcode-footer">Desenvolvido por UpCode</div>
+
+    <header class="p-5 sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-white/5 flex justify-between items-center">
+        <h1 onclick="show('menu')" class="font-black italic cursor-pointer text-xl tracking-tighter" id="header-nome">PÁTIO<span class="text-red-600">PRO</span></h1>
+        <div id="contador" class="text-[10px] font-black text-red-500 bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20">0 NO PÁTIO</div>
+    </header>
+
+    <main class="p-4 max-w-lg mx-auto space-y-4">
+
+        <section id="menu" class="grid grid-cols-2 gap-4 pt-2">
+            <button onclick="show('entrada')" class="menu-card glass p-8 rounded-[2.5rem] text-center">
+                <span class="text-3xl">➕</span>
+                <p class="text-[10px] font-black mt-3 text-zinc-400 uppercase">Entrada</p>
+            </button>
+            <button onclick="show('patio')" class="menu-card glass p-8 rounded-[2.5rem] text-center border-b-2 border-red-600">
+                <span class="text-3xl">🚗</span>
+                <p class="text-[10px] font-black mt-3 text-zinc-400 uppercase">Pátio</p>
+            </button>
+            <button onclick="show('orcamento')" class="menu-card glass p-8 rounded-[2.5rem] text-center">
+                <span class="text-3xl">📄</span>
+                <p class="text-[10px] font-black mt-3 text-zinc-400 uppercase">Orçamento</p>
+            </button>
+            <button onclick="show('historico')" class="menu-card glass p-8 rounded-[2.5rem] text-center">
+                <span class="text-3xl">📜</span>
+                <p class="text-[10px] font-black mt-3 text-zinc-400 uppercase">Histórico</p>
+            </button>
+            <button onclick="show('balanco')" class="menu-card glass p-8 rounded-[2.5rem] text-center bg-green-900/5">
+                <span class="text-3xl">💰</span>
+                <p class="text-[10px] font-black mt-3 text-green-500 uppercase">Balanço</p>
+            </button>
+            <button onclick="show('ajustes')" class="menu-card glass p-8 rounded-[2.5rem] text-center">
+                <span class="text-3xl">⚙️</span>
+                <p class="text-[10px] font-black mt-3 text-zinc-400 uppercase">Ajustes</p>
+            </button>
+        </section>
+
+        <section id="entrada" class="hidden space-y-4 glass p-6 rounded-[2.5rem]">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <input id="cliente" placeholder="NOME DO CLIENTE">
+            <input id="placa" placeholder="PLACA" class="font-black text-2xl text-red-600 text-center uppercase">
+            <input id="modelo" placeholder="MODELO DO VEÍCULO">
+            <select id="status">
+                <option>Aguardando</option>
+                <option>Em Serviço</option>
+                <option>Pronto</option>
+            </select>
+            <textarea id="obs" placeholder="OBSERVAÇÕES/AVARIAS" class="h-24"></textarea>
+            <div class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-zinc-800 rounded-2xl bg-black/40">
+                <input type="file" id="fotos" accept="image/*" multiple class="text-[10px] file:bg-red-600 file:border-none file:px-4 file:py-2 file:rounded-lg file:text-white file:font-black">
+                <p class="text-[8px] text-zinc-600 mt-2">SELECIONE MÚLTIPLAS FOTOS</p>
+            </div>
+            <button onclick="salvarEntrada()" class="bg-red-600 w-full py-5 rounded-2xl font-black text-xs uppercase shadow-lg">Registrar Entrada</button>
+        </section>
+
+        <section id="orcamento" class="hidden space-y-4 glass p-6 rounded-[2.5rem]">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <input id="orc-cliente" placeholder="CLIENTE">
+            <input id="orc-valor" type="number" placeholder="VALOR TOTAL R$" class="text-green-500 font-black text-xl">
+            <textarea id="orc-servico" placeholder="DETALHES DO SERVIÇO" class="h-32"></textarea>
+            <button onclick="gerarOrcamento()" class="bg-red-600 w-full py-5 rounded-2xl font-black text-xs uppercase">Salvar no Financeiro</button>
+        </section>
+
+        <section id="patio" class="hidden space-y-4">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <div id="listaPatio" class="space-y-4"></div>
+        </section>
+
+        <section id="historico" class="hidden space-y-4">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <div id="listaHistorico" class="space-y-3"></div>
+        </section>
+
+        <section id="balanco" class="hidden space-y-6">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <div class="glass p-8 rounded-[2.5rem] text-center border-t-4 border-green-600 shadow-2xl">
+                <p class="text-[10px] font-black text-zinc-500 uppercase mb-2">Faturamento Mensal</p>
+                <h2 id="totalMes" class="text-4xl font-black italic">R$ 0,00</h2>
+            </div>
+            <div id="listaFaturamento" class="space-y-2"></div>
+        </section>
+
+        <section id="ajustes" class="hidden space-y-4">
+            <button onclick="show('menu')" class="text-xs text-zinc-500 font-black">← VOLTAR</button>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4">
+                <h3 class="text-[10px] font-black text-red-600 uppercase">Configuração da Unidade</h3>
+                <input id="input-nome-oficina" placeholder="NOME DA OFICINA">
+                <button onclick="salvarConfig()" class="w-full bg-white text-black font-black py-4 rounded-xl text-xs">SALVAR NOME</button>
+            </div>
+            <div class="glass p-6 rounded-[2.5rem] space-y-4 text-center">
+                <p id="info-licenca" class="text-[9px] font-black text-zinc-600 uppercase"></p>
+                <button onclick="baixarBackup()" class="w-full bg-zinc-900 border border-white/5 py-4 rounded-xl text-xs font-black uppercase italic">Baixar Backup (.JSON)</button>
+                <button onclick="limparTudo()" class="text-[8px] text-zinc-800 font-black uppercase">Zerar todo o banco</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const KEY = "patio_pro_v115_db";
+        const CONFIG_KEY = "patio_pro_config";
+        
+        let db = JSON.parse(localStorage.getItem(KEY)) || [];
+        let config = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { 
+            nomeOficina: "PÁTIO PRO", 
+            expiracao: new Date().getTime() + (30 * 24 * 60 * 60 * 1000) 
+        };
+
+        function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+
+        function init() {
+            const agora = new Date().getTime();
+            if (agora > config.expiracao) {
+                document.getElementById('bloqueio').style.display = 'flex';
+            }
+            
+            document.getElementById('header-nome').innerHTML = config.nomeOficina.replace("PRO", "<span class='text-red-600'>PRO</span>");
+            document.getElementById('input-nome-oficina').value = config.nomeOficina;
+            
+            const dias = Math.max(0, Math.ceil((config.expiracao - agora) / (1000 * 60 * 60 * 24)));
+            document.getElementById('info-licenca').innerText = `LICENÇA: ${dias} DIAS RESTANTES`;
+            
+            render();
+        }
+
+        function verificarChave() {
+            if(document.getElementById('chave-ativacao').value === "meuapp") {
+                config.expiracao = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+                localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+                location.reload();
+            } else { alert("Senha incorreta!"); }
+        }
+
+        function show(id) {
+            document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+            document.getElementById(id).classList.remove("hidden");
+            window.scrollTo(0,0);
+        }
+
+        function salvarEntrada() {
+            const fotosInput = document.getElementById("fotos").files;
+            const fotos = [];
+            const finalizar = () => {
+                db.push({
+                    id: Date.now(),
+                    cliente: document.getElementById('cliente').value.toUpperCase(),
+                    placa: document.getElementById('placa').value.toUpperCase(),
+                    modelo: document.getElementById('modelo').value.toUpperCase(),
+                    status: document.getElementById('status').value,
+                    obs: document.getElementById('obs').value,
+                    entrada: new Date().toISOString(),
+                    saida: null,
+                    valor: 0,
+                    fotos,
+                    ativo: true
+                });
+                save(); render(); show("menu");
+                document.querySelectorAll('input, textarea').forEach(i => i.value = "");
+            };
+
+            if (fotosInput.length === 0) { finalizar(); return; }
+            let lidos = 0;
+            [...fotosInput].forEach(file => {
+                const r = new FileReader();
+                r.onload = e => { fotos.push(e.target.result); lidos++; if (lidos === fotosInput.length) finalizar(); };
+                r.readAsDataURL(file);
+            });
+        }
+
+        function gerarOrcamento() {
+            const c = document.getElementById('orc-cliente').value.toUpperCase();
+            const v = parseFloat(document.getElementById('orc-valor').value);
+            if(!c || !v) return alert("Preencha cliente e valor!");
+            db.push({
+                id: Date.now(),
+                cliente: c,
+                valor: v,
+                saida: new Date().toISOString(),
+                ativo: false,
+                obs: document.getElementById('orc-servico').value
+            });
+            save(); render(); show("menu");
+        }
+
+        function render() {
+            const lp = document.getElementById('listaPatio');
+            const lh = document.getElementById('listaHistorico');
+            const lb = document.getElementById('listaFaturamento');
+            const totalDisplay = document.getElementById('totalMes');
+            lp.innerHTML = ""; lh.innerHTML = ""; lb.innerHTML = "";
+            
+            let ativos = 0, totalMês = 0, mesAtual = new Date().getMonth();
+
+            db.slice().reverse().forEach(v => {
+                if (v.ativo) {
+                    ativos++;
+                    lp.innerHTML += `
+                    <div class="glass p-5 rounded-[2.5rem]">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-xl font-black italic text-red-600">${v.placa}</h3>
+                            <span class="text-[8px] font-black px-2 py-1 rounded bg-white/10 uppercase">${v.status}</span>
+                        </div>
+                        <p class="text-[10px] font-black uppercase text-zinc-400 mt-1">${v.cliente} • ${v.modelo}</p>
+                        <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
+                            ${v.fotos.map(f => `<img src="${f}" class="w-20 h-20 rounded-2xl border border-white/5 shadow-lg">`).join("")}
+                        </div>
+                        <button onclick="darSaida(${v.id})" class="mt-4 w-full bg-red-600 py-4 rounded-2xl font-black text-[10px] shadow-lg shadow-red-600/10">DAR SAÍDA</button>
+                    </div>`;
+                } else {
+                    const html = `
+                    <div class="glass p-4 rounded-2xl flex justify-between items-center opacity-70">
+                        <div>
+                            <p class="font-black text-sm uppercase">${v.placa || v.cliente}</p>
+                            <p class="text-[8px] text-zinc-600 uppercase">${new Date(v.saida).toLocaleDateString()}</p>
+                        </div>
+                        <p class="font-black text-green-500 text-sm">R$ ${v.valor.toFixed(2)}</p>
+                    </div>`;
+                    lh.innerHTML += html;
+                    if(new Date(v.saida).getMonth() === mesAtual) {
+                        totalMês += v.valor;
+                        lb.innerHTML += html;
+                    }
+                }
+            });
+            document.getElementById('contador').innerText = ativos + " NO PÁTIO";
+            totalDisplay.innerText = totalMês.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+        }
+
+        function darSaida(id) {
+            const v = db.find(x => x.id === id);
+            const valor = Number(prompt("Valor Final:", v.valor || 0));
+            if (isNaN(valor) || valor === 0) return;
+            v.valor = valor; v.ativo = false; v.saida = new Date().toISOString();
+            save(); render();
+        }
+
+        function salvarConfig() {
+            config.nomeOficina = document.getElementById('input-nome-oficina').value.toUpperCase();
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            location.reload();
+        }
+
+        function baixarBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "BACKUP_PATIO.json"); a.click();
+        }
+
+        function limparTudo() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
+
+        init();
+    </script>
+</body>
+</html>

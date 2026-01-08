@@ -36,10 +36,10 @@
     <div id="lock-screen" class="fixed inset-0 bg-black z-[100] flex items-center justify-center p-6 hidden">
         <div class="glass p-8 w-full max-w-sm text-center space-y-6">
             <h2 class="text-2xl font-black italic">PÁTIO<span class="text-rose-600">PRO</span></h2>
-            <p class="text-rose-500 text-xs font-bold uppercase tracking-widest">Licença Expirada</p>
-            <input type="password" id="pass-input" placeholder="SENHA DE RENOVAÇÃO" class="text-center">
-            <button onclick="checkPass()" class="btn-acao">Renovar Acesso</button>
-            <p id="lock-msg" class="text-rose-500 text-[10px] font-bold uppercase"></p>
+            <p class="text-rose-500 text-xs font-bold uppercase tracking-widest">Licença Expirada (30 dias)</p>
+            <input type="password" id="pass-input" placeholder="SENHA" class="text-center">
+            <button onclick="checkPass()" class="btn-acao">Ativar</button>
+            <p id="lock-msg" class="text-rose-500 text-[10px] font-bold mt-2"></p>
         </div>
     </div>
 
@@ -128,24 +128,28 @@
         </section>
 
         <section id="ajustes" class="hidden space-y-4">
-            <div class="glass p-6 space-y-6">
-                <h2 class="text-center font-black text-xs text-rose-600 uppercase">Configurações</h2>
+            <div class="glass p-8 space-y-6">
                 <div>
-                    <label>Nome Personalizado</label>
-                    <div class="flex gap-2">
-                        <input id="cfg-nome" placeholder="NOME DO APP">
+                    <label>Nome do App</label>
+                    <div class="flex gap-2 mt-2">
+                        <input id="cfg-nome" placeholder="NOME">
                         <button onclick="updateName()" class="bg-rose-600 px-4 rounded-xl font-bold text-xs">OK</button>
                     </div>
                 </div>
-                <hr class="border-white/5">
-                <div class="space-y-3">
-                    <label>Dados e Backup</label>
-                    <button onclick="exportData()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-xs">📤 EXPORTAR BACKUP</button>
-                    <button onclick="document.getElementById('in-import').click()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-xs">📥 IMPORTAR BACKUP</button>
+
+                <div class="text-left border-t border-white/5 pt-4">
+                    <label>Licença</label>
+                    <p id="lic-status" class="text-xs font-bold text-emerald-500 mt-1"></p>
+                </div>
+
+                <div class="border-t border-white/5 pt-4 space-y-3">
+                    <label>Backup</label>
+                    <button onclick="exportData()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-[10px]">EXPORTAR DADOS</button>
+                    <button onclick="document.getElementById('in-import').click()" class="w-full bg-zinc-900 p-4 rounded-xl font-bold text-[10px]">IMPORTAR DADOS</button>
                     <input type="file" id="in-import" class="hidden" accept=".json" onchange="importData(this)">
                 </div>
-                <hr class="border-white/5">
-                <button onclick="localStorage.clear(); location.reload();" class="text-rose-600 font-black text-[10px] w-full text-center">ZERAR TODOS OS DADOS</button>
+
+                <button onclick="localStorage.clear(); location.reload();" class="text-rose-600 font-black text-[10px] block w-full">ZERAR TODOS OS DADOS</button>
                 <button onclick="tab('menu')" class="w-full text-zinc-600 font-black text-xs uppercase py-4">Voltar</button>
             </div>
         </section>
@@ -157,7 +161,7 @@
         let data = JSON.parse(localStorage.getItem(DB_KEY)) || [];
         let currentPhotos = [];
 
-        // --- LICENÇA ---
+        // --- LÓGICA DE LICENÇA ---
         function checkLicense() {
             let expiry = localStorage.getItem('patiopro_expiry');
             const now = new Date().getTime();
@@ -165,7 +169,12 @@
                 expiry = now + (30 * 24 * 60 * 60 * 1000);
                 localStorage.setItem('patiopro_expiry', expiry);
             }
-            if (now > expiry) document.getElementById('lock-screen').classList.remove('hidden');
+            if (now > expiry) {
+                document.getElementById('lock-screen').classList.remove('hidden');
+            } else {
+                const days = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                document.getElementById('lic-status').innerText = "ATIVO: " + days + " DIAS RESTANTES";
+            }
         }
 
         function checkPass() {
@@ -180,7 +189,7 @@
         // --- NOME E BACKUP ---
         function updateName() {
             const n = document.getElementById('cfg-nome').value.toUpperCase();
-            if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); alert("Nome Alterado!"); }
+            if(n) { localStorage.setItem('patiopro_name', n); loadConfigs(); }
         }
 
         function loadConfigs() {
@@ -193,7 +202,7 @@
             const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `backup_patio.json`;
+            a.download = `backup.json`;
             a.click();
         }
 
@@ -201,12 +210,12 @@
             const reader = new FileReader();
             reader.onload = function() {
                 data = JSON.parse(reader.result);
-                save(); render(); alert("Importado!");
+                save(); render(); alert("Restaurado!");
             };
             reader.readAsText(input.files[0]);
         }
 
-        // --- SISTEMA ORIGINAL ---
+        // --- FUNÇÕES ORIGINAIS ---
         function tab(id) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');

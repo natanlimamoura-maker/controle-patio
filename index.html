@@ -16,29 +16,32 @@
         #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .card-agendamento { background: white; border-left: 5px solid #f59e0b; padding: 15px; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        
+        #conteudo-pdf { background: white; width: 800px; margin: 0 auto; padding: 40px; }
+        .pdf-card { border: 2px solid #e2e8f0; border-radius: 20px; padding: 30px; margin-bottom: 30px; }
+        .foto-pdf { width: 100%; border-radius: 15px; margin-bottom: 15px; object-fit: contain; border: 1px solid #cbd5e1; }
+        .page-break { page-break-before: always; height: 20px; border-top: 2px dashed #cbd5e1; margin: 40px 0; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
 
     <div id="bloqueio">
         <div class="modal-content text-center border-t-8 border-red-600">
-            <div class="text-5xl mb-4">⚠️</div>
-            <h2 class="text-xl font-black mb-2 uppercase">Sistema Bloqueado</h2>
+            <h2 class="text-xl font-black mb-2 uppercase">Licença Expirada</h2>
             <input type="password" id="senha-licenca" placeholder="SENHA 0907" class="border-2 p-4 rounded-2xl w-full mb-4 text-center font-bold">
-            <button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase shadow-lg">Ativar Licença</button>
+            <button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase">Ativar</button>
         </div>
     </div>
 
     <div id="modal-saida">
         <div class="modal-content">
-            <h3 class="font-black text-blue-700 uppercase italic mb-4">Finalizar Registro</h3>
+            <h3 class="font-black text-blue-700 uppercase mb-4">Finalizar Saída</h3>
             <input type="hidden" id="saida-id-temp">
-            <input type="text" id="input-data-saida" placeholder="Data Saída" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-4 text-center font-bold">
-            <input type="text" id="input-servico-final" placeholder="Serviço Realizado" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-6 font-bold uppercase">
+            <input type="text" id="input-data-saida" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-4 text-center font-bold">
+            <input type="text" id="input-servico-final" placeholder="SERVIÇO REALIZADO" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-6 font-bold uppercase">
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="fecharModalSaida()" class="bg-gray-100 text-gray-500 font-bold p-4 rounded-2xl uppercase text-[10px]">Cancelar</button>
-                <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white font-black p-4 rounded-2xl shadow-lg uppercase text-[10px]">Concluir</button>
+                <button onclick="fecharModalSaida()" class="bg-gray-100 p-4 rounded-2xl uppercase text-[10px] font-bold">Voltar</button>
+                <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white p-4 rounded-2xl shadow-lg uppercase text-[10px] font-black">Concluir</button>
             </div>
         </div>
     </div>
@@ -47,27 +50,39 @@
         <header class="bg-blue-700 text-white p-5 w-full flex justify-between items-center shadow-lg sticky top-0 z-[10000]">
             <button onclick="fecharDetalhes()" class="text-xl font-bold">←</button>
             <h1 class="text-lg font-black uppercase italic">Comprovante</h1>
-            <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase">PDF</button>
+            <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase">Gerar PDF</button>
         </header>
-        <div class="p-4 w-full max-w-xl">
-            <div id="conteudo-pdf" class="p-8 rounded-lg shadow-lg bg-white border border-gray-200">
-                <div class="flex justify-between items-center border-b-2 border-blue-700 pb-4 mb-4">
-                    <h2 id="pdf-nome-oficina" class="text-2xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
-                    <span id="detalhe-os" class="bg-blue-700 text-white px-3 py-1 rounded text-sm font-black"></span>
+
+        <div class="p-4 w-full flex flex-col items-center">
+            <div id="conteudo-pdf">
+                <div class="pdf-card">
+                    <div class="flex justify-between items-center border-b-4 border-blue-700 pb-4 mb-6">
+                        <div>
+                            <h2 id="pdf-nome-oficina" class="text-3xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
+                            <p class="text-xs text-gray-400 font-bold uppercase">Relatório Técnico de Serviço</p>
+                        </div>
+                        <div class="text-right">
+                            <span id="detalhe-os" class="bg-blue-700 text-white px-5 py-2 rounded-lg text-xl font-black"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mb-6">
+                        <div><label class="text-xs font-bold text-gray-400 uppercase block">Placa</label><p id="detalhe-placa" class="font-black text-3xl text-gray-800"></p></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase block">Modelo</label><p id="detalhe-modelo" class="font-bold text-xl text-gray-700 uppercase"></p></div>
+                    </div>
+                    <div class="mb-6"><label class="text-xs font-bold text-gray-400 uppercase block">Cliente</label><p id="detalhe-cliente" class="font-bold text-2xl text-gray-800 uppercase"></p></div>
+                    <div class="grid grid-cols-2 gap-8 border-t pt-6 mb-6">
+                        <div><label class="text-xs font-bold text-gray-400 uppercase block">Data Entrada</label><p id="detalhe-entrada" class="font-bold text-lg text-gray-600"></p></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase block">Data Saída</label><p id="detalhe-saida" class="font-bold text-lg text-gray-600"></p></div>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border-l-8 border-blue-600">
+                        <label class="text-xs font-bold text-blue-400 uppercase block mb-2">Serviço Executado</label>
+                        <p id="detalhe-servico" class="font-black text-2xl text-blue-900 italic uppercase leading-tight"></p>
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl"></p></div>
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Marca/Modelo</label><p id="detalhe-modelo" class="font-bold uppercase text-gray-700"></p></div>
-                </div>
-                <div class="border-b pb-4 mb-4"><label class="text-[9px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold text-lg uppercase"></p></div>
-                <div class="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Entrada</label><p id="detalhe-entrada" class="font-bold text-gray-700"></p></div>
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Saída</label><p id="detalhe-saida" class="font-bold text-gray-700"></p></div>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-xl mb-4"><label class="text-[9px] font-bold text-blue-400 uppercase">Serviço</label><p id="detalhe-servico" class="font-black text-blue-800 italic uppercase"></p></div>
-                <div id="detalhe-fotos-grid" class="grid grid-cols-2 gap-2"></div>
+                <div class="page-break text-center"><span class="bg-white px-4 text-gray-300 font-bold uppercase text-xs">Galeria de Fotos</span></div>
+                <div id="detalhe-fotos-pdf" class="space-y-6"></div>
             </div>
-            <button id="btn-excluir-relatorio" class="w-full bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-6 mb-10">Excluir Permanente</button>
+            <button id="btn-excluir-relatorio" class="w-full max-w-[400px] bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-8 mb-20 border border-red-100">Excluir Permanente</button>
         </div>
     </div>
 
@@ -75,9 +90,9 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic uppercase">VERIFICANDO...</span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic uppercase"></span>
             </div>
-            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold italic uppercase">0 NO PÁTIO</span>
+            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold italic uppercase"></span>
         </div>
     </header>
 
@@ -90,8 +105,8 @@
                         <span id="titulo-form" class="text-[10px] font-bold text-gray-400 uppercase">Novo Registro</span>
                         <span id="proxima-os" class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #000</span>
                     </div>
-                    <input type="text" id="input-data-entrada" placeholder="Data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center uppercase">
-                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center outline-none uppercase focus:border-blue-500">
+                    <input type="text" id="input-data-entrada" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center uppercase">
+                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center uppercase outline-none focus:border-blue-500">
                     <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                     <input type="text" id="cliente" placeholder="CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                     <select id="status-veiculo" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none text-sm text-blue-600">
@@ -108,7 +123,6 @@
                         </label>
                         <button type="submit" id="btn-submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Registrar</button>
                     </div>
-                    <button type="button" onclick="location.reload()" id="btn-cancelar-edit" class="hidden w-full text-red-500 text-[10px] font-bold uppercase mt-2">Cancelar Edição</button>
                 </form>
             </div>
         </section>
@@ -118,7 +132,7 @@
         </section>
 
         <section id="aba-agendamento" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl shadow-md mb-6 border border-orange-100">
+            <div class="bg-white p-6 rounded-3xl shadow-md border border-orange-100 mb-6">
                 <h3 class="text-orange-600 font-black italic uppercase text-xs mb-4">📅 Novo Agendamento</h3>
                 <form id="form-agendamento" class="space-y-3">
                     <input type="date" id="agend-data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold outline-none">
@@ -138,7 +152,7 @@
 
         <section id="aba-config" class="tab-content">
             <div class="bg-white p-6 rounded-3xl shadow-md space-y-4">
-                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Ajustes do App</h3>
+                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Configurações</h3>
                 <input type="text" id="config-nome" placeholder="NOME DA OFICINA" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                 <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl uppercase text-[10px]">Salvar Nome</button>
                 <div class="grid grid-cols-2 gap-3 pt-4 border-t">
@@ -152,11 +166,11 @@
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Entrada</span></button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Pátio</span></button>
-        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📅</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Agenda</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1 text-center">Histórico</span></button>
-        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Ajustes</span></button>
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1">Entrada</span></button>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1">Pátio</span></button>
+        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📅</span><span class="text-[8px] font-bold uppercase mt-1">Agenda</span></button>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1">Histórico</span></button>
+        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1">Ajustes</span></button>
     </nav>
 
     <script>
@@ -169,18 +183,6 @@
 
         document.getElementById('input-data-entrada').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
 
-        // CÁLCULO DE DIAS (RECUPERADO)
-        function calcularDias(dataISO) {
-            if (!dataISO) return "Data não registrada";
-            const entrada = new Date(dataISO);
-            const hoje = new Date();
-            entrada.setHours(0,0,0,0);
-            hoje.setHours(0,0,0,0);
-            const diff = Math.floor((hoje - entrada) / (1000 * 60 * 60 * 24));
-            if (diff <= 0) return "Entrou hoje";
-            return diff === 1 ? "1 dia no pátio" : diff + " dias no pátio";
-        }
-
         function verificarLicenca() {
             let data = localStorage.getItem('data_ativacao') || Date.now();
             localStorage.setItem('data_ativacao', data);
@@ -191,6 +193,14 @@
         }
         window.verificarSenha = () => { if(document.getElementById('senha-licenca').value === SENHA_MESTRA) { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } else alert("Erro!"); };
 
+        function calcularDias(dataISO) {
+            const entrada = new Date(dataISO);
+            const hoje = new Date();
+            entrada.setHours(0,0,0,0); hoje.setHours(0,0,0,0);
+            const diff = Math.floor((hoje - entrada) / (1000 * 60 * 60 * 24));
+            return diff <= 0 ? "Chegou hoje" : diff + (diff === 1 ? " dia" : " dias") + " no pátio";
+        }
+
         async function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -198,9 +208,9 @@
                     const img = new Image(); img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        canvas.width = 500; canvas.height = img.height * (500 / img.width);
+                        canvas.width = 800; canvas.height = img.height * (800 / img.width);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        fotosTemporarias.push(canvas.toDataURL('image/jpeg', 0.6));
+                        fotosTemporarias.push(canvas.toDataURL('image/jpeg', 0.8));
                         renderizarPrevias();
                     };
                 };
@@ -229,8 +239,7 @@
                 patio[index].fotos = [...fotosTemporarias];
             } else {
                 const novo = {
-                    id: Date.now(),
-                    os: config.os_counter.toString().padStart(3, '0'),
+                    id: Date.now(), os: config.os_counter.toString().padStart(3, '0'),
                     placa: document.getElementById('placa').value.toUpperCase(),
                     modelo: document.getElementById('modelo').value.toUpperCase(),
                     cliente: document.getElementById('cliente').value.toUpperCase(),
@@ -253,13 +262,12 @@
             document.getElementById('placa').value = v.placa;
             document.getElementById('modelo').value = v.modelo;
             document.getElementById('cliente').value = v.cliente;
-            document.getElementById('status-veiculo').value = v.status || "Diagnóstico";
+            document.getElementById('status-veiculo').value = v.status;
             document.getElementById('input-data-entrada').value = v.entrada;
-            fotosTemporarias = v.fotos ? [...v.fotos] : [];
+            fotosTemporarias = [...v.fotos];
             renderizarPrevias();
             document.getElementById('titulo-form').innerText = "Editando OS #" + v.os;
             document.getElementById('btn-submit').innerText = "Salvar";
-            document.getElementById('btn-cancelar-edit').classList.remove('hidden');
             mudarAba('entrada');
         };
 
@@ -269,12 +277,12 @@
             patio.forEach(v => {
                 c.innerHTML += `
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                    <img src="${v.fotos && v.fotos[0] ? v.fotos[0] : ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
+                    <img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
                     <div class="flex-1 overflow-hidden">
                         <div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black text-blue-600">OS #${v.os}</span><span class="text-[9px] font-bold text-blue-500 uppercase">${v.status || 'Pátio'}</span></div>
-                        <div class="font-black text-lg leading-none mb-1">${v.placa}</div>
+                        <div class="font-black text-lg leading-none">${v.placa}</div>
                         <div class="text-[9px] text-gray-400 font-bold truncate uppercase">${v.modelo}</div>
-                        <div class="text-[9px] text-orange-600 font-black mt-1 italic uppercase tracking-wider">${calcularDias(v.dataRaw)}</div>
+                        <div class="text-[9px] text-orange-600 font-black mt-1 italic uppercase">${calcularDias(v.dataRaw)}</div>
                         <div class="flex gap-2 mt-2">
                             <button onclick="editarVeiculo(${v.id})" class="flex-1 text-[8px] font-black bg-gray-100 text-gray-500 p-2 rounded-lg uppercase">Editar</button>
                             <button onclick="abrirModalSaida(${v.id})" class="flex-1 text-[8px] font-black bg-green-600 text-white p-2 rounded-lg uppercase">Saída</button>
@@ -334,7 +342,7 @@
         function renderizarRelatorio() {
             const r = document.getElementById('lista-relatorio'); r.innerHTML = '';
             historico.forEach(v => {
-                r.innerHTML += `<div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center mb-2"><img src="${v.fotos && v.fotos[0] ? v.fotos[0] : ''}" class="w-12 h-12 rounded-xl object-cover"><div class="ml-3 flex-1"><div class="text-[8px] font-bold text-gray-400">OS #${v.os}</div><div class="font-black text-sm uppercase">${v.placa}</div></div></div>`;
+                r.innerHTML += `<div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center mb-2"><img src="${v.fotos[0] || ''}" class="w-12 h-12 rounded-xl object-cover"><div class="ml-3 flex-1"><div class="text-[8px] font-bold text-gray-400">OS #${v.os}</div><div class="font-black text-sm uppercase">${v.placa}</div></div></div>`;
             });
         }
 
@@ -347,17 +355,32 @@
             document.getElementById('detalhe-entrada').innerText = v.entrada;
             document.getElementById('detalhe-saida').innerText = v.saida;
             document.getElementById('detalhe-servico').innerText = v.servico;
-            const grid = document.getElementById('detalhe-fotos-grid'); grid.innerHTML = '';
-            if(v.fotos) v.fotos.forEach(f => grid.innerHTML += `<img src="${f}" class="w-full h-32 object-cover rounded-xl">`);
+            document.getElementById('pdf-nome-oficina').innerText = config.nome;
+            const grid = document.getElementById('detalhe-fotos-pdf');
+            grid.innerHTML = '';
+            if(v.fotos && v.fotos.length > 0) {
+                v.fotos.forEach(f => { grid.innerHTML += `<img src="${f}" class="foto-pdf">`; });
+            } else { grid.innerHTML = '<p class="text-center text-gray-400 font-bold uppercase py-10">Nenhuma foto registrada</p>'; }
+            document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm('Apagar?')) { historico=historico.filter(x=>x.id!==id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
             document.getElementById('pagina-detalhes').style.display = 'flex';
         };
 
         window.gerarPDF = async () => {
             const element = document.getElementById('conteudo-pdf');
-            const canvas = await html2canvas(element, { scale: 3 });
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, 190, (canvas.height * 190) / canvas.width);
-            pdf.save(`OS_${document.getElementById('detalhe-os').innerText}.pdf`);
+            const { jsPDF } = window.jspdf;
+            const numOS = document.getElementById('detalhe-os').innerText.replace("#", "");
+            const placa = document.getElementById('detalhe-placa').innerText;
+            const agora = new Date();
+            const dataHora = agora.getFullYear() + "-" + (agora.getMonth() + 1).toString().padStart(2, '0') + "-" + agora.getDate().toString().padStart(2, '0') + "_" + agora.getHours().toString().padStart(2, '0') + "h" + agora.getMinutes().toString().padStart(2, '0');
+            const nomeArquivo = `OS_${numOS}_${placa}_${dataHora}.pdf`;
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false, windowWidth: 800 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(nomeArquivo);
         };
 
         window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
@@ -365,7 +388,7 @@
         function salvarConfig() { config.nome = document.getElementById('config-nome').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
         window.exportarBackup = () => { const blob = new Blob([JSON.stringify({patio, historico, config, agendamentos})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'patio_backup.json'; a.click(); };
         window.importarBackup = (input) => { const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); localStorage.setItem('patio_data', JSON.stringify(d.patio)); localStorage.setItem('patio_historico', JSON.stringify(d.historico)); localStorage.setItem('patio_config', JSON.stringify(d.config)); localStorage.setItem('patio_agendamentos', JSON.stringify(d.agendamentos || [])); location.reload(); }; reader.readAsText(input.files[0]); };
-        window.limparHistorico = () => { if(confirm("Zerar Histórico?")) { localStorage.removeItem('patio_historico'); location.reload(); }};
+        window.limparHistorico = () => { if(confirm("Limpar tudo?")) { localStorage.removeItem('patio_historico'); location.reload(); }};
 
         verificarLicenca(); renderizarPátio();
         document.getElementById('app-nome-display').innerText = config.nome;

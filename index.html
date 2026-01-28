@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pátio Pro Elite V3</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1d4ed8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PátioPro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/741/741407.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
         body { -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
         .tab-content { display: none; }
@@ -16,8 +25,6 @@
         #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        /* AJUSTES PARA O PDF NÃO CORTAR */
         #conteudo-pdf { background: white; width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; }
         .pdf-card { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; background: white; }
         .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
@@ -56,7 +63,6 @@
             <h1 class="text-xs font-black uppercase italic">Comprovante</h1>
             <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase shadow-md">PDF</button>
         </header>
-
         <div class="p-2 w-full flex flex-col items-center">
             <div id="conteudo-pdf" class="rounded-3xl">
                 <div class="pdf-card">
@@ -64,30 +70,22 @@
                         <h2 id="pdf-nome-oficina" class="text-xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
                         <span id="detalhe-os" class="text-blue-700 font-black text-lg"></span>
                     </div>
-
                     <div class="info-row">
                         <div class="info-item"><span class="label-ref">Placa</span><p id="detalhe-placa" class="value-ref text-blue-600 text-lg"></p></div>
                         <div class="info-item"><span class="label-ref">Modelo</span><p id="detalhe-modelo" class="value-ref"></p></div>
                     </div>
-
-                    <div class="info-full">
-                        <span class="label-ref">Cliente</span><p id="detalhe-cliente" class="value-ref"></p>
-                    </div>
-
+                    <div class="info-full"><span class="label-ref">Cliente</span><p id="detalhe-cliente" class="value-ref"></p></div>
                     <div class="info-row">
                         <div class="info-item"><span class="label-ref">Entrada</span><p id="detalhe-entrada" class="value-ref"></p></div>
                         <div class="info-item"><span class="label-ref">Saída</span><p id="detalhe-saida" class="value-ref"></p></div>
                     </div>
-
                     <div class="mt-4 p-4 bg-blue-50 rounded-2xl">
                         <span class="label-ref text-blue-400">Serviço Realizado</span>
                         <p id="detalhe-servico" class="value-ref italic text-blue-900"></p>
                     </div>
-
                     <div id="detalhe-fotos-pdf" class="mt-6"></div>
                 </div>
             </div>
-            
             <button id="btn-excluir-relatorio" class="w-full max-w-[400px] bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-4 mb-20 border border-red-100">Excluir Permanente</button>
         </div>
     </div>
@@ -180,6 +178,11 @@
     </nav>
 
     <script>
+        // Registrar Service Worker para virar APP
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+        }
+
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
         let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
@@ -197,7 +200,7 @@
             document.getElementById('dias-restantes').innerText = diasFaltando + " DIAS RESTANTES";
             if (Date.now() - parseInt(data) > trintaDias) document.getElementById('bloqueio').style.display = 'flex';
         }
-        window.verificarSenha = () => { if(document.getElementById('senha-licenca').value === SENHA_MESTRA) { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } else alert("Erro!"); };
+        window.verificarSenha = () => { if(document.getElementById('senha-licenca').value === SENHA_MESTRA) { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } else alert("Senha Incorreta!"); };
 
         function calcularDias(dataISO) {
             const entrada = new Date(dataISO); const hoje = new Date();
@@ -307,7 +310,7 @@
             const lista = document.getElementById('lista-agendamentos'); lista.innerHTML = '';
             agendamentos.forEach(a => {
                 const d = a.data.split('-').reverse().slice(0,2).join('/');
-                lista.innerHTML += `<div class="card-agendamento flex justify-between items-center"><div><span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md mr-2">${d}</span><span class="font-bold text-sm uppercase">${a.veiculo}</span></div><button onclick="if(confirm('Excluir?')){agendamentos=agendamentos.filter(x=>x.id!==${a.id});localStorage.setItem('patio_agendamentos',JSON.stringify(agendamentos));renderizarAgendamentos();}" class="text-red-400 p-2">✕</button></div>`;
+                lista.innerHTML += `<div class="bg-white p-3 rounded-2xl flex justify-between items-center mb-2 border border-orange-50"><div><span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md mr-2">${d}</span><span class="font-bold text-sm uppercase">${a.veiculo}</span></div><button onclick="if(confirm('Excluir?')){agendamentos=agendamentos.filter(x=>x.id!==${a.id});localStorage.setItem('patio_agendamentos',JSON.stringify(agendamentos));renderizarAgendamentos();}" class="text-red-400 p-2">✕</button></div>`;
             });
         }
 
@@ -355,42 +358,28 @@
             document.getElementById('detalhe-saida').innerText = v.saida;
             document.getElementById('detalhe-servico').innerText = v.servico;
             document.getElementById('pdf-nome-oficina').innerText = config.nome;
-            
             const grid = document.getElementById('detalhe-fotos-pdf');
             grid.innerHTML = '';
             if(v.fotos && v.fotos.length > 0) {
                 v.fotos.forEach(f => { grid.innerHTML += `<img src="${f}" class="foto-pdf-final">`; });
             }
-            document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm('Apagar?')) { historico=historico.filter(x=>x.id!==id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
+            document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm('Apagar permanentemente?')) { historico=historico.filter(x=>x.id!==id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
             document.getElementById('pagina-detalhes').style.display = 'flex';
         };
 
         window.gerarPDF = async () => {
             const element = document.getElementById('conteudo-pdf');
             const { jsPDF } = window.jspdf;
-            
             const numOS = document.getElementById('detalhe-os').innerText.replace("#", "");
             const placa = document.getElementById('detalhe-placa').innerText;
-            const agora = new Date();
-            const dataHora = agora.getFullYear() + "-" + (agora.getMonth() + 1).toString().padStart(2, '0') + "-" + agora.getDate().toString().padStart(2, '0') + "_" + agora.getHours().toString().padStart(2, '0') + "h" + agora.getMinutes().toString().padStart(2, '0');
-            const nomeArquivo = `OS_${numOS}_${placa}_${dataHora}.pdf`;
-
-            // CRIAÇÃO DE CANVAS COM LARGURA FORÇADA PARA NÃO CORTAR
-            const canvas = await html2canvas(element, { 
-                scale: 2, 
-                useCORS: true, 
-                logging: false, 
-                windowWidth: 800 // Isso impede que o layout mobile corte o PDF
-            });
-
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true, windowWidth: 800 });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const imgProps = pdf.getImageProperties(imgData);
             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(nomeArquivo);
+            pdf.save(`OS_${numOS}_${placa}.pdf`);
         };
 
         window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
@@ -398,7 +387,7 @@
         function salvarConfig() { config.nome = document.getElementById('config-nome').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
         window.exportarBackup = () => { const blob = new Blob([JSON.stringify({patio, historico, config, agendamentos})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'patio_backup.json'; a.click(); };
         window.importarBackup = (input) => { const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); localStorage.setItem('patio_data', JSON.stringify(d.patio)); localStorage.setItem('patio_historico', JSON.stringify(d.historico)); localStorage.setItem('patio_config', JSON.stringify(d.config)); localStorage.setItem('patio_agendamentos', JSON.stringify(d.agendamentos || [])); location.reload(); }; reader.readAsText(input.files[0]); };
-        window.limparHistorico = () => { if(confirm("Limpar tudo?")) { localStorage.removeItem('patio_historico'); location.reload(); }};
+        window.limparHistorico = () => { if(confirm("Limpar todo o histórico?")) { localStorage.removeItem('patio_historico'); location.reload(); }};
 
         verificarLicenca(); renderizarPátio();
         document.getElementById('app-nome-display').innerText = config.nome;

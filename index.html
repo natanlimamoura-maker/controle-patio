@@ -16,6 +16,7 @@
         #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .card-agendamento { background: #fff; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 15px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
@@ -50,10 +51,11 @@
         <div id="conteudo-pdf" class="p-5 w-full max-w-xl space-y-4">
             <div id="detalhe-fotos-grid" class="grid grid-cols-2 gap-2"></div>
             <div class="bg-white p-6 rounded-3xl shadow-sm space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl"></p></div>
-                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold"></p></div>
+                <div class="flex justify-between items-start">
+                    <div><label class="text-[10px] font-bold text-gray-400 uppercase">Ordem de Serviço</label><p id="detalhe-os" class="font-black text-blue-700"></p></div>
+                    <div class="text-right"><label class="text-[10px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl"></p></div>
                 </div>
+                <div><label class="text-[10px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold"></p></div>
                 <div><label class="text-[10px] font-bold text-gray-400 uppercase">Modelo/Marca</label><p id="detalhe-modelo" class="font-bold text-blue-600 uppercase"></p></div>
                 <div class="grid grid-cols-2 gap-4 border-t pt-4">
                     <div><label class="text-[10px] font-bold text-gray-400 uppercase">Entrada</label><p id="detalhe-entrada" class="font-bold text-gray-600"></p></div>
@@ -81,12 +83,14 @@
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
+        
         <section id="aba-entrada" class="tab-content active">
             <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
                     <div class="flex justify-between items-center mb-2">
                         <span id="titulo-form" class="text-[10px] font-bold text-gray-400 uppercase">Novo Registro</span>
+                        <span id="proxima-os" class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #000</span>
                         <button type="button" onclick="cancelarEdicao()" id="btn-cancelar-edit" class="hidden text-red-500 text-[10px] font-bold uppercase">Cancelar Edição</button>
                     </div>
                     <input type="text" id="input-data-entrada" placeholder="Data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center uppercase">
@@ -111,7 +115,22 @@
             <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
+        <section id="aba-agendamento" class="tab-content">
+            <div class="bg-white p-6 rounded-3xl shadow-md mb-6">
+                <h3 class="text-blue-700 font-black italic uppercase text-xs mb-4">Novo Agendamento</h3>
+                <form id="form-agendamento" class="space-y-3">
+                    <input type="date" id="agend-data" required class="w-full bg-gray-50 border-2 p-3 rounded-xl font-bold">
+                    <input type="text" id="agend-veiculo" placeholder="VEÍCULO / CLIENTE" required class="w-full bg-gray-50 border-2 p-3 rounded-xl font-bold uppercase">
+                    <button type="submit" class="w-full bg-orange-500 text-white font-black p-3 rounded-xl uppercase shadow-md">Reservar Data</button>
+                </form>
+            </div>
+            <div id="lista-agendamentos" class="space-y-3"></div>
+        </section>
+
         <section id="aba-relatorio" class="tab-content">
+            <div class="mb-6 bg-white p-4 rounded-3xl shadow-sm border border-blue-100">
+                <input type="text" id="busca-os" onkeyup="filtrarRelatorio()" placeholder="🔍 BUSCAR POR PLACA OU NÚMERO DE O.S." class="w-full p-4 rounded-2xl bg-gray-50 border-2 font-bold uppercase outline-none text-xs">
+            </div>
             <div id="lista-relatorio" class="space-y-3"></div>
             <button onclick="limparHistorico()" class="w-full mt-8 text-red-500 font-bold text-[9px] p-4 bg-red-50 rounded-2xl uppercase italic">Zerar Tudo</button>
         </section>
@@ -133,6 +152,7 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
         <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1">Entrada</span></button>
         <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1">Pátio</span></button>
+        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📅</span><span class="text-[8px] font-bold uppercase mt-1">Agenda</span></button>
         <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1">Histórico</span></button>
         <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1">Ajustes</span></button>
     </nav>
@@ -141,14 +161,33 @@
         // --- ESTADO INICIAL ---
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
-        let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO" };
+        let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO", os_counter: 1 };
         let fotosTemporarias = [];
         const SENHA_MESTRA = "0907";
 
-        // Corrige dados antigos se necessário
-        patio = patio.map(v => ({...v, fotos: v.fotos || (v.foto ? [v.foto] : []), dataRaw: v.dataRaw || new Date().toISOString()}));
-
+        // Corrige e garante que todos tenham OS
+        patio = patio.map(v => ({...v, os: v.os || "N/A", fotos: v.fotos || [], dataRaw: v.dataRaw || new Date().toISOString()}));
+        
         document.getElementById('input-data-entrada').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+
+        // --- CONTADOR DE O.S. ---
+        function atualizarExibicaoOS() {
+            document.getElementById('proxima-os').innerText = `OS: #${config.os_counter.toString().padStart(3, '0')}`;
+        }
+
+        // --- CORREÇÃO DO BUG DE DIAS NO PÁTIO ---
+        function calcularDias(dataISO) {
+            if (!dataISO) return "Data não registrada";
+            const dataEntrada = new Date(dataISO);
+            const hoje = new Date();
+            dataEntrada.setHours(0, 0, 0, 0);
+            hoje.setHours(0, 0, 0, 0);
+            const diffTime = hoje - dataEntrada;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays <= 0) return "Chegou hoje";
+            return diffDays === 1 ? "1 dia no pátio" : diffDays + " dias no pátio";
+        }
 
         // --- FUNÇÕES DE FOTO ---
         async function processarFoto(input) {
@@ -183,12 +222,23 @@
 
         function removerFotoTemp(i) { fotosTemporarias.splice(i, 1); renderizarPrevias(); }
 
-        // --- CRUD E LÓGICA ---
+        // --- CRUD ENTRADA ---
         document.getElementById('form-entrada').addEventListener('submit', (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
+            let os_atribuida;
+
+            if(id) {
+                os_atribuida = patio.find(v => v.id == id).os;
+            } else {
+                os_atribuida = config.os_counter.toString().padStart(3, '0');
+                config.os_counter++;
+                localStorage.setItem('patio_config', JSON.stringify(config));
+            }
+
             const dados = {
                 id: id ? Number(id) : Date.now(),
+                os: os_atribuida,
                 placa: document.getElementById('placa').value.toUpperCase(),
                 modelo: document.getElementById('modelo').value.toUpperCase(),
                 cliente: document.getElementById('cliente').value.toUpperCase(),
@@ -197,11 +247,129 @@
                 dataRaw: id ? patio.find(v => v.id == id).dataRaw : new Date().toISOString(),
                 status: id ? patio.find(v => v.id == id).status : "Diagnóstico"
             };
+
             if(id) patio[patio.findIndex(v => v.id == id)] = dados;
             else patio.unshift(dados);
+
             localStorage.setItem('patio_data', JSON.stringify(patio));
             location.reload();
         });
+
+        // --- BUSCA E FILTRO ---
+        function filtrarRelatorio() {
+            const termo = document.getElementById('busca-os').value.toUpperCase();
+            const registros = document.querySelectorAll('.card-historico');
+            registros.forEach(r => {
+                const txt = r.innerText.toUpperCase();
+                r.style.display = txt.includes(termo) ? 'flex' : 'none';
+            });
+        }
+
+        // --- RENDERIZAÇÃO PÁTIO ---
+        function renderizarPátio() {
+            const c = document.getElementById('lista-veiculos'); c.innerHTML = '';
+            document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
+            patio.forEach(v => {
+                c.innerHTML += `
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
+                    <img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex justify-between">
+                            <span class="text-[9px] font-black text-blue-600">OS #${v.os}</span>
+                            <span class="text-[9px] text-gray-400 font-bold">${v.entrada}</span>
+                        </div>
+                        <div class="font-black text-lg leading-none mb-1">${v.placa}</div>
+                        <div class="text-[9px] text-gray-400 font-bold truncate uppercase">${v.modelo}</div>
+                        <div class="text-[9px] text-blue-500 font-bold mt-1 italic">${calcularDias(v.dataRaw)}</div>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="editarVeiculo(${v.id})" class="flex-1 text-[8px] font-black bg-gray-100 text-gray-500 p-2 rounded-lg uppercase">Editar</button>
+                            <button onclick="abrirModalSaida(${v.id})" class="flex-1 text-[8px] font-black bg-green-600 text-white p-2 rounded-lg uppercase">Saída</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- RENDERIZAÇÃO HISTÓRICO ---
+        function renderizarRelatorio() {
+            const r = document.getElementById('lista-relatorio'); r.innerHTML = '';
+            historico.forEach(v => {
+                r.innerHTML += `
+                <div onclick="abrirDetalhes(${v.id})" class="card-historico bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center active:bg-gray-50">
+                    <img src="${v.fotos[0] || ''}" class="w-14 h-14 rounded-xl object-cover">
+                    <div class="flex-1">
+                        <div class="text-[8px] font-bold text-gray-400">OS #${v.os}</div>
+                        <div class="font-black text-sm uppercase">${v.placa}</div>
+                        <p class="text-[9px] text-green-600 font-bold italic uppercase">✓ ${v.servico}</p>
+                    </div>
+                    <span class="text-xs">📄</span>
+                </div>`;
+            });
+        }
+
+        // --- AGENDAMENTOS ---
+        document.getElementById('form-agendamento').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const novoAgend = { id: Date.now(), data: document.getElementById('agend-data').value, veiculo: document.getElementById('agend-veiculo').value.toUpperCase() };
+            agendamentos.push(novoAgend);
+            agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+            localStorage.setItem('patio_agendamentos', JSON.stringify(agendamentos));
+            e.target.reset();
+            renderizarAgendamentos();
+        });
+
+        function renderizarAgendamentos() {
+            const lista = document.getElementById('lista-agendamentos'); lista.innerHTML = '';
+            agendamentos.forEach(a => {
+                const dataBr = a.data.split('-').reverse().slice(0,2).join('/');
+                lista.innerHTML += `
+                    <div class="card-agendamento flex justify-between items-center">
+                        <div>
+                            <span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md mr-2">${dataBr}</span>
+                            <span class="font-bold text-sm text-gray-700 uppercase">${a.veiculo}</span>
+                        </div>
+                        <button onclick="excluirAgendamento(${a.id})" class="text-red-400 text-xs p-2">✕</button>
+                    </div>`;
+            });
+        }
+        window.excluirAgendamento = (id) => { agendamentos = agendamentos.filter(a => a.id !== id); localStorage.setItem('patio_agendamentos', JSON.stringify(agendamentos)); renderizarAgendamentos(); };
+
+        // --- SISTEMA E AUXILIARES ---
+        window.mudarAba = (aba) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            document.getElementById('aba-' + aba).classList.add('active');
+            document.getElementById('btn-nav-' + aba).classList.add('active');
+            if(aba === 'relatorio') renderizarRelatorio();
+            if(aba === 'patio') renderizarPátio();
+            if(aba === 'agendamento') renderizarAgendamentos();
+            if(aba === 'entrada') atualizarExibicaoOS();
+        };
+
+        window.abrirDetalhes = (id) => {
+            const v = historico.find(v => v.id == id);
+            const grid = document.getElementById('detalhe-fotos-grid');
+            grid.innerHTML = '';
+            v.fotos.forEach(f => grid.innerHTML += `<img src="${f}" class="w-full h-32 object-cover rounded-2xl shadow-sm">`);
+            document.getElementById('detalhe-os').innerText = "OS #" + v.os;
+            document.getElementById('detalhe-placa').innerText = v.placa;
+            document.getElementById('detalhe-cliente').innerText = v.cliente;
+            document.getElementById('detalhe-modelo').innerText = v.modelo;
+            document.getElementById('detalhe-entrada').innerText = v.entrada;
+            document.getElementById('detalhe-saida').innerText = v.saida;
+            document.getElementById('detalhe-servico').innerText = v.servico;
+            document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm("Excluir?")) { historico = historico.filter(h => h.id != id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
+            document.getElementById('pagina-detalhes').style.display = 'flex';
+        };
+
+        window.gerarPDF = async () => {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('conteudo-pdf');
+            const canvas = await html2canvas(element, { scale: 2 });
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            pdf.save(`OS_${document.getElementById('detalhe-os').innerText}_${document.getElementById('detalhe-placa').innerText}.pdf`);
+        };
 
         window.editarVeiculo = (id) => {
             const v = patio.find(v => v.id == id);
@@ -212,13 +380,11 @@
             document.getElementById('input-data-entrada').value = v.entrada;
             fotosTemporarias = [...v.fotos];
             renderizarPrevias();
-            document.getElementById('titulo-form').innerText = "Editando Registro";
+            document.getElementById('titulo-form').innerText = "Editando OS #" + v.os;
             document.getElementById('btn-cancelar-edit').classList.remove('hidden');
             document.getElementById('btn-submit').innerText = "Salvar Alterações";
             mudarAba('entrada');
         };
-
-        window.cancelarEdicao = () => location.reload();
 
         window.abrirModalSaida = (id) => {
             document.getElementById('saida-id-temp').value = id;
@@ -236,87 +402,13 @@
             location.reload();
         };
 
-        function calcularDias(dataISO) {
-            const diff = Math.floor((new Date() - new Date(dataISO)) / (1000 * 60 * 60 * 24));
-            return diff <= 0 ? "Chegou hoje" : diff + (diff === 1 ? " dia" : " dias") + " no pátio";
-        }
-
-        // --- RENDERIZAÇÃO ---
-        function renderizarPátio() {
-            const c = document.getElementById('lista-veiculos'); c.innerHTML = '';
-            document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
-            patio.forEach(v => {
-                c.innerHTML += `
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                    <img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
-                    <div class="flex-1 overflow-hidden">
-                        <div class="font-black text-lg leading-none mb-1">${v.placa}</div>
-                        <div class="text-[9px] text-blue-600 font-bold uppercase truncate">${v.modelo}</div>
-                        <div class="text-[9px] text-gray-400 font-bold mt-1 italic">${calcularDias(v.dataRaw)}</div>
-                        <div class="flex gap-2 mt-2">
-                            <button onclick="editarVeiculo(${v.id})" class="flex-1 text-[8px] font-black bg-gray-100 text-gray-500 p-2 rounded-lg uppercase">Editar</button>
-                            <button onclick="abrirModalSaida(${v.id})" class="flex-1 text-[8px] font-black bg-green-600 text-white p-2 rounded-lg uppercase">Saída</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-        }
-
-        function renderizarRelatorio() {
-            const r = document.getElementById('lista-relatorio'); r.innerHTML = '';
-            historico.forEach(v => {
-                r.innerHTML += `
-                <div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center active:bg-gray-50">
-                    <img src="${v.fotos[0] || ''}" class="w-14 h-14 rounded-xl object-cover">
-                    <div class="flex-1">
-                        <div class="font-black text-sm uppercase">${v.placa}</div>
-                        <p class="text-[9px] text-green-600 font-bold italic uppercase">✓ ${v.servico}</p>
-                    </div>
-                    <span class="text-xs">📄</span>
-                </div>`;
-            });
-        }
-
-        window.abrirDetalhes = (id) => {
-            const v = historico.find(v => v.id == id);
-            const grid = document.getElementById('detalhe-fotos-grid');
-            grid.innerHTML = '';
-            v.fotos.forEach(f => grid.innerHTML += `<img src="${f}" class="w-full h-32 object-cover rounded-2xl shadow-sm">`);
-            document.getElementById('detalhe-placa').innerText = v.placa;
-            document.getElementById('detalhe-cliente').innerText = v.cliente;
-            document.getElementById('detalhe-modelo').innerText = v.modelo;
-            document.getElementById('detalhe-entrada').innerText = v.entrada;
-            document.getElementById('detalhe-saida').innerText = v.saida;
-            document.getElementById('detalhe-servico').innerText = v.servico;
-            document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm("Excluir?")) { historico = historico.filter(h => h.id != id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
-            document.getElementById('pagina-detalhes').style.display = 'flex';
-        };
-
-        window.gerarPDF = async () => {
-            const { jsPDF } = window.jspdf;
-            const element = document.getElementById('conteudo-pdf');
-            const canvas = await html2canvas(element, { scale: 2 });
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Relatorio_${document.getElementById('detalhe-placa').innerText}.pdf`);
-        };
-
-        // --- SISTEMA ---
-        window.mudarAba = (aba) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
-            document.getElementById('aba-' + aba).classList.add('active');
-            document.getElementById('btn-nav-' + aba).classList.add('active');
-            if(aba === 'relatorio') renderizarRelatorio();
-            if(aba === 'patio') renderizarPátio();
-        };
-
         window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
         window.fecharModalSaida = () => document.getElementById('modal-saida').style.display = 'none';
+        window.cancelarEdicao = () => location.reload();
         
         function salvarConfig() { config.nome = document.getElementById('config-nome').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
-        window.exportarBackup = () => { const blob = new Blob([JSON.stringify({patio, historico, config})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'patio_backup.json'; a.click(); };
-        window.importarBackup = (input) => { const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); localStorage.setItem('patio_data', JSON.stringify(d.patio)); localStorage.setItem('patio_historico', JSON.stringify(d.historico)); localStorage.setItem('patio_config', JSON.stringify(d.config)); location.reload(); }; reader.readAsText(input.files[0]); };
+        window.exportarBackup = () => { const blob = new Blob([JSON.stringify({patio, historico, config, agendamentos})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'patio_backup.json'; a.click(); };
+        window.importarBackup = (input) => { const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); localStorage.setItem('patio_data', JSON.stringify(d.patio)); localStorage.setItem('patio_historico', JSON.stringify(d.historico)); localStorage.setItem('patio_config', JSON.stringify(d.config)); localStorage.setItem('patio_agendamentos', JSON.stringify(d.agendamentos || [])); location.reload(); }; reader.readAsText(input.files[0]); };
         window.limparHistorico = () => { if(confirm("Zerar tudo?")) { localStorage.clear(); location.reload(); }};
 
         function verificarLicenca() {
@@ -326,12 +418,14 @@
             document.getElementById('dias-restantes').innerText = diasFaltando + " DIAS RESTANTES";
             if (Date.now() - parseInt(data) > (30 * 24 * 60 * 60 * 1000)) document.getElementById('bloqueio').style.display = 'flex';
         }
-
         window.verificarSenha = () => { if(document.getElementById('senha-licenca').value === SENHA_MESTRA) { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } else alert("Erro!"); };
 
+        // --- INICIALIZAÇÃO ---
         document.getElementById('app-nome-display').innerText = config.nome;
         document.getElementById('config-nome').value = config.nome;
-        verificarLicenca(); renderizarPátio();
+        atualizarExibicaoOS();
+        verificarLicenca(); 
+        renderizarPátio();
     </script>
 </body>
 </html>

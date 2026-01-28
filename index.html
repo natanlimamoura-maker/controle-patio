@@ -17,25 +17,21 @@
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* AJUSTES DE ALINHAMENTO PARA CELULAR */
+        /* AJUSTES PARA O PDF NÃO CORTAR */
         #conteudo-pdf { background: white; width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; }
-        .pdf-card { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; }
-        
+        .pdf-card { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; background: white; }
         .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
         .info-full { grid-column: span 2; border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
-        
         .label-ref { display: block; text-transform: uppercase; font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 2px; }
-        .value-ref { font-weight: 700; color: #1e293b; font-size: 13px; text-transform: uppercase; line-height: 1.2; word-break: break-word; }
-        .value-os { font-weight: 900; color: #1d4ed8; font-size: 16px; }
-
-        .foto-pdf { width: 100%; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
+        .value-ref { font-weight: 700; color: #1e293b; font-size: 13px; text-transform: uppercase; line-height: 1.2; word-break: break-all; }
+        .foto-pdf-final { width: 100%; max-width: 700px; display: block; margin: 15px auto; border-radius: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
 
     <div id="bloqueio">
         <div class="modal-content text-center border-t-8 border-red-600">
-            <h2 class="text-xl font-black mb-2 uppercase">Licença Expirada</h2>
+            <h2 class="text-xl font-black mb-2 uppercase text-gray-800">Licença Expirada</h2>
             <input type="password" id="senha-licenca" placeholder="SENHA 0907" class="border-2 p-4 rounded-2xl w-full mb-4 text-center font-bold outline-none">
             <button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase shadow-lg">Ativar Licença</button>
         </div>
@@ -57,20 +53,20 @@
     <div id="pagina-detalhes">
         <header class="bg-blue-700 text-white p-5 w-full flex justify-between items-center shadow-lg sticky top-0 z-[10000]">
             <button onclick="fecharDetalhes()" class="text-xl font-bold">←</button>
-            <h1 class="text-xs font-black uppercase italic">Histórico Detalhado</h1>
+            <h1 class="text-xs font-black uppercase italic">Comprovante</h1>
             <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase shadow-md">PDF</button>
         </header>
 
         <div class="p-2 w-full flex flex-col items-center">
-            <div id="conteudo-pdf">
-                <div class="pdf-card shadow-sm">
-                    <div class="flex justify-between items-center border-b-2 border-blue-700 pb-2 mb-3">
-                        <h2 id="pdf-nome-oficina" class="text-lg font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
-                        <span id="detalhe-os" class="value-os"></span>
+            <div id="conteudo-pdf" class="rounded-3xl">
+                <div class="pdf-card">
+                    <div class="flex justify-between items-center border-b-2 border-blue-700 pb-3 mb-4">
+                        <h2 id="pdf-nome-oficina" class="text-xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
+                        <span id="detalhe-os" class="text-blue-700 font-black text-lg"></span>
                     </div>
 
                     <div class="info-row">
-                        <div class="info-item"><span class="label-ref">Placa</span><p id="detalhe-placa" class="value-ref text-blue-600"></p></div>
+                        <div class="info-item"><span class="label-ref">Placa</span><p id="detalhe-placa" class="value-ref text-blue-600 text-lg"></p></div>
                         <div class="info-item"><span class="label-ref">Modelo</span><p id="detalhe-modelo" class="value-ref"></p></div>
                     </div>
 
@@ -83,12 +79,12 @@
                         <div class="info-item"><span class="label-ref">Saída</span><p id="detalhe-saida" class="value-ref"></p></div>
                     </div>
 
-                    <div class="mt-3 p-3 bg-blue-50 rounded-xl border-l-4 border-blue-600">
+                    <div class="mt-4 p-4 bg-blue-50 rounded-2xl">
                         <span class="label-ref text-blue-400">Serviço Realizado</span>
                         <p id="detalhe-servico" class="value-ref italic text-blue-900"></p>
                     </div>
 
-                    <div id="detalhe-fotos-pdf" class="mt-4 space-y-3"></div>
+                    <div id="detalhe-fotos-pdf" class="mt-6"></div>
                 </div>
             </div>
             
@@ -127,7 +123,7 @@
                     </select>
                     <div id="container-previa" class="hidden grid grid-cols-3 gap-2"></div>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50">
+                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50 active:bg-blue-100">
                             <span class="font-bold text-[10px] uppercase">📸 Foto</span>
                             <input type="file" id="foto-camera" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this)">
                         </label>
@@ -162,12 +158,12 @@
 
         <section id="aba-config" class="tab-content">
             <div class="bg-white p-6 rounded-3xl shadow-md space-y-4">
-                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Ajustes</h3>
+                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Configurações</h3>
                 <input type="text" id="config-nome" placeholder="NOME DA OFICINA" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                 <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl uppercase text-[10px]">Salvar Nome</button>
                 <div class="grid grid-cols-2 gap-3 pt-4 border-t">
                     <button onclick="exportarBackup()" class="bg-gray-800 text-white p-4 rounded-2xl text-[9px] font-bold uppercase">Backup</button>
-                    <button onclick="document.getElementById('input-import').click()" class="bg-gray-200 text-gray-600 p-4 rounded-2xl text-[9px] font-bold uppercase">Restaurar</button>
+                    <button onclick="document.getElementById('input-import').click()" class="bg-gray-200 text-gray-600 p-4 rounded-2xl text-[9px] font-bold uppercase">Restaurar Dados</button>
                     <input type="file" id="input-import" class="hidden" onchange="importarBackup(this)">
                 </div>
                 <button onclick="limparHistorico()" class="w-full bg-red-50 text-red-600 font-bold p-4 rounded-2xl uppercase text-[9px] border border-red-100 mt-4">Zerar Histórico</button>
@@ -363,7 +359,7 @@
             const grid = document.getElementById('detalhe-fotos-pdf');
             grid.innerHTML = '';
             if(v.fotos && v.fotos.length > 0) {
-                v.fotos.forEach(f => { grid.innerHTML += `<img src="${f}" class="foto-pdf">`; });
+                v.fotos.forEach(f => { grid.innerHTML += `<img src="${f}" class="foto-pdf-final">`; });
             }
             document.getElementById('btn-excluir-relatorio').onclick = () => { if(confirm('Apagar?')) { historico=historico.filter(x=>x.id!==id); localStorage.setItem('patio_historico', JSON.stringify(historico)); fecharDetalhes(); renderizarRelatorio(); }};
             document.getElementById('pagina-detalhes').style.display = 'flex';
@@ -372,17 +368,27 @@
         window.gerarPDF = async () => {
             const element = document.getElementById('conteudo-pdf');
             const { jsPDF } = window.jspdf;
+            
             const numOS = document.getElementById('detalhe-os').innerText.replace("#", "");
             const placa = document.getElementById('detalhe-placa').innerText;
             const agora = new Date();
             const dataHora = agora.getFullYear() + "-" + (agora.getMonth() + 1).toString().padStart(2, '0') + "-" + agora.getDate().toString().padStart(2, '0') + "_" + agora.getHours().toString().padStart(2, '0') + "h" + agora.getMinutes().toString().padStart(2, '0');
             const nomeArquivo = `OS_${numOS}_${placa}_${dataHora}.pdf`;
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false, windowWidth: 400 });
+
+            // CRIAÇÃO DE CANVAS COM LARGURA FORÇADA PARA NÃO CORTAR
+            const canvas = await html2canvas(element, { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false, 
+                windowWidth: 800 // Isso impede que o layout mobile corte o PDF
+            });
+
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
+            const imgProps = pdf.getImageProperties(imgData);
             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(nomeArquivo);
         };

@@ -16,9 +16,7 @@
         #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
         .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #conteudo-pdf { background: white; border: 1px solid #e2e8f0; }
-        .pdf-header { border-bottom: 4px solid #1d4ed8; padding-bottom: 15px; margin-bottom: 20px; }
-        .pdf-section { border-bottom: 1px solid #f1f5f9; padding: 12px 0; }
+        .card-agendamento { background: white; border-left: 5px solid #f59e0b; padding: 15px; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
@@ -26,8 +24,8 @@
     <div id="bloqueio">
         <div class="modal-content text-center border-t-8 border-red-600">
             <div class="text-5xl mb-4">⚠️</div>
-            <h2 class="text-xl font-black mb-2 uppercase text-gray-800">Sistema Bloqueado</h2>
-            <input type="password" id="senha-licenca" placeholder="DIGITE A SENHA" class="border-2 p-4 rounded-2xl w-full mb-4 text-center outline-none font-bold">
+            <h2 class="text-xl font-black mb-2 uppercase">Sistema Bloqueado</h2>
+            <input type="password" id="senha-licenca" placeholder="SENHA 0907" class="border-2 p-4 rounded-2xl w-full mb-4 text-center font-bold">
             <button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase shadow-lg">Ativar Licença</button>
         </div>
     </div>
@@ -49,34 +47,27 @@
         <header class="bg-blue-700 text-white p-5 w-full flex justify-between items-center shadow-lg sticky top-0 z-[10000]">
             <button onclick="fecharDetalhes()" class="text-xl font-bold">←</button>
             <h1 class="text-lg font-black uppercase italic">Comprovante</h1>
-            <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase shadow-md">PDF</button>
+            <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase">PDF</button>
         </header>
         <div class="p-4 w-full max-w-xl">
-            <div id="conteudo-pdf" class="p-8 rounded-lg shadow-lg">
-                <div class="pdf-header flex justify-between items-center">
-                    <div>
-                        <h2 id="pdf-nome-oficina" class="text-2xl font-black text-blue-700 italic">PÁTIO PRO</h2>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase">Relatório</p>
-                    </div>
-                    <div class="text-right"><span id="detalhe-os" class="bg-blue-700 text-white px-3 py-1 rounded text-sm font-black"></span></div>
+            <div id="conteudo-pdf" class="p-8 rounded-lg shadow-lg bg-white border border-gray-200">
+                <div class="flex justify-between items-center border-b-2 border-blue-700 pb-4 mb-4">
+                    <h2 id="pdf-nome-oficina" class="text-2xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2>
+                    <span id="detalhe-os" class="bg-blue-700 text-white px-3 py-1 rounded text-sm font-black"></span>
                 </div>
-                <div class="grid grid-cols-2 gap-4 pdf-section">
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl text-gray-800"></p></div>
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Marca/Modelo</label><p id="detalhe-modelo" class="font-bold text-gray-700 uppercase"></p></div>
+                <div class="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
+                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label><p id="detalhe-placa" class="font-black text-xl"></p></div>
+                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Marca/Modelo</label><p id="detalhe-modelo" class="font-bold uppercase text-gray-700"></p></div>
                 </div>
-                <div class="pdf-section"><label class="text-[9px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold text-lg text-gray-800 uppercase"></p></div>
-                <div class="grid grid-cols-2 gap-4 pdf-section">
+                <div class="border-b pb-4 mb-4"><label class="text-[9px] font-bold text-gray-400 uppercase">Cliente</label><p id="detalhe-cliente" class="font-bold text-lg uppercase"></p></div>
+                <div class="grid grid-cols-2 gap-4 border-b pb-4 mb-4">
                     <div><label class="text-[9px] font-bold text-gray-400 uppercase">Entrada</label><p id="detalhe-entrada" class="font-bold text-gray-700"></p></div>
-                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Status</label><p id="detalhe-status-pdf" class="font-bold text-blue-600 uppercase"></p></div>
+                    <div><label class="text-[9px] font-bold text-gray-400 uppercase">Saída</label><p id="detalhe-saida" class="font-bold text-gray-700"></p></div>
                 </div>
-                <div id="secao-saida-pdf" class="pdf-section hidden">
-                    <label class="text-[9px] font-bold text-gray-400 uppercase">Data Saída</label>
-                    <p id="detalhe-saida" class="font-bold text-gray-700"></p>
-                </div>
-                <div class="pdf-section bg-blue-50 p-4 rounded-xl mt-4"><label class="text-[9px] font-bold text-blue-400 uppercase">Serviço</label><p id="detalhe-servico" class="font-black text-blue-800 italic uppercase"></p></div>
-                <div id="detalhe-fotos-grid" class="grid grid-cols-2 gap-2 mt-6"></div>
+                <div class="bg-blue-50 p-4 rounded-xl mb-4"><label class="text-[9px] font-bold text-blue-400 uppercase">Serviço</label><p id="detalhe-servico" class="font-black text-blue-800 italic uppercase"></p></div>
+                <div id="detalhe-fotos-grid" class="grid grid-cols-2 gap-2"></div>
             </div>
-            <button id="btn-excluir-relatorio" class="w-full bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-6 mb-10">Excluir Registro Permanente</button>
+            <button id="btn-excluir-relatorio" class="w-full bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-6 mb-10">Excluir Permanente</button>
         </div>
     </div>
 
@@ -84,9 +75,9 @@
         <div class="flex justify-between items-center">
             <div>
                 <h1 id="app-nome-display" class="text-xl font-black italic uppercase leading-none">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic tracking-widest uppercase"></span>
+                <span id="dias-restantes" class="text-[9px] font-bold opacity-70 italic uppercase">VERIFICANDO...</span>
             </div>
-            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold italic uppercase"></span>
+            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold italic uppercase">0 NO PÁTIO</span>
         </div>
     </header>
 
@@ -95,23 +86,20 @@
             <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
-                    <div class="flex justify-between items-center mb-2">
+                    <div class="flex justify-between items-center">
                         <span id="titulo-form" class="text-[10px] font-bold text-gray-400 uppercase">Novo Registro</span>
                         <span id="proxima-os" class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #000</span>
-                        <button type="button" onclick="cancelarEdicao()" id="btn-cancelar-edit" class="hidden text-red-500 text-[10px] font-bold uppercase">Cancelar</button>
                     </div>
                     <input type="text" id="input-data-entrada" placeholder="Data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center uppercase">
-                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center outline-none uppercase">
+                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center outline-none uppercase focus:border-blue-500">
                     <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
-                    <input type="text" id="cliente" placeholder="NOME DO CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
-                    
+                    <input type="text" id="cliente" placeholder="CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                     <select id="status-veiculo" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none text-sm text-blue-600">
                         <option value="Diagnóstico">Diagnóstico</option>
                         <option value="Aguardando Peça">Aguardando Peça</option>
                         <option value="Em Manutenção">Em Manutenção</option>
                         <option value="Finalizado">Finalizado</option>
                     </select>
-
                     <div id="container-previa" class="hidden grid grid-cols-3 gap-2"></div>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50">
@@ -120,6 +108,7 @@
                         </label>
                         <button type="submit" id="btn-submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Registrar</button>
                     </div>
+                    <button type="button" onclick="location.reload()" id="btn-cancelar-edit" class="hidden w-full text-red-500 text-[10px] font-bold uppercase mt-2">Cancelar Edição</button>
                 </form>
             </div>
         </section>
@@ -128,35 +117,77 @@
             <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
+        <section id="aba-agendamento" class="tab-content">
+            <div class="bg-white p-6 rounded-3xl shadow-md mb-6 border border-orange-100">
+                <h3 class="text-orange-600 font-black italic uppercase text-xs mb-4">📅 Novo Agendamento</h3>
+                <form id="form-agendamento" class="space-y-3">
+                    <input type="date" id="agend-data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold outline-none">
+                    <input type="text" id="agend-veiculo" placeholder="VEÍCULO / CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
+                    <button type="submit" class="w-full bg-orange-500 text-white font-black p-4 rounded-2xl uppercase shadow-lg text-xs">Reservar Data</button>
+                </form>
+            </div>
+            <div id="lista-agendamentos" class="space-y-2"></div>
+        </section>
+
         <section id="aba-relatorio" class="tab-content">
             <div class="mb-4 bg-white p-4 rounded-3xl shadow-sm border border-blue-100">
                 <input type="text" id="busca-os" onkeyup="filtrarRelatorio()" placeholder="🔍 BUSCAR PLACA OU O.S." class="w-full p-4 rounded-2xl bg-gray-50 border-2 font-bold uppercase text-xs outline-none">
             </div>
             <div id="lista-relatorio" class="space-y-3"></div>
         </section>
+
+        <section id="aba-config" class="tab-content">
+            <div class="bg-white p-6 rounded-3xl shadow-md space-y-4">
+                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Ajustes do App</h3>
+                <input type="text" id="config-nome" placeholder="NOME DA OFICINA" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
+                <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl uppercase text-[10px]">Salvar Nome</button>
+                <div class="grid grid-cols-2 gap-3 pt-4 border-t">
+                    <button onclick="exportarBackup()" class="bg-gray-800 text-white p-4 rounded-2xl text-[9px] font-bold uppercase">Exportar Backup</button>
+                    <button onclick="document.getElementById('input-import').click()" class="bg-gray-200 text-gray-600 p-4 rounded-2xl text-[9px] font-bold uppercase">Restaurar Dados</button>
+                    <input type="file" id="input-import" class="hidden" onchange="importarBackup(this)">
+                </div>
+                <button onclick="limparHistorico()" class="w-full bg-red-50 text-red-600 font-bold p-4 rounded-2xl uppercase text-[9px] border border-red-100 mt-4">Zerar Histórico</button>
+            </div>
+        </section>
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1">Entrada</span></button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1">Pátio</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1">Histórico</span></button>
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Entrada</span></button>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Pátio</span></button>
+        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📅</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Agenda</span></button>
+        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1 text-center">Histórico</span></button>
+        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1 text-center">Ajustes</span></button>
     </nav>
 
     <script>
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
+        let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
         let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO", os_counter: 1 };
         let fotosTemporarias = [];
         const SENHA_MESTRA = "0907";
 
         document.getElementById('input-data-entrada').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
 
+        // CÁLCULO DE DIAS (RECUPERADO)
+        function calcularDias(dataISO) {
+            if (!dataISO) return "Data não registrada";
+            const entrada = new Date(dataISO);
+            const hoje = new Date();
+            entrada.setHours(0,0,0,0);
+            hoje.setHours(0,0,0,0);
+            const diff = Math.floor((hoje - entrada) / (1000 * 60 * 60 * 24));
+            if (diff <= 0) return "Entrou hoje";
+            return diff === 1 ? "1 dia no pátio" : diff + " dias no pátio";
+        }
+
         function verificarLicenca() {
             let data = localStorage.getItem('data_ativacao') || Date.now();
             localStorage.setItem('data_ativacao', data);
-            const diasFaltando = Math.max(0, Math.ceil(( (30 * 24 * 60 * 60 * 1000) - (Date.now() - parseInt(data))) / (1000 * 60 * 60 * 24)));
+            const trintaDias = 30 * 24 * 60 * 60 * 1000;
+            const diasFaltando = Math.max(0, Math.ceil((trintaDias - (Date.now() - parseInt(data))) / (1000 * 60 * 60 * 24)));
             document.getElementById('dias-restantes').innerText = diasFaltando + " DIAS RESTANTES";
-            if (Date.now() - parseInt(data) > (30 * 24 * 60 * 60 * 1000)) document.getElementById('bloqueio').style.display = 'flex';
+            if (Date.now() - parseInt(data) > trintaDias) document.getElementById('bloqueio').style.display = 'flex';
         }
         window.verificarSenha = () => { if(document.getElementById('senha-licenca').value === SENHA_MESTRA) { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } else alert("Erro!"); };
 
@@ -164,11 +195,9 @@
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const img = new Image();
-                    img.src = e.target.result;
+                    const img = new Image(); img.src = e.target.result;
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
+                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
                         canvas.width = 500; canvas.height = img.height * (500 / img.width);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         fotosTemporarias.push(canvas.toDataURL('image/jpeg', 0.6));
@@ -178,9 +207,9 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
         function renderizarPrevias() {
-            const container = document.getElementById('container-previa');
-            container.innerHTML = '';
+            const container = document.getElementById('container-previa'); container.innerHTML = '';
             fotosTemporarias.forEach((f, i) => {
                 container.innerHTML += `<div class="relative h-20 rounded-xl overflow-hidden border-2 border-blue-100"><img src="${f}" class="w-full h-full object-cover"><button type="button" onclick="fotosTemporarias.splice(${i},1);renderizarPrevias()" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 font-bold">×</button></div>`;
             });
@@ -242,14 +271,35 @@
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center">
                     <img src="${v.fotos && v.fotos[0] ? v.fotos[0] : ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0">
                     <div class="flex-1 overflow-hidden">
-                        <div class="flex justify-between mb-1"><span class="text-[9px] font-black text-blue-600">OS #${v.os}</span><span class="text-[9px] font-bold text-blue-500 uppercase">${v.status || 'Pátio'}</span></div>
-                        <div class="font-black text-lg leading-none">${v.placa}</div>
-                        <div class="text-[9px] text-gray-400 font-bold uppercase truncate">${v.modelo}</div>
+                        <div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black text-blue-600">OS #${v.os}</span><span class="text-[9px] font-bold text-blue-500 uppercase">${v.status || 'Pátio'}</span></div>
+                        <div class="font-black text-lg leading-none mb-1">${v.placa}</div>
+                        <div class="text-[9px] text-gray-400 font-bold truncate uppercase">${v.modelo}</div>
+                        <div class="text-[9px] text-orange-600 font-black mt-1 italic uppercase tracking-wider">${calcularDias(v.dataRaw)}</div>
                         <div class="flex gap-2 mt-2">
                             <button onclick="editarVeiculo(${v.id})" class="flex-1 text-[8px] font-black bg-gray-100 text-gray-500 p-2 rounded-lg uppercase">Editar</button>
                             <button onclick="abrirModalSaida(${v.id})" class="flex-1 text-[8px] font-black bg-green-600 text-white p-2 rounded-lg uppercase">Saída</button>
                         </div>
                     </div>
+                </div>`;
+            });
+        }
+
+        document.getElementById('form-agendamento').addEventListener('submit', (e) => {
+            e.preventDefault();
+            agendamentos.push({ id: Date.now(), data: document.getElementById('agend-data').value, veiculo: document.getElementById('agend-veiculo').value.toUpperCase() });
+            agendamentos.sort((a,b) => new Date(a.data) - new Date(b.data));
+            localStorage.setItem('patio_agendamentos', JSON.stringify(agendamentos));
+            e.target.reset(); renderizarAgendamentos();
+        });
+
+        function renderizarAgendamentos() {
+            const lista = document.getElementById('lista-agendamentos'); lista.innerHTML = '';
+            agendamentos.forEach(a => {
+                const d = a.data.split('-').reverse().slice(0,2).join('/');
+                lista.innerHTML += `
+                <div class="card-agendamento flex justify-between items-center">
+                    <div><span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md mr-2">${d}</span><span class="font-bold text-sm uppercase">${a.veiculo}</span></div>
+                    <button onclick="if(confirm('Excluir?')){agendamentos=agendamentos.filter(x=>x.id!==${a.id});localStorage.setItem('patio_agendamentos',JSON.stringify(agendamentos));renderizarAgendamentos();}" class="text-red-400 p-2">✕</button>
                 </div>`;
             });
         }
@@ -276,6 +326,7 @@
             document.getElementById('aba-' + aba).classList.add('active');
             document.getElementById('btn-nav-' + aba).classList.add('active');
             if(aba === 'patio') renderizarPátio();
+            if(aba === 'agendamento') renderizarAgendamentos();
             if(aba === 'relatorio') renderizarRelatorio();
             if(aba === 'entrada') document.getElementById('proxima-os').innerText = `OS: #${config.os_counter.toString().padStart(3, '0')}`;
         };
@@ -283,7 +334,7 @@
         function renderizarRelatorio() {
             const r = document.getElementById('lista-relatorio'); r.innerHTML = '';
             historico.forEach(v => {
-                r.innerHTML += `<div onclick="abrirDetalhes(${v.id})" class="card-historico bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center mb-2"><img src="${v.fotos && v.fotos[0] ? v.fotos[0] : ''}" class="w-12 h-12 rounded-xl object-cover"><div class="ml-3 flex-1"><div class="text-[8px] font-bold text-gray-400">OS #${v.os}</div><div class="font-black text-sm uppercase">${v.placa}</div><p class="text-[8px] text-green-600 font-bold uppercase">${v.servico}</p></div></div>`;
+                r.innerHTML += `<div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border border-gray-100 flex gap-4 items-center mb-2"><img src="${v.fotos && v.fotos[0] ? v.fotos[0] : ''}" class="w-12 h-12 rounded-xl object-cover"><div class="ml-3 flex-1"><div class="text-[8px] font-bold text-gray-400">OS #${v.os}</div><div class="font-black text-sm uppercase">${v.placa}</div></div></div>`;
             });
         }
 
@@ -293,13 +344,10 @@
             document.getElementById('detalhe-placa').innerText = v.placa;
             document.getElementById('detalhe-modelo').innerText = v.modelo;
             document.getElementById('detalhe-cliente').innerText = v.cliente;
-            document.getElementById('detalhe-status-pdf').innerText = v.status || "N/A";
             document.getElementById('detalhe-entrada').innerText = v.entrada;
             document.getElementById('detalhe-saida').innerText = v.saida;
             document.getElementById('detalhe-servico').innerText = v.servico;
-            document.getElementById('secao-saida-pdf').classList.remove('hidden');
-            const grid = document.getElementById('detalhe-fotos-grid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('detalhe-fotos-grid'); grid.innerHTML = '';
             if(v.fotos) v.fotos.forEach(f => grid.innerHTML += `<img src="${f}" class="w-full h-32 object-cover rounded-xl">`);
             document.getElementById('pagina-detalhes').style.display = 'flex';
         };
@@ -314,11 +362,14 @@
 
         window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
         window.fecharModalSaida = () => document.getElementById('modal-saida').style.display = 'none';
-        window.cancelarEdicao = () => location.reload();
-        
-        verificarLicenca(); 
-        renderizarPátio();
+        function salvarConfig() { config.nome = document.getElementById('config-nome').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
+        window.exportarBackup = () => { const blob = new Blob([JSON.stringify({patio, historico, config, agendamentos})], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'patio_backup.json'; a.click(); };
+        window.importarBackup = (input) => { const reader = new FileReader(); reader.onload = (e) => { const d = JSON.parse(e.target.result); localStorage.setItem('patio_data', JSON.stringify(d.patio)); localStorage.setItem('patio_historico', JSON.stringify(d.historico)); localStorage.setItem('patio_config', JSON.stringify(d.config)); localStorage.setItem('patio_agendamentos', JSON.stringify(d.agendamentos || [])); location.reload(); }; reader.readAsText(input.files[0]); };
+        window.limparHistorico = () => { if(confirm("Zerar Histórico?")) { localStorage.removeItem('patio_historico'); location.reload(); }};
+
+        verificarLicenca(); renderizarPátio();
         document.getElementById('app-nome-display').innerText = config.nome;
+        document.getElementById('config-nome').value = config.nome;
     </script>
 </body>
 </html>

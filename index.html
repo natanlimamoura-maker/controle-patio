@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pátio Pro Extreme Cloud</title>
+    <title>Pátio Pro Extreme</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1d4ed8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/512/service.png">
+
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,10 +21,11 @@
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
         #bloqueio { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
+        #modal-edicao, #modal-saida, #pagina-detalhes { display: none; position: fixed; inset: 0; z-index: 9000; background: white; flex-direction: column; }
+        #modal-edicao, #modal-saida { background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
         #toast-container { position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%); z-index: 10000; pointer-events: none; }
         .toast { background: #333; color: white; padding: 12px 25px; border-radius: 50px; margin-top: 10px; font-weight: 800; font-size: 11px; text-transform: uppercase; box-shadow: 0 10px 20px rgba(0,0,0,0.2); animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #modal-edicao { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-28 text-gray-800 font-sans">
@@ -27,39 +33,18 @@
     <div id="toast-container"></div>
 
     <div id="bloqueio" class="flex">
-        <div class="bg-white p-8 rounded-[40px] w-full max-w-sm m-4 text-center border-t-8 border-red-600">
+        <div class="bg-white p-8 rounded-[40px] w-full max-w-sm m-4 text-center border-t-8 border-red-600 shadow-2xl">
             <h2 class="text-2xl font-black mb-2 text-red-600 italic uppercase">Acesso Expirado</h2>
-            <p class="text-gray-400 text-[10px] font-black mb-6 uppercase">Insira a chave de ativação para continuar</p>
+            <p class="text-gray-400 text-[10px] font-black mb-6 uppercase">Contate o suporte para sua nova chave</p>
             <input type="password" id="senha-licenca" placeholder="CHAVE DO SISTEMA" class="border-2 p-5 rounded-3xl w-full mb-4 text-center font-black outline-none focus:border-red-600">
-            <button onclick="ativarSistema()" class="bg-red-600 text-white w-full py-5 rounded-3xl font-black uppercase shadow-lg">Reativar</button>
-        </div>
-    </div>
-
-    <div id="modal-edicao" class="p-4">
-        <div class="bg-white w-full max-w-md rounded-[40px] p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h3 class="font-black text-blue-700 uppercase italic mb-4">Editar Veículo</h3>
-            <input type="hidden" id="edit-id">
-            <div class="space-y-3">
-                <input type="text" id="edit-placa" class="w-full p-4 bg-gray-100 rounded-2xl font-black uppercase outline-none border-2 focus:border-blue-500">
-                <input type="text" id="edit-modelo" class="w-full p-4 bg-gray-100 rounded-2xl font-bold uppercase">
-                <input type="text" id="edit-cliente" class="w-full p-4 bg-gray-100 rounded-2xl font-bold uppercase">
-                <div id="edit-fotos-grid" class="grid grid-cols-3 gap-2"></div>
-                <label class="block w-full bg-blue-100 text-blue-700 p-4 rounded-2xl text-center font-black text-xs cursor-pointer">
-                    + ADICIONAR MAIS FOTOS
-                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="adicionarFotoEdicao(this)">
-                </label>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mt-6">
-                <button onclick="fecharEdicao()" class="bg-gray-200 p-4 rounded-2xl font-black uppercase text-[10px]">Cancelar</button>
-                <button onclick="salvarEdicao()" class="bg-blue-600 text-white p-4 rounded-2xl font-black uppercase text-[10px]">Atualizar</button>
-            </div>
+            <button onclick="ativarSistema()" class="bg-red-600 text-white w-full py-5 rounded-3xl font-black uppercase shadow-lg active:scale-95 transition-all">Reativar</button>
         </div>
     </div>
 
     <header class="bg-blue-700 text-white p-6 shadow-xl sticky top-0 z-50 rounded-b-[40px] flex justify-between items-end h-32">
         <div>
             <h1 class="text-2xl font-black italic uppercase tracking-tighter leading-none">PÁTIO PRO</h1>
-            <span id="status-drive" class="text-[9px] font-bold opacity-60 uppercase tracking-widest italic leading-none">Verificando Cloud...</span>
+            <span id="status-drive" class="text-[9px] font-bold opacity-60 uppercase tracking-widest italic leading-none">SISTEMA LOCAL</span>
         </div>
         <div class="text-right">
             <span id="contador" class="bg-blue-900/50 px-4 py-2 rounded-2xl text-[10px] font-black uppercase italic">0 NO PÁTIO</span>
@@ -77,9 +62,9 @@
                     <div class="grid grid-cols-2 gap-4">
                         <label class="flex flex-col items-center justify-center border-2 border-dashed border-blue-200 p-5 rounded-3xl text-blue-600 bg-blue-50 cursor-pointer">
                             <span class="text-2xl">📸</span>
-                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this)">
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this, 'entrada')">
                         </label>
-                        <button type="submit" class="bg-blue-600 text-white font-black rounded-3xl uppercase shadow-lg">Salvar</button>
+                        <button type="submit" class="bg-blue-600 text-white font-black rounded-3xl uppercase shadow-lg active:scale-95">Salvar</button>
                     </div>
                 </form>
             </div>
@@ -108,16 +93,63 @@
         </section>
 
         <section id="aba-config" class="tab-content">
-            <div class="bg-white p-6 rounded-[35px] shadow-xl space-y-4">
-                <div class="p-6 bg-blue-700 rounded-[30px] text-white text-center">
-                    <button id="btn-login-drive" onclick="loginGoogle()" class="w-full bg-white text-blue-700 p-4 rounded-2xl font-black text-xs uppercase">Conectar Google Drive</button>
+            <div class="bg-white p-6 rounded-[35px] shadow-xl space-y-4 text-center">
+                <button onclick="loginGoogle()" id="btn-login-drive" class="w-full bg-blue-700 text-white p-5 rounded-3xl font-black uppercase text-xs shadow-lg">Conectar Google Drive</button>
+                <div class="p-4 bg-gray-50 rounded-2xl border">
+                    <span id="dias-restantes" class="text-xs font-black text-gray-500 uppercase tracking-widest">Calculando...</span>
                 </div>
-                <div class="p-4 bg-gray-50 rounded-2xl border text-center">
-                    <span id="dias-restantes" class="text-xs font-black text-gray-500">Verificando Licença...</span>
-                </div>
+                <button onclick="limparTudo()" class="text-[9px] font-bold text-red-400 uppercase">Limpar Todos os Dados</button>
             </div>
         </section>
     </main>
+
+    <div id="modal-edicao" class="p-4 flex">
+        <div class="bg-white w-full max-w-md rounded-[40px] p-6 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h3 class="font-black text-blue-700 uppercase italic mb-4">Editar Ordem</h3>
+            <input type="hidden" id="edit-id">
+            <div class="space-y-3">
+                <input type="text" id="edit-placa" class="w-full p-4 bg-gray-100 rounded-2xl font-black uppercase border-2 focus:border-blue-500">
+                <input type="text" id="edit-modelo" class="w-full p-4 bg-gray-100 rounded-2xl font-bold uppercase">
+                <input type="text" id="edit-cliente" class="w-full p-4 bg-gray-100 rounded-2xl font-bold uppercase">
+                <div id="edit-fotos-grid" class="grid grid-cols-3 gap-2"></div>
+                <label class="block w-full bg-blue-100 text-blue-700 p-4 rounded-2xl text-center font-black text-xs cursor-pointer">
+                    + FOTOS EXTRAS
+                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this, 'edicao')">
+                </label>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="fecharModal('modal-edicao')" class="bg-gray-200 p-4 rounded-2xl font-black uppercase text-[10px]">Sair</button>
+                <button onclick="salvarEdicao()" class="bg-blue-600 text-white p-4 rounded-2xl font-black uppercase text-[10px]">Atualizar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-saida" class="flex">
+        <div class="bg-white p-8 rounded-[40px] w-full max-w-sm m-4 text-center">
+            <h3 class="font-black text-blue-700 uppercase italic mb-6">Concluir Serviço</h3>
+            <input type="hidden" id="saida-id-temp">
+            <textarea id="input-servico-final" placeholder="RELATÓRIO DO SERVIÇO..." class="w-full bg-gray-100 p-5 rounded-3xl mb-6 font-bold uppercase outline-none h-32 text-sm resize-none border-2 focus:border-green-500"></textarea>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="fecharModal('modal-saida')" class="bg-gray-200 p-5 rounded-2xl font-black uppercase text-[10px]">Voltar</button>
+                <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white p-5 rounded-2xl font-black uppercase text-[10px]">Finalizar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pagina-detalhes">
+        <header class="bg-blue-700 text-white p-6 flex justify-between items-center sticky top-0 z-50 shadow-lg">
+            <button onclick="fecharModal('pagina-detalhes')" class="font-black text-sm uppercase">← Voltar</button>
+            <button onclick="gerarPDF()" class="bg-green-500 px-6 py-2 rounded-2xl font-black text-[10px] uppercase">Gerar PDF</button>
+        </header>
+        <div class="p-4 flex flex-col items-center pb-20 overflow-y-auto">
+            <div id="conteudo-pdf" class="bg-white p-8 rounded-3xl shadow-sm w-full max-w-[500px] border">
+                <h2 class="text-2xl font-black text-blue-700 italic uppercase border-b-4 border-blue-700 pb-2 mb-4">RELATÓRIO TÉCNICO</h2>
+                <div class="space-y-4 text-sm" id="corpo-pdf">
+                    </div>
+                <div id="pdf-fotos" class="mt-6 space-y-4"></div>
+            </div>
+        </div>
+    </div>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-24 z-50 rounded-t-[40px] shadow-2xl">
         <button onclick="mudarAba('entrada')" class="nav-button active flex flex-col items-center flex-1"><span>➕</span><span class="text-[9px] font-black mt-1 uppercase">Entrada</span></button>
@@ -128,56 +160,49 @@
     </nav>
 
     <script>
-        const CLIENT_ID = "210762586963-8kjn81npdglg8g3j1maram9odh8iud26.apps.googleusercontent.com";
         const SENHA_MESTRA = "0907";
+        const CLIENT_ID = "210762586963-8kjn81npdglg8g3j1maram9odh8iud26.apps.googleusercontent.com";
 
-        let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
-        let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
-        let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
-        let config = JSON.parse(localStorage.getItem('patio_config')) || { os_counter: 1 };
+        let patio = JSON.parse(localStorage.getItem('patio_v3')) || [];
+        let historico = JSON.parse(localStorage.getItem('historico_v3')) || [];
+        let agendamentos = JSON.parse(localStorage.getItem('agenda_v3')) || [];
         let fotosTemp = [], googleToken = null, fileIdDrive = null;
 
-        function notificar(msg, cor = "#333") {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast'; toast.style.background = cor;
-            toast.innerHTML = msg; container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
-        }
+        // --- INICIALIZAÇÃO E LICENÇA ---
+        function checkLicenca() {
+            if (!localStorage.getItem('install_date')) localStorage.setItem('install_date', Date.now());
+            const installDate = parseInt(localStorage.getItem('install_date'));
+            const diff = Date.now() - installDate;
+            const expiraEm = (30 * 24 * 60 * 60 * 1000);
+            const licenciado = localStorage.getItem('is_pro') === 'true';
 
-        // --- LICENÇA E BLOQUEIO ---
-        function inicializarSistema() {
-            if (!localStorage.getItem('data_ativacao')) localStorage.setItem('data_ativacao', Date.now());
-            const dataAtivacao = parseInt(localStorage.getItem('data_ativacao'));
-            const expirou = (Date.now() - dataAtivacao) > (30 * 24 * 60 * 60 * 1000);
-            const licenciado = localStorage.getItem('app_licenciado') === 'true';
-
-            if (expirou && !licenciado) {
+            if (diff > expiraEm && !licenciado) {
                 document.getElementById('bloqueio').style.display = 'flex';
             } else {
-                const dias = Math.ceil(((30 * 24 * 60 * 60 * 1000) - (Date.now() - dataAtivacao)) / (1000 * 60 * 60 * 24));
-                document.getElementById('dias-restantes').innerText = licenciado ? "SISTEMA LICENCIADO" : `${dias} DIAS DE TESTE RESTANTES`;
+                const dias = Math.ceil((expiraEm - diff) / (1000 * 60 * 60 * 24));
+                document.getElementById('dias-restantes').innerText = licenciado ? "LICENÇA VITALÍCIA ATIVA" : `TESTE: ${dias} DIAS RESTANTES`;
             }
             renderizarPatio();
-            renderizarAgendamentos();
+            renderizarAgenda();
         }
 
         function ativarSistema() {
             if (document.getElementById('senha-licenca').value === SENHA_MESTRA) {
-                localStorage.setItem('app_licenciado', 'true');
-                location.reload();
-            } else { notificar("CHAVE INCORRETA", "#dc2626"); }
+                localStorage.setItem('is_pro', 'true');
+                notificar("SISTEMA LIBERADO!", "#16a34a");
+                setTimeout(() => location.reload(), 1000);
+            } else { notificar("CHAVE INVÁLIDA", "#dc2626"); }
         }
 
-        // --- GOOGLE DRIVE ---
+        // --- DRIVE ---
         function loginGoogle() {
             google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
                 callback: (resp) => { 
                     googleToken = resp.access_token; 
-                    document.getElementById('status-drive').innerText = "CLOUD CONECTADA";
-                    notificar("CLOUD ATIVA", "#16a34a");
-                    sincronizarDadosDrive(); 
+                    document.getElementById('status-drive').innerText = "NUVEM CONECTADA";
+                    notificar("BACKUP ATIVO", "#16a34a");
+                    salvarNoDrive();
                 }
             }).requestAccessToken();
         }
@@ -185,34 +210,90 @@
         async function salvarNoDrive() {
             if(!googleToken) return;
             try {
-                const metadata = { name: 'patio_pro_db.json', mimeType: 'application/json' };
+                const metadata = { name: 'patio_pro_v3.json', mimeType: 'application/json' };
                 const formData = new FormData();
                 formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                 formData.append('file', new Blob([JSON.stringify({patio, historico, agendamentos})], { type: 'application/json' }));
-                
                 let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
                 let method = 'POST';
-                if (fileIdDrive) { url = `https://www.googleapis.com/upload/drive/v3/files/${fileIdDrive}?uploadType=multipart`; method = 'PATCH'; }
-                
-                const resp = await fetch(url, { method, headers: { 'Authorization': `Bearer ${googleToken}` }, body: formData });
-                if(resp.ok) notificar("✓ NUVEM ATUALIZADA", "#16a34a");
+                if (fileIdDrive) { url += `&fileId=${fileIdDrive}`; method = 'PATCH'; }
+                await fetch(url, { method, headers: { 'Authorization': `Bearer ${googleToken}` }, body: formData });
+                notificar("✓ DRIVE ATUALIZADO", "#16a34a");
             } catch(e) { console.error(e); }
         }
 
-        async function sincronizarDadosDrive() {
-            try {
-                const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='patio_pro_db.json' and trashed=false`, { headers: { 'Authorization': `Bearer ${googleToken}` } });
-                const d = await r.json(); 
-                if (d.files && d.files.length > 0) {
-                    fileIdDrive = d.files[0].id;
-                    const content = await fetch(`https://www.googleapis.com/drive/v3/files/${fileIdDrive}?alt=media`, { headers: { 'Authorization': `Bearer ${googleToken}` } });
-                    const driveData = await content.json();
-                    if(driveData.patio) { patio = driveData.patio; historico = driveData.historico; agendamentos = driveData.agendamentos; atualizarStorage(); renderizarPatio(); }
-                }
-            } catch(e) { console.error(e); }
+        // --- CORE ---
+        function notificar(msg, cor) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast'; toast.style.background = cor;
+            toast.innerText = msg; container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
-        // --- EDIÇÃO NO PÁTIO ---
+        function processarFoto(input, modo) {
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                        canvas.width = 500; canvas.height = img.height * (500 / img.width);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const b64 = canvas.toDataURL('image/jpeg', 0.6);
+                        if(modo === 'entrada') { fotosTemp.push(b64); renderizarPrevias(); }
+                        else {
+                            const id = document.getElementById('edit-id').value;
+                            patio.find(x => x.id == id).fotos.push(b64);
+                            renderizarFotosEdicao(patio.find(x => x.id == id).fotos);
+                        }
+                    };
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function renderizarPrevias() {
+            const c = document.getElementById('container-previa'); c.innerHTML = '';
+            fotosTemp.forEach(f => c.innerHTML += `<img src="${f}" class="h-20 w-full object-cover rounded-xl border">`);
+            c.classList.toggle('hidden', fotosTemp.length === 0);
+        }
+
+        document.getElementById('form-entrada').onsubmit = function(e) {
+            e.preventDefault();
+            const v = { 
+                id: Date.now(), 
+                placa: document.getElementById('placa').value.toUpperCase(),
+                modelo: document.getElementById('modelo').value.toUpperCase(),
+                cliente: document.getElementById('cliente').value.toUpperCase(),
+                entrada: new Date().toLocaleDateString('pt-BR'),
+                fotos: [...fotosTemp]
+            };
+            patio.unshift(v); 
+            atualizarStorage();
+            location.reload();
+        };
+
+        function renderizarPatio() {
+            const list = document.getElementById('lista-veiculos'); list.innerHTML = '';
+            document.getElementById('contador').innerText = `${patio.length} NO PÁTIO`;
+            patio.forEach(v => {
+                list.innerHTML += `
+                <div class="bg-white p-5 rounded-[30px] shadow-md border flex gap-4 items-center">
+                    <img src="${v.fotos[0] || ''}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100">
+                    <div class="flex-1">
+                        <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
+                        <div class="text-[10px] text-gray-400 font-bold mb-3">${v.modelo}</div>
+                        <div class="flex gap-2">
+                            <button onclick="abrirEdicao(${v.id})" class="flex-1 bg-blue-100 text-blue-700 p-3 rounded-2xl text-[9px] font-black uppercase">Editar</button>
+                            <button onclick="abrirSaida(${v.id})" class="flex-1 bg-green-600 text-white p-3 rounded-2xl text-[9px] font-black uppercase">Saída</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // --- EDIÇÃO ---
         window.abrirEdicao = (id) => {
             const v = patio.find(x => x.id == id);
             document.getElementById('edit-id').value = id;
@@ -224,36 +305,16 @@
         };
 
         function renderizarFotosEdicao(fotos) {
-            const grid = document.getElementById('edit-fotos-grid'); grid.innerHTML = '';
+            const g = document.getElementById('edit-fotos-grid'); g.innerHTML = '';
             fotos.forEach((f, i) => {
-                grid.innerHTML += `<div class="relative h-20 rounded-xl overflow-hidden"><img src="${f}" class="w-full h-full object-cover"><button onclick="removerFotoEdicao(${i})" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-[10px]">✕</button></div>`;
+                g.innerHTML += `<div class="relative h-20"><img src="${f}" class="w-full h-full object-cover rounded-xl"><button onclick="removerFoto(${i})" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 rounded-full text-[8px]">✕</button></div>`;
             });
         }
 
-        window.removerFotoEdicao = (index) => {
+        window.removerFoto = (index) => {
             const id = document.getElementById('edit-id').value;
-            const v = patio.find(x => x.id == id);
-            v.fotos.splice(index, 1);
-            renderizarFotosEdicao(v.fotos);
-        };
-
-        window.adicionarFotoEdicao = (input) => {
-            if (input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        canvas.width = 400; canvas.height = img.height * (400 / img.width);
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        const base64 = canvas.toDataURL('image/jpeg', 0.5);
-                        const id = document.getElementById('edit-id').value;
-                        patio.find(x => x.id == id).fotos.push(base64);
-                        renderizarFotosEdicao(patio.find(x => x.id == id).fotos);
-                    };
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+            patio.find(x => x.id == id).fotos.splice(index, 1);
+            renderizarFotosEdicao(patio.find(x => x.id == id).fotos);
         };
 
         window.salvarEdicao = () => {
@@ -262,96 +323,103 @@
             v.placa = document.getElementById('edit-placa').value.toUpperCase();
             v.modelo = document.getElementById('edit-modelo').value.toUpperCase();
             v.cliente = document.getElementById('edit-cliente').value.toUpperCase();
-            atualizarStorage(); salvarNoDrive(); fecharEdicao(); renderizarPatio();
-            notificar("DADOS ATUALIZADOS");
+            atualizarStorage();
+            fecharModal('modal-edicao');
+            renderizarPatio();
+            notificar("ATUALIZADO", "#3b82f6");
+            salvarNoDrive();
         };
 
-        window.fecharEdicao = () => document.getElementById('modal-edicao').style.display = 'none';
-
-        // --- ENTRADA E PÁTIO ---
-        document.getElementById('form-entrada').onsubmit = function(e) {
-            e.preventDefault();
-            const novo = { id: Date.now(), placa: document.getElementById('placa').value.toUpperCase(), modelo: document.getElementById('modelo').value.toUpperCase(), cliente: document.getElementById('cliente').value.toUpperCase(), fotos: [...fotosTemp], entrada: new Date().toLocaleDateString('pt-BR') };
-            patio.unshift(novo); atualizarStorage(); salvarNoDrive(); location.reload();
+        // --- SAÍDA E PDF ---
+        window.abrirSaida = (id) => {
+            document.getElementById('saida-id-temp').value = id;
+            document.getElementById('modal-saida').style.display = 'flex';
         };
 
-        function renderizarPatio() {
-            const container = document.getElementById('lista-veiculos'); container.innerHTML = '';
-            document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
-            patio.forEach(v => {
-                container.innerHTML += `
-                <div class="bg-white p-5 rounded-[30px] shadow-md border flex gap-4 items-center animate-pop">
-                    <img src="${v.fotos[0] || ''}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100">
-                    <div class="flex-1">
-                        <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
-                        <div class="text-[10px] text-gray-400 font-bold mb-2">${v.modelo}</div>
-                        <div class="flex gap-2">
-                            <button onclick="abrirEdicao(${v.id})" class="flex-1 bg-blue-100 text-blue-700 p-3 rounded-2xl text-[9px] font-black uppercase">Editar</button>
-                            <button onclick="abrirModalSaida(${v.id})" class="flex-1 bg-green-600 text-white p-3 rounded-2xl text-[9px] font-black uppercase">Saída</button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-        }
+        window.confirmarSaidaFinal = () => {
+            const id = document.getElementById('saida-id-temp').value;
+            const v = patio.find(x => x.id == id);
+            const servico = document.getElementById('input-servico-final').value.toUpperCase();
+            historico.unshift({...v, saida: new Date().toLocaleDateString('pt-BR'), servico});
+            patio = patio.filter(x => x.id != id);
+            atualizarStorage();
+            salvarNoDrive();
+            location.reload();
+        };
 
-        // --- PDF COM TODAS AS FOTOS ---
+        window.abrirDetalhes = (id, tipo) => {
+            const v = tipo === 'patio' ? patio.find(x => x.id == id) : historico.find(x => x.id == id);
+            const corpo = document.getElementById('corpo-pdf');
+            corpo.innerHTML = `
+                <p><strong>PLACA:</strong> <span class="text-blue-700 font-black">${v.placa}</span></p>
+                <p><strong>CLIENTE:</strong> ${v.cliente}</p>
+                <p><strong>VEÍCULO:</strong> ${v.modelo}</p>
+                <p><strong>ENTRADA:</strong> ${v.entrada}</p>
+                ${v.saida ? `<p><strong>SAÍDA:</strong> ${v.saida}</p>` : ''}
+                <div class="bg-gray-100 p-4 rounded-2xl mt-4"><strong>SERVIÇO:</strong><br>${v.servico || 'EM ANDAMENTO'}</div>
+            `;
+            const fCont = document.getElementById('pdf-fotos'); fCont.innerHTML = '';
+            v.fotos.forEach(f => fCont.innerHTML += `<img src="${f}" class="w-full rounded-2xl shadow-sm">`);
+            document.getElementById('pagina-detalhes').style.display = 'flex';
+        };
+
         window.gerarPDF = async () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const id = document.getElementById('saida-id-temp') ? document.getElementById('saida-id-temp').value : null; 
-            // Lógica simplificada: usa o conteúdo visível da página de detalhes
-            const element = document.getElementById('conteudo-pdf');
-            
-            // Renderiza o PDF incluindo todas as fotos do elemento detalhe-fotos-pdf
-            await html2canvas(element, { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = doc.getImageProperties(imgData);
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                doc.save(`os_${Date.now()}.pdf`);
-            });
+            const canvas = await html2canvas(document.getElementById('conteudo-pdf'), { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            doc.addImage(imgData, 'PNG', 10, 10, 190, (canvas.height * 190) / canvas.width);
+            doc.save(`relatorio_${Date.now()}.pdf`);
         };
 
-        // --- OUTRAS FUNÇÕES ---
+        // --- AGENDA ---
+        document.getElementById('form-agendamento').onsubmit = function(e) {
+            e.preventDefault();
+            const ag = { id: Date.now(), data: document.getElementById('agend-data').value, veiculo: document.getElementById('agend-veiculo').value.toUpperCase() };
+            agendamentos.push(ag);
+            atualizarStorage();
+            renderizarAgenda();
+            this.reset();
+            salvarNoDrive();
+        };
+
+        function renderizarAgenda() {
+            const list = document.getElementById('lista-agendamentos'); list.innerHTML = '';
+            agendamentos.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(ag => {
+                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border-l-4 border-orange-500 flex justify-between items-center shadow-sm"><div><div class="text-[10px] font-black text-gray-400">${ag.data}</div><div class="font-black uppercase">${ag.veiculo}</div></div><button onclick="removerAgenda(${ag.id})" class="text-red-500 font-bold px-2">✕</button></div>`;
+            });
+        }
+        window.removerAgenda = (id) => { agendamentos = agendamentos.filter(x => x.id != id); atualizarStorage(); renderizarAgenda(); };
+
+        // --- UTIL ---
         function mudarAba(id) {
-            document.querySelectorAll('.tab-content').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
             document.getElementById(`aba-${id}`).classList.add('active');
             event.currentTarget.classList.add('active');
+            if(id === 'relatorio') renderizarRelatorio();
         }
 
+        function renderizarRelatorio() {
+            const container = document.getElementById('lista-relatorio'); container.innerHTML = '';
+            const busca = document.getElementById('busca-historico').value.toUpperCase();
+            historico.filter(v => v.placa.includes(busca)).forEach(v => {
+                container.innerHTML += `<div onclick="abrirDetalhes(${v.id}, 'hist')" class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center"><div><div class="font-black">${v.placa}</div><div class="text-[9px] font-bold text-gray-400 uppercase">${v.saida}</div></div><span class="text-blue-500 font-black">📄</span></div>`;
+            });
+        }
+
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
         function atualizarStorage() {
-            localStorage.setItem('patio_data', JSON.stringify(patio));
-            localStorage.setItem('patio_historico', JSON.stringify(historico));
-            localStorage.setItem('patio_agendamentos', JSON.stringify(agendamentos));
+            localStorage.setItem('patio_v3', JSON.stringify(patio));
+            localStorage.setItem('historico_v3', JSON.stringify(historico));
+            localStorage.setItem('agenda_v3', JSON.stringify(agendamentos));
         }
+        function limparTudo() { if(confirm("APAGAR TUDO?")) { localStorage.clear(); location.reload(); } }
 
-        function processarFoto(input) {
-            if (input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        canvas.width = 400; canvas.height = img.height * (400 / img.width);
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        fotosTemp.push(canvas.toDataURL('image/jpeg', 0.5));
-                        renderizarPrevias();
-                    };
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function renderizarPrevias() {
-            const c = document.getElementById('container-previa'); c.innerHTML = '';
-            fotosTemp.forEach((f, i) => { c.innerHTML += `<div class="relative h-20 rounded-2xl overflow-hidden border"><img src="${f}" class="w-full h-full object-cover"></div>`; });
-            c.classList.toggle('hidden', fotosTemp.length === 0);
-        }
-
-        window.onload = inicializarSistema;
-
+        window.onload = function() {
+            checkLicenca();
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        };
     </script>
 </body>
 </html>

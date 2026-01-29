@@ -8,10 +8,10 @@
   "description": "Gestão de Oficina Diesel",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3524/3524659.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/settings/default/48px.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

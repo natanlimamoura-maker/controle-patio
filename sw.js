@@ -1,4 +1,4 @@
-const cacheName = 'patiopro-v1';
+const cacheName = 'patiopro-cloud-v1';
 const assets = ['index.html', 'manifest.json'];
 
 self.addEventListener('install', e => {

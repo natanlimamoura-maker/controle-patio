@@ -4,98 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pátio Pro Elite V3</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/741/741407.png">
+    
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
         body { -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
-        #bloqueio, #modal-saida, #pagina-detalhes { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
-        #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
-        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; animation: slideUp 0.3s ease-out; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        #conteudo-pdf { background: white; width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; }
+        #modal-saida, #pagina-detalhes, #bloqueio { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; }
         .pdf-card { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; background: white; }
-        .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
-        .info-full { grid-column: span 2; border-bottom: 1px solid #f1f5f9; padding: 10px 0; }
-        .label-ref { display: block; text-transform: uppercase; font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 2px; }
-        .value-ref { font-weight: 700; color: #1e293b; font-size: 13px; text-transform: uppercase; line-height: 1.2; word-break: break-all; }
-        .foto-pdf-final { width: 100%; max-width: 700px; display: block; margin: 15px auto; border-radius: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
 
-    <div id="bloqueio"><div class="modal-content text-center border-t-8 border-red-600"><h2 class="text-xl font-black mb-2 uppercase text-gray-800">Licença Expirada</h2><input type="password" id="senha-licenca" placeholder="SENHA 0907" class="border-2 p-4 rounded-2xl w-full mb-4 text-center font-bold outline-none"><button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase shadow-lg">Ativar Licença</button></div></div>
-    <div id="modal-saida"><div class="modal-content"><h3 class="font-black text-blue-700 uppercase italic mb-4">Finalizar Saída</h3><input type="hidden" id="saida-id-temp"><input type="text" id="input-data-saida" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-4 text-center font-bold"><input type="text" id="input-servico-final" placeholder="SERVIÇO REALIZADO" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-6 font-bold uppercase"><div class="grid grid-cols-2 gap-3"><button onclick="fecharModalSaida()" class="bg-gray-100 p-4 rounded-2xl uppercase text-[10px] font-bold">Voltar</button><button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white p-4 rounded-2xl shadow-lg uppercase text-[10px] font-black">Concluir</button></div></div></div>
-    <div id="pagina-detalhes"><header class="bg-blue-700 text-white p-5 w-full flex justify-between items-center shadow-lg sticky top-0 z-[10000]"><button onclick="fecharDetalhes()" class="text-xl font-bold">←</button><h1 class="text-xs font-black uppercase italic">Comprovante</h1><button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase shadow-md">PDF</button></header><div class="p-2 w-full flex flex-col items-center"><div id="conteudo-pdf" class="rounded-3xl"><div class="pdf-card"><div class="flex justify-between items-center border-b-2 border-blue-700 pb-3 mb-4"><h2 id="pdf-nome-oficina" class="text-xl font-black text-blue-700 italic uppercase">PÁTIO PRO</h2><span id="detalhe-os" class="text-blue-700 font-black text-lg"></span></div><div class="info-row"><div class="info-item"><span class="label-ref">Placa</span><p id="detalhe-placa" class="value-ref text-blue-600 text-lg"></p></div><div class="info-item"><span class="label-ref">Modelo</span><p id="detalhe-modelo" class="value-ref"></p></div></div><div class="info-full"><span class="label-ref">Cliente</span><p id="detalhe-cliente" class="value-ref"></p></div><div class="info-row"><div class="info-item"><span class="label-ref">Entrada</span><p id="detalhe-entrada" class="value-ref"></p></div><div class="info-item"><span class="label-ref">Saída</span><p id="detalhe-saida" class="value-ref"></p></div></div><div class="mt-4 p-4 bg-blue-50 rounded-2xl"><span class="label-ref text-blue-400">Serviço Realizado</span><p id="detalhe-servico" class="value-ref italic text-blue-900"></p></div><div id="detalhe-fotos-pdf" class="mt-6"></div></div></div><button id="btn-excluir-relatorio" class="w-full max-w-[400px] bg-red-50 text-red-600 font-black p-5 rounded-3xl uppercase text-xs mt-4 mb-20 border border-red-100">Excluir Permanente</button></div></div>
-
-    <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 id="app-nome-display" class="text-xl font-black italic uppercase leading-none">PÁTIO PRO</h1>
-                <span id="status-drive" class="text-[9px] font-bold opacity-70 italic uppercase">Local</span>
-            </div>
-            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold italic uppercase"></span>
+    <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl flex justify-between items-center">
+        <div>
+            <h1 id="app-nome-display" class="text-xl font-black italic uppercase">PÁTIO PRO</h1>
+            <span id="status-drive" class="text-[9px] font-bold opacity-70 uppercase">Local</span>
         </div>
+        <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase"></span>
     </header>
 
     <main class="p-4 max-w-xl mx-auto">
+        <div class="mb-4">
+            <input type="text" id="busca-geral" onkeyup="filtrarTudo()" placeholder="🔍 BUSCAR PLACA" class="w-full p-4 rounded-2xl bg-white border-2 font-bold uppercase text-center outline-none focus:border-blue-500 shadow-sm">
+        </div>
+
         <section id="aba-entrada" class="tab-content active">
             <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
                 <form id="form-entrada" class="space-y-4">
                     <input type="hidden" id="edit-id">
-                    <div class="flex justify-between items-center">
-                        <span id="titulo-form" class="text-[10px] font-bold text-gray-400 uppercase">Novo Registro</span>
-                        <span id="proxima-os" class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #000</span>
+                    <div class="flex justify-between items-center text-[10px] font-bold">
+                        <span id="titulo-form" class="text-gray-400 uppercase">Novo Registro</span>
+                        <span id="proxima-os" class="text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #000</span>
                     </div>
-                    <input type="text" id="input-data-entrada" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center uppercase outline-none">
-                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center uppercase focus:border-blue-500 outline-none">
+                    <input type="text" id="input-data-entrada" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center outline-none">
+                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center uppercase outline-none">
                     <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                     <input type="text" id="cliente" placeholder="CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
-                    <select id="status-veiculo" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase text-sm text-blue-600 outline-none">
-                        <option value="Diagnóstico">Diagnóstico</option><option value="Aguardando Peça">Aguardando Peça</option><option value="Em Manutenção">Em Manutenção</option><option value="Finalizado">Finalizado</option>
-                    </select>
+                    
                     <div id="container-previa" class="hidden grid grid-cols-3 gap-2"></div>
+                    
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50">
+                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 bg-blue-50 cursor-pointer">
                             <span class="font-bold text-[10px] uppercase">📸 Foto</span>
                             <input type="file" id="foto-camera" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this)">
                         </label>
-                        <button type="submit" id="btn-submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Registrar</button>
+                        <button type="submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Registrar</button>
                     </div>
                 </form>
             </div>
         </section>
 
-        <section id="aba-patio" class="tab-content"><div id="lista-veiculos" class="space-y-4"></div></section>
-        <section id="aba-agendamento" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl shadow-md border border-orange-100 mb-6">
-                <h3 class="text-orange-600 font-black italic uppercase text-xs mb-4">📅 Novo Agendamento</h3>
-                <form id="form-agendamento" class="space-y-3"><input type="date" id="agend-data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold outline-none"><input type="text" id="agend-veiculo" placeholder="VEÍCULO / CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none"><button type="submit" class="w-full bg-orange-500 text-white font-black p-4 rounded-2xl uppercase shadow-lg text-xs">Reservar Data</button></form>
-            </div>
-            <div id="lista-agendamentos" class="space-y-2"></div>
-        </section>
-
-        <section id="aba-relatorio" class="tab-content">
-            <div class="mb-4 bg-white p-4 rounded-3xl shadow-sm border border-blue-100"><input type="text" id="busca-os" onkeyup="filtrarRelatorio()" placeholder="🔍 BUSCAR PLACA OU O.S." class="w-full p-4 rounded-2xl bg-gray-50 border-2 font-bold uppercase text-xs outline-none"></div>
-            <div id="lista-relatorio" class="space-y-3"></div>
+        <section id="aba-patio" class="tab-content">
+            <div id="lista-veiculos" class="space-y-4"></div>
         </section>
 
         <section id="aba-config" class="tab-content">
             <div class="bg-white p-6 rounded-3xl shadow-md space-y-4">
-                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Configurações</h3>
+                <h3 class="text-xs font-black uppercase text-blue-700 italic border-b pb-2">Configurações & Cloud</h3>
+                
                 <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                    <p class="text-[10px] font-black text-blue-700 mb-2 uppercase">Nuvem Google Drive</p>
-                    <button id="btn-login-drive" onclick="loginGoogle()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase shadow-md">Conectar meu Drive</button>
+                    <p class="text-[10px] font-black text-blue-700 mb-2 uppercase">Independência Google Drive</p>
+                    <button id="btn-login-drive" onclick="loginGoogle()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">Conectar meu Drive</button>
+                    <p class="text-[8px] text-gray-400 mt-2">*Cada usuário usa seu próprio Drive pessoal.</p>
                 </div>
+
                 <input type="text" id="config-nome" placeholder="NOME DA OFICINA" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
                 <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl uppercase text-[10px]">Salvar Nome</button>
+                
                 <div class="grid grid-cols-2 gap-3 pt-4 border-t">
-                    <button onclick="exportarBackup()" class="bg-gray-800 text-white p-4 rounded-2xl text-[9px] font-bold uppercase">Backup</button>
-                    <button onclick="document.getElementById('input-import').click()" class="bg-gray-200 text-gray-600 p-4 rounded-2xl text-[9px] font-bold uppercase">Restaurar Dados</button>
+                    <button onclick="exportarBackup()" class="bg-gray-800 text-white p-4 rounded-2xl text-[9px] font-bold uppercase">Backup Celular</button>
+                    <button onclick="document.getElementById('input-import').click()" class="bg-gray-200 text-gray-600 p-4 rounded-2xl text-[9px] font-bold uppercase">Restaurar</button>
                     <input type="file" id="input-import" class="hidden" onchange="importarBackup(this)">
                 </div>
             </div>
@@ -103,24 +92,35 @@
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span class="text-xl">➕</span><span class="text-[8px] font-bold uppercase mt-1">Entrada</span></button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">🚗</span><span class="text-[8px] font-bold uppercase mt-1">Pátio</span></button>
-        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📅</span><span class="text-[8px] font-bold uppercase mt-1">Agenda</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">📋</span><span class="text-[8px] font-black uppercase mt-1">Histórico</span></button>
-        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span class="text-xl">⚙️</span><span class="text-[8px] font-bold uppercase mt-1">Ajustes</span></button>
+        <button onclick="mudarAba('entrada')" class="nav-button active flex-1 flex flex-col items-center"><span>➕</span><span class="text-[8px] font-bold mt-1">ENTRADA</span></button>
+        <button onclick="mudarAba('patio')" class="nav-button flex-1 flex flex-col items-center"><span>🚗</span><span class="text-[8px] font-bold mt-1">PÁTIO</span></button>
+        <button onclick="mudarAba('config')" class="nav-button flex-1 flex flex-col items-center"><span>⚙️</span><span class="text-[8px] font-bold mt-1">AJUSTES</span></button>
     </nav>
 
     <script>
         const CLIENT_ID = "317001427708-1rglariag6m8l4vi4a19noduuuk2dg6b.apps.googleusercontent.com";
+        
+        // VOLTANDO PARA OS NOMES DE GAVETA ORIGINAIS (PARA NÃO PERDER DADOS)
         let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
         let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
         let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
         let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO", os_counter: 1 };
+        
         let fotosTemporarias = [];
         let googleToken = null;
         let fileIdDrive = null;
 
-        // LÓGICA GOOGLE DRIVE
+        document.getElementById('input-data-entrada').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+
+        function mudarAba(aba) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            document.getElementById('aba-' + aba).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if(aba === 'patio') renderizarPatio();
+        }
+
+        // GOOGLE DRIVE
         function loginGoogle() {
             const client = google.accounts.oauth2.initTokenClient({
                 client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
@@ -136,8 +136,10 @@
         }
 
         async function buscarArquivoNoDrive() {
-            const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='patio_pro_db.json'`, { headers: { 'Authorization': `Bearer ${googleToken}` } });
-            const d = await r.json(); if (d.files && d.files.length > 0) fileIdDrive = d.files[0].id;
+            try {
+                const r = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='patio_pro_db.json'`, { headers: { 'Authorization': `Bearer ${googleToken}` } });
+                const d = await r.json(); if (d.files && d.files.length > 0) fileIdDrive = d.files[0].id;
+            } catch(e) {}
         }
 
         async function salvarNoDrive() {
@@ -152,9 +154,7 @@
             await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${googleToken}` }, body: formData });
         }
 
-        // FUNÇÕES ORIGINAIS
-        function verificarSenha() { if(document.getElementById('senha-licenca').value === "0907") { localStorage.setItem('data_ativacao', Date.now()); location.reload(); } }
-        
+        // PROCESSAR FOTO (COMPRESSÃO MÁXIMA PARA QUANTIDADE)
         async function processarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -162,7 +162,8 @@
                     const img = new Image(); img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        canvas.width = 400; canvas.height = img.height * (400 / img.width); // COMPRESSÃO PESADA
+                        const max_w = 350;
+                        canvas.width = max_w; canvas.height = img.height * (max_w / img.width);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         fotosTemporarias.push(canvas.toDataURL('image/jpeg', 0.3));
                         renderizarPrevias();
@@ -174,60 +175,59 @@
 
         function renderizarPrevias() {
             const container = document.getElementById('container-previa'); container.innerHTML = '';
-            fotosTemporarias.forEach((f, i) => { container.innerHTML += `<div class="relative h-20 rounded-xl overflow-hidden border-2 border-blue-100"><img src="${f}" class="w-full h-full object-cover"><button type="button" onclick="fotosTemporarias.splice(${i},1);renderizarPrevias()" class="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 font-bold">×</button></div>`; });
+            fotosTemporarias.forEach((f, i) => { 
+                container.innerHTML += `<div class="relative h-16 rounded-xl overflow-hidden border"><img src="${f}" class="w-full h-full object-cover"><button type="button" onclick="fotosTemporarias.splice(${i},1);renderizarPrevias()" class="absolute top-0 right-0 bg-red-600 text-white px-1">✕</button></div>`; 
+            });
             container.classList.toggle('hidden', fotosTemporarias.length === 0);
         }
 
-        document.getElementById('form-entrada').addEventListener('submit', async (e) => {
+        document.getElementById('form-entrada').onsubmit = async function(e) {
             e.preventDefault();
-            const idEdit = document.getElementById('edit-id').value;
-            const dados = { placa: document.getElementById('placa').value.toUpperCase(), modelo: document.getElementById('modelo').value.toUpperCase(), cliente: document.getElementById('cliente').value.toUpperCase(), status: document.getElementById('status-veiculo').value, entrada: document.getElementById('input-data-entrada').value, fotos: [...fotosTemporarias] };
-            if (idEdit) {
-                const index = patio.findIndex(v => v.id == idEdit);
-                patio[index] = {...patio[index], ...dados};
-            } else {
-                const novo = { id: Date.now(), os: config.os_counter.toString().padStart(3, '0'), dataRaw: new Date().toISOString(), ...dados };
-                patio.unshift(novo); config.os_counter++;
-                localStorage.setItem('patio_config', JSON.stringify(config));
-            }
+            const dados = {
+                id: Date.now(),
+                os: config.os_counter.toString().padStart(3, '0'),
+                placa: document.getElementById('placa').value.toUpperCase(),
+                modelo: document.getElementById('modelo').value.toUpperCase(),
+                cliente: document.getElementById('cliente').value.toUpperCase(),
+                entrada: document.getElementById('input-data-entrada').value,
+                fotos: [...fotosTemporarias]
+            };
+            
+            patio.unshift(dados);
+            config.os_counter++;
+            
             localStorage.setItem('patio_data', JSON.stringify(patio));
-            await salvarNoDrive(); location.reload();
-        });
-
-        window.mudarAba = (aba) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
-            document.getElementById('aba-' + aba).classList.add('active');
-            document.getElementById('btn-nav-' + aba).classList.add('active');
-            if(aba === 'patio') renderizarPátio();
-            if(aba === 'agendamento') renderizarAgendamentos();
-            if(aba === 'relatorio') renderizarRelatorio();
+            localStorage.setItem('patio_config', JSON.stringify(config));
+            
+            if(googleToken) await salvarNoDrive();
+            
+            alert("Veículo Registrado!");
+            location.reload();
         };
 
-        function renderizarPátio() {
-            const c = document.getElementById('lista-veiculos'); c.innerHTML = '';
+        function renderizarPatio() {
+            const lista = document.getElementById('lista-veiculos');
+            lista.innerHTML = '';
             document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
             patio.forEach(v => {
-                c.innerHTML += `<div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex gap-4 items-center"><img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-50 flex-shrink-0"><div class="flex-1 overflow-hidden"><div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black text-blue-600">OS #${v.os}</span><span class="text-[9px] font-bold text-blue-500 uppercase">${v.status}</span></div><div class="font-black text-lg leading-none mb-1">${v.placa}</div><div class="text-[9px] text-gray-400 font-bold truncate uppercase">${v.modelo}</div><div class="flex gap-2 mt-2"><button onclick="editarVeiculo(${v.id})" class="flex-1 text-[8px] font-black bg-gray-100 text-gray-500 p-2 rounded-lg uppercase">Editar</button><button onclick="abrirModalSaida(${v.id})" class="flex-1 text-[8px] font-black bg-green-600 text-white p-2 rounded-lg uppercase">Saída</button></div></div></div>`;
+                lista.innerHTML += `
+                <div class="bg-white p-4 rounded-3xl shadow-sm border flex gap-4 items-center">
+                    <img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-100">
+                    <div class="flex-1">
+                        <div class="text-[9px] font-bold text-blue-600">OS #${v.os}</div>
+                        <div class="font-black text-lg">${v.placa}</div>
+                        <div class="text-[10px] text-gray-400 font-bold">${v.modelo}</div>
+                    </div>
+                </div>`;
             });
         }
 
-        window.abrirModalSaida = (id) => { document.getElementById('saida-id-temp').value = id; document.getElementById('input-data-saida').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}); document.getElementById('modal-saida').style.display = 'flex'; };
-        window.confirmarSaidaFinal = async () => {
-            const id = document.getElementById('saida-id-temp').value; const v = patio.find(v => v.id == id);
-            historico.unshift({...v, saida: document.getElementById('input-data-saida').value, servico: document.getElementById('input-servico-final').value.toUpperCase() || "CONCLUÍDO"});
-            localStorage.setItem('patio_historico', JSON.stringify(historico)); patio = patio.filter(v => v.id != id);
-            localStorage.setItem('patio_data', JSON.stringify(patio)); await salvarNoDrive(); location.reload();
-        };
-
-        window.fecharModalSaida = () => document.getElementById('modal-saida').style.display = 'none';
         function salvarConfig() { config.nome = document.getElementById('config-nome').value.toUpperCase(); localStorage.setItem('patio_config', JSON.stringify(config)); location.reload(); }
         
         // Inicialização
         document.getElementById('app-nome-display').innerText = config.nome;
-        document.getElementById('config-nome').value = config.nome;
-        document.getElementById('proxima-os').innerText = `OS: #${config.os_counter.toString().padStart(3, '0')}`;
-        renderizarPátio();
+        document.getElementById('proxima-os').innerText = "OS: #" + config.os_counter.toString().padStart(3, '0');
+        renderizarPatio();
     </script>
 </body>
 </html>

@@ -5,10 +5,10 @@
   "display": "standalone",
   "background_color": "#1d4ed8",
   "theme_color": "#1d4ed8",
-  "description": "Gestão de Oficina com Google Drive",
+  "description": "Gestão de Oficina Diesel",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3003/3003194.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3524/3524659.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

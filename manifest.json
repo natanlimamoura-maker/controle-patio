@@ -1,23 +1,16 @@
 {
   "name": "Pátio Pro Extreme",
-  "short_name": "PátioPro",
+  "short_name": "Pátio Pro",
+  "description": "Sistema de Controle de Pátio Diesel",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1d4ed8",
   "theme_color": "#1d4ed8",
-  "description": "Gestão de Oficina Diesel",
   "icons": [
-    {
-      "src": "https://img.icons8.com/fluency/144/service.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
     {
       "src": "https://img.icons8.com/fluency/512/service.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }
   ]
 }

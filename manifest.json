@@ -5,13 +5,13 @@
   "display": "standalone",
   "background_color": "#1d4ed8",
   "theme_color": "#1d4ed8",
-  "description": "Gestão de Oficina Diesel",
+  "description": "Gestão Profissional de Oficinas",
   "icons": [
     {
-      "src": "https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/settings/default/48px.svg",
-      "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "https://img.icons8.com/fluency/512/service.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

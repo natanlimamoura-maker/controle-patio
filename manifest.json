@@ -3,13 +3,15 @@
   "short_name": "PátioPro",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#050505",
-  "theme_color": "#e11d48",
+  "background_color": "#1d4ed8",
+  "theme_color": "#1d4ed8",
+  "description": "Gestão de Oficina com Google Drive",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/741/741407.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/3003/3003194.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pátio Pro Extreme</title>
+    <title>Pátio Pro Extreme Cloud</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1d4ed8">
@@ -12,163 +12,108 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/741/741407.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
         body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .nav-button.active { color: #2563eb; background: #eff6ff; border-radius: 15px; }
-        #bloqueio, #modal-saida, #pagina-detalhes { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
+        #modal-saida, #pagina-detalhes { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         #pagina-detalhes { background: #f3f4f6; flex-direction: column; justify-content: flex-start; overflow-y: auto; padding: 0; }
-        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .foto-pdf-final { width: 100%; max-width: 700px; display: block; margin: 15px auto; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 text-gray-800 font-sans">
 
-    <div id="bloqueio">
-        <div class="modal-content text-center border-t-8 border-red-600">
-            <h2 class="text-xl font-black mb-2 uppercase">Licença Expirada</h2>
-            <input type="password" id="senha-licenca" placeholder="SENHA 0907" class="border-2 p-4 rounded-2xl w-full mb-4 text-center font-bold">
-            <button onclick="verificarSenha()" class="bg-red-600 text-white w-full py-4 rounded-2xl font-black uppercase">Ativar</button>
+    <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-3xl flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-black italic">PÁTIO PRO</h1>
+            <span id="status-drive" class="text-[9px] font-bold text-blue-200 uppercase">Aguardando Drive</span>
         </div>
-    </div>
+        <button id="btn-login" onclick="loginGoogle()" class="bg-white text-blue-700 text-[10px] px-3 py-2 rounded-xl font-black uppercase">Conectar Drive</button>
+    </header>
+
+    <main class="p-4 max-w-xl mx-auto">
+        <div class="mb-6">
+            <input type="text" id="busca-placa" onkeyup="buscarPlaca()" placeholder="🔍 BUSCAR PLACA" class="w-full p-5 rounded-3xl border-none shadow-md font-black uppercase text-center focus:ring-4 ring-blue-300 outline-none">
+        </div>
+
+        <section id="aba-entrada" class="tab-content active">
+            <form id="form-patio" class="bg-white p-6 rounded-3xl shadow-xl space-y-4">
+                <input type="hidden" id="edit-id" value="">
+                <div class="flex justify-between items-center text-[10px] font-black text-gray-400">
+                    <span id="label-os">NOVO REGISTRO</span>
+                    <span id="proxima-os" class="text-blue-600 bg-blue-50 px-2 py-1 rounded">OS: #001</span>
+                </div>
+                
+                <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl text-2xl text-center font-black uppercase outline-none focus:border-blue-500">
+                <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
+                <input type="text" id="cliente" placeholder="CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
+                
+                <div id="previa" class="grid grid-cols-4 gap-2 hidden"></div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="flex flex-col items-center justify-center border-2 border-dashed border-blue-200 p-4 rounded-2xl text-blue-600 bg-blue-50 cursor-pointer">
+                        <span class="text-[10px] font-black">📸 FOTO</span>
+                        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="compactarFoto(this)">
+                    </label>
+                    <button type="submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Salvar</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="aba-patio" class="tab-content">
+            <div id="lista-veiculos" class="space-y-4"></div>
+        </section>
+
+        <section id="resultado-busca" class="mt-4 space-y-4"></section>
+    </main>
 
     <div id="modal-saida">
-        <div class="modal-content">
-            <h3 class="font-black text-blue-700 uppercase italic mb-4">Finalizar Saída</h3>
+        <div class="bg-white p-6 rounded-3xl w-full max-w-sm m-4 shadow-2xl">
+            <h3 class="font-black text-blue-700 uppercase mb-4">Finalizar Saída</h3>
             <input type="hidden" id="saida-id-temp">
-            <input type="text" id="input-data-saida" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-4 text-center font-bold">
             <input type="text" id="input-servico-final" placeholder="SERVIÇO REALIZADO" class="w-full bg-gray-50 border-2 p-4 rounded-2xl mb-6 font-bold uppercase">
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="fecharModalSaida()" class="bg-gray-100 p-4 rounded-2xl uppercase font-bold text-xs">Voltar</button>
+                <button onclick="fecharModalSaida()" class="bg-gray-100 p-4 rounded-2xl font-bold uppercase text-xs">Voltar</button>
                 <button onclick="confirmarSaidaFinal()" class="bg-green-600 text-white p-4 rounded-2xl font-black uppercase text-xs">Concluir</button>
             </div>
         </div>
     </div>
 
-    <div id="pagina-detalhes">
-        <header class="bg-blue-700 text-white p-5 w-full flex justify-between items-center shadow-lg sticky top-0 z-[10000]">
-            <button onclick="fecharDetalhes()" class="text-xl font-bold">←</button>
-            <h1 class="text-xs font-black uppercase italic">Comprovante</h1>
-            <button onclick="gerarPDF()" class="bg-green-500 text-[10px] px-3 py-2 rounded-lg font-black uppercase">PDF</button>
-        </header>
-        <div id="conteudo-pdf" class="p-4 bg-white m-2 rounded-2xl">
-            <div class="border-b-2 border-blue-700 pb-2 mb-4 flex justify-between items-center">
-                <h2 id="pdf-nome-oficina" class="text-xl font-black text-blue-700">PÁTIO PRO</h2>
-                <span id="detalhe-os" class="font-black text-lg"></span>
-            </div>
-            <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div><label class="text-[9px] font-bold text-gray-400">PLACA</label><p id="detalhe-placa" class="font-black text-blue-600"></p></div>
-                <div><label class="text-[9px] font-bold text-gray-400">MODELO</label><p id="detalhe-modelo" class="font-bold"></p></div>
-            </div>
-            <div class="mb-4"><label class="text-[9px] font-bold text-gray-400">CLIENTE</label><p id="detalhe-cliente" class="font-bold uppercase"></p></div>
-            <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div><label class="text-[9px] font-bold text-gray-400">ENTRADA</label><p id="detalhe-entrada" class="font-bold"></p></div>
-                <div><label class="text-[9px] font-bold text-gray-400">SAÍDA</label><p id="detalhe-saida" class="font-bold"></p></div>
-            </div>
-            <div class="bg-blue-50 p-3 rounded-xl mb-4">
-                <label class="text-[9px] font-bold text-blue-400">SERVIÇO</label>
-                <p id="detalhe-servico" class="font-bold italic text-blue-900"></p>
-            </div>
-            <div id="detalhe-fotos-pdf"></div>
-        </div>
-        <button id="btn-excluir-relatorio" class="m-4 p-4 bg-red-50 text-red-600 font-bold rounded-2xl uppercase text-xs">Excluir Permanente</button>
-    </div>
-
-    <header class="bg-blue-700 text-white p-5 shadow-lg sticky top-0 z-50 rounded-b-2xl">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 id="app-nome-display" class="text-xl font-black italic uppercase">PÁTIO PRO</h1>
-                <span id="dias-restantes" class="text-[9px] opacity-70"></span>
-            </div>
-            <span id="contador" class="bg-blue-900 px-3 py-1 rounded-full text-[10px] font-bold"></span>
-        </div>
-    </header>
-
-    <main class="p-4 max-w-xl mx-auto">
-        <section id="aba-entrada" class="tab-content active">
-            <div class="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
-                <form id="form-entrada" class="space-y-4">
-                    <input type="hidden" id="edit-id" value="">
-                    <div class="flex justify-between items-center">
-                        <span id="titulo-form" class="text-[10px] font-bold text-gray-400 uppercase">Novo Registro</span>
-                        <span id="proxima-os" class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded"></span>
-                    </div>
-                    <input type="text" id="input-data-entrada" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold text-center outline-none">
-                    <input type="text" id="placa" placeholder="PLACA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-black text-xl text-center uppercase outline-none">
-                    <input type="text" id="modelo" placeholder="MODELO / MARCA" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
-                    <input type="text" id="cliente" placeholder="CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase outline-none">
-                    <select id="status-veiculo" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase text-sm text-blue-600">
-                        <option value="Diagnóstico">Diagnóstico</option>
-                        <option value="Aguardando Peça">Aguardando Peça</option>
-                        <option value="Em Manutenção">Em Manutenção</option>
-                        <option value="Finalizado">Finalizado</option>
-                    </select>
-                    <div id="container-previa" class="hidden grid grid-cols-3 gap-2"></div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex flex-col items-center justify-center border-2 border-blue-200 p-4 rounded-2xl text-blue-600 cursor-pointer bg-blue-50">
-                            <span class="font-bold text-[10px] uppercase">📸 Foto</span>
-                            <input type="file" id="foto-camera" accept="image/*" capture="environment" class="hidden" onchange="processarFoto(this)">
-                        </label>
-                        <button type="submit" class="bg-blue-600 text-white font-black rounded-2xl shadow-lg uppercase text-xs">Salvar O.S.</button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <section id="aba-patio" class="tab-content"><div id="lista-veiculos" class="space-y-4"></div></section>
-        <section id="aba-agendamento" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl shadow-md mb-6">
-                <form id="form-agendamento" class="space-y-3">
-                    <input type="date" id="agend-data" required class="w-full bg-gray-50 border-2 p-3 rounded-2xl font-bold">
-                    <input type="text" id="agend-veiculo" placeholder="VEÍCULO / CLIENTE" required class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase">
-                    <button type="submit" class="w-full bg-orange-500 text-white font-black p-4 rounded-2xl uppercase text-xs">Reservar</button>
-                </form>
-            </div>
-            <div id="lista-agendamentos"></div>
-        </section>
-        <section id="aba-relatorio" class="tab-content">
-            <input type="text" id="busca-os" onkeyup="renderizarRelatorio()" placeholder="🔍 BUSCAR PLACA" class="w-full p-4 mb-4 rounded-2xl bg-white border-2 font-bold uppercase text-xs">
-            <div id="lista-relatorio" class="space-y-3"></div>
-        </section>
-        <section id="aba-config" class="tab-content">
-            <div class="bg-white p-6 rounded-3xl space-y-4">
-                <input type="text" id="config-nome" placeholder="NOME DA OFICINA" class="w-full bg-gray-50 border-2 p-4 rounded-2xl font-bold uppercase">
-                <button onclick="salvarConfig()" class="w-full bg-blue-700 text-white font-bold p-3 rounded-xl uppercase text-[10px]">Salvar Nome</button>
-                <button onclick="exportarBackup()" class="w-full bg-gray-800 text-white p-4 rounded-2xl text-[9px] font-bold uppercase">Backup Dados</button>
-            </div>
-        </section>
-    </main>
-
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-20 z-50">
-        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex flex-col items-center flex-1 p-2"><span>➕</span><span class="text-[8px] font-bold uppercase">Entrada</span></button>
-        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex flex-col items-center flex-1 p-2"><span>🚗</span><span class="text-[8px] font-bold uppercase">Pátio</span></button>
-        <button onclick="mudarAba('agendamento')" id="btn-nav-agendamento" class="nav-button flex flex-col items-center flex-1 p-2"><span>📅</span><span class="text-[8px] font-bold uppercase">Agenda</span></button>
-        <button onclick="mudarAba('relatorio')" id="btn-nav-relatorio" class="nav-button flex flex-col items-center flex-1 p-2"><span>📋</span><span class="text-[8px] font-black uppercase">Histórico</span></button>
-        <button onclick="mudarAba('config')" id="btn-nav-config" class="nav-button flex flex-col items-center flex-1 p-2"><span>⚙️</span><span class="text-[8px] font-bold uppercase">Ajustes</span></button>
+        <button onclick="mudarAba('entrada')" id="btn-nav-entrada" class="nav-button active flex-1 flex flex-col items-center"><span>➕</span><span class="text-[8px] font-bold">ENTRADA</span></button>
+        <button onclick="mudarAba('patio')" id="btn-nav-patio" class="nav-button flex-1 flex flex-col items-center"><span>🚗</span><span class="text-[8px] font-bold">PÁTIO</span></button>
+        <button onclick="mudarAba('busca')" id="btn-nav-busca" class="nav-button flex-1 flex flex-col items-center"><span>📋</span><span class="text-[8px] font-bold">HISTÓRICO</span></button>
     </nav>
 
     <script>
-        // CORE DATA
-        let patio = JSON.parse(localStorage.getItem('patio_data')) || [];
-        let historico = JSON.parse(localStorage.getItem('patio_historico')) || [];
-        let agendamentos = JSON.parse(localStorage.getItem('patio_agendamentos')) || [];
-        let config = JSON.parse(localStorage.getItem('patio_config')) || { nome: "PÁTIO PRO", os_counter: 1 };
-        let fotosTemporarias = [];
+        const CLIENT_ID = "317001427708-1rglariag6m8l4vi4a19noduuuk2dg6b.apps.googleusercontent.com";
+        let db = JSON.parse(localStorage.getItem('patio_db')) || []; // Dados persistentes
+        let patio = JSON.parse(localStorage.getItem('patio_data')) || []; // Dados no pátio agora
+        let config = JSON.parse(localStorage.getItem('patio_config')) || { os_counter: 1 };
+        let fotosTemp = [];
+        let googleToken = null;
+        let fileIdDrive = null;
 
-        // INICIALIZAÇÃO
-        document.getElementById('input-data-entrada').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
-        atualizarOSDisplay();
-
-        function atualizarOSDisplay() {
-            document.getElementById('proxima-os').innerText = "OS: #" + config.os_counter.toString().padStart(3, '0');
+        // Login Google Independente
+        function loginGoogle() {
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                callback: async (response) => {
+                    googleToken = response.access_token;
+                    document.getElementById('btn-login').innerText = "☁️ CONECTADO";
+                    document.getElementById('btn-login').className = "bg-green-100 text-green-700 text-[10px] px-3 py-2 rounded-xl font-bold uppercase";
+                    document.getElementById('status-drive').innerText = "Backup Drive Ativo";
+                    await buscarArquivoNoDrive();
+                },
+            });
+            client.requestAccessToken();
         }
 
-        // PROCESSAR FOTO
-        async function processarFoto(input) {
+        // Compactação Extrema (Foco em Quantidade)
+        function compactarFoto(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -176,188 +121,160 @@
                     img.src = e.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
+                        const max_w = 300; 
+                        canvas.width = max_w;
+                        canvas.height = img.height * (max_w / img.width);
                         const ctx = canvas.getContext('2d');
-                        canvas.width = 800;
-                        canvas.height = img.height * (800 / img.width);
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        fotosTemporarias.push(canvas.toDataURL('image/jpeg', 0.7));
-                        renderizarPrevias();
+                        const base64 = canvas.toDataURL('image/jpeg', 0.2);
+                        fotosTemp.push(base64);
+                        document.getElementById('previa').classList.remove('hidden');
+                        document.getElementById('previa').innerHTML += `<img src="${base64}" class="h-12 w-full object-cover rounded">`;
                     };
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        function renderizarPrevias() {
-            const container = document.getElementById('container-previa');
-            container.innerHTML = '';
-            fotosTemporarias.forEach((f, i) => {
-                container.innerHTML += `<div class="relative h-20 rounded-xl overflow-hidden border"><img src="${f}" class="w-full h-full object-cover"><button type="button" onclick="fotosTemporarias.splice(${i},1);renderizarPrevias()" class="absolute top-0 right-0 bg-red-600 text-white px-1">×</button></div>`;
-            });
-            container.classList.toggle('hidden', fotosTemporarias.length === 0);
-        }
-
-        // SALVAR REGISTRO (CORRIGIDO)
-        document.getElementById('form-entrada').addEventListener('submit', function(e) {
+        // Salvar Registro
+        document.getElementById('form-patio').onsubmit = async function(e) {
             e.preventDefault();
             const idEdit = document.getElementById('edit-id').value;
-
-            const dadosVeiculo = {
+            const dados = {
                 placa: document.getElementById('placa').value.toUpperCase(),
                 modelo: document.getElementById('modelo').value.toUpperCase(),
                 cliente: document.getElementById('cliente').value.toUpperCase(),
-                status: document.getElementById('status-veiculo').value,
-                entrada: document.getElementById('input-data-entrada').value,
-                fotos: [...fotosTemporarias]
+                fotos: [...fotosTemp],
+                data: new Date().toLocaleDateString('pt-BR')
             };
 
             if (idEdit) {
                 const idx = patio.findIndex(v => v.id == idEdit);
-                patio[idx] = { ...patio[idx], ...dadosVeiculo };
+                patio[idx] = { ...patio[idx], ...dados };
                 document.getElementById('edit-id').value = "";
-                document.getElementById('titulo-form').innerText = "Novo Registro";
             } else {
-                const novo = {
-                    id: Date.now(),
-                    os: config.os_counter.toString().padStart(3, '0'),
-                    dataRaw: new Date().toISOString(),
-                    ...dadosVeiculo
-                };
+                const novo = { id: Date.now(), os: config.os_counter.toString().padStart(3, '0'), ...dados };
                 patio.unshift(novo);
+                db.unshift(novo); // Salva no histórico também
                 config.os_counter++;
-                localStorage.setItem('patio_config', JSON.stringify(config));
             }
 
-            localStorage.setItem('patio_data', JSON.stringify(patio));
+            atualizarStorage();
+            if(googleToken) await salvarNoDrive();
+            
+            alert("Veículo no Pátio!");
             this.reset();
-            fotosTemporarias = [];
-            renderizarPrevias();
-            atualizarOSDisplay();
-            alert("Salvo com sucesso!");
+            fotosTemp = [];
+            document.getElementById('previa').innerHTML = '';
+            document.getElementById('previa').classList.add('hidden');
             mudarAba('patio');
-        });
-
-        // NAVEGAÇÃO E RENDER
-        window.mudarAba = (aba) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
-            document.getElementById('aba-' + aba).classList.add('active');
-            document.getElementById('btn-nav-' + aba).classList.add('active');
-            if(aba === 'patio') renderizarPatio();
-            if(aba === 'relatorio') renderizarRelatorio();
-            if(aba === 'agendamento') renderizarAgendamentos();
         };
 
+        // Funções de Pátio e Histórico
+        function mudarAba(aba) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            if(aba === 'busca') {
+                document.getElementById('btn-nav-busca').classList.add('active');
+                // A busca fica visível por padrão, mas podemos focar nela
+                document.getElementById('busca-placa').focus();
+            } else {
+                document.getElementById('aba-' + aba).classList.add('active');
+                document.getElementById('btn-nav-' + aba).classList.add('active');
+            }
+            if(aba === 'patio') renderizarPatio();
+        }
+
         function renderizarPatio() {
-            const c = document.getElementById('lista-veiculos');
-            c.innerHTML = '';
-            document.getElementById('contador').innerText = patio.length + " NO PÁTIO";
+            const lista = document.getElementById('lista-veiculos');
+            lista.innerHTML = '';
             patio.forEach(v => {
-                c.innerHTML += `
+                lista.innerHTML += `
                 <div class="bg-white p-4 rounded-3xl shadow-sm border flex gap-4 items-center">
                     <img src="${v.fotos[0] || ''}" class="w-16 h-16 rounded-2xl object-cover bg-gray-100">
                     <div class="flex-1">
-                        <div class="flex justify-between text-[9px] font-bold"><span class="text-blue-600">OS #${v.os}</span><span class="text-orange-600">${v.status}</span></div>
+                        <div class="text-[9px] font-bold text-blue-600">OS #${v.os}</div>
                         <div class="font-black text-lg">${v.placa}</div>
-                        <div class="text-[10px] text-gray-400 uppercase">${v.modelo}</div>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="editarVeiculo(${v.id})" class="flex-1 bg-gray-100 p-2 rounded-lg text-[8px] font-bold">EDITAR</button>
-                            <button onclick="abrirModalSaida(${v.id})" class="flex-1 bg-green-600 text-white p-2 rounded-lg text-[8px] font-bold">SAÍDA</button>
+                            <button onclick="prepararEdicao(${v.id})" class="flex-1 bg-gray-100 p-2 rounded-xl text-[8px] font-bold">EDITAR</button>
+                            <button onclick="abrirModalSaida(${v.id})" class="flex-1 bg-green-600 text-white p-2 rounded-xl text-[8px] font-bold">SAÍDA</button>
                         </div>
                     </div>
                 </div>`;
             });
         }
 
-        window.editarVeiculo = (id) => {
-            const v = patio.find(v => v.id == id);
-            document.getElementById('edit-id').value = v.id;
-            document.getElementById('placa').value = v.placa;
-            document.getElementById('modelo').value = v.modelo;
-            document.getElementById('cliente').value = v.cliente;
-            document.getElementById('status-veiculo').value = v.status;
-            fotosTemporarias = [...v.fotos];
-            renderizarPrevias();
-            document.getElementById('titulo-form').innerText = "Editando OS #" + v.os;
-            mudarAba('entrada');
-        };
-
         window.abrirModalSaida = (id) => {
             document.getElementById('saida-id-temp').value = id;
-            document.getElementById('input-data-saida').value = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
             document.getElementById('modal-saida').style.display = 'flex';
         };
 
-        window.fecharModalSaida = () => document.getElementById('modal-saida').style.display = 'none';
-
         window.confirmarSaidaFinal = () => {
             const id = document.getElementById('saida-id-temp').value;
-            const v = patio.find(v => v.id == id);
-            const historicoItem = {
-                ...v,
-                saida: document.getElementById('input-data-saida').value,
-                servico: document.getElementById('input-servico-final').value.toUpperCase() || "CONCLUÍDO"
-            };
-            historico.unshift(historicoItem);
-            localStorage.setItem('patio_historico', JSON.stringify(historico));
+            const v = patio.find(x => x.id == id);
+            // Ao sair do pátio, atualizamos o histórico com o serviço
+            const servico = document.getElementById('input-servico-final').value.toUpperCase();
+            const idxDb = db.findIndex(x => x.id == id);
+            if(idxDb !== -1) db[idxDb].servico = servico;
+            
             patio = patio.filter(x => x.id != id);
-            localStorage.setItem('patio_data', JSON.stringify(patio));
-            fecharModalSaida();
-            mudarAba('relatorio');
+            atualizarStorage();
+            document.getElementById('modal-saida').style.display = 'none';
+            mudarAba('patio');
         };
 
-        function renderizarRelatorio() {
-            const busca = document.getElementById('busca-os').value.toUpperCase();
-            const r = document.getElementById('lista-relatorio');
-            r.innerHTML = '';
-            historico.filter(v => v.placa.includes(busca)).forEach(v => {
-                r.innerHTML += `<div onclick="abrirDetalhes(${v.id})" class="bg-white p-4 rounded-3xl border flex gap-4 items-center">
-                    <img src="${v.fotos[0] || ''}" class="w-12 h-12 rounded-xl object-cover">
-                    <div><div class="text-[8px] text-gray-400">OS #${v.os}</div><div class="font-black">${v.placa}</div></div>
+        function buscarPlaca() {
+            const termo = document.getElementById('busca-placa').value.toUpperCase();
+            const res = document.getElementById('resultado-busca');
+            res.innerHTML = '';
+            if(termo.length < 2) return;
+
+            db.filter(v => v.placa.includes(termo)).forEach(v => {
+                res.innerHTML += `
+                <div class="bg-white p-4 rounded-3xl shadow-md border-l-8 border-blue-600">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-black">${v.placa}</h2>
+                            <p class="text-[10px] text-gray-400">OS #${v.os} - ${v.data}</p>
+                            <p class="text-[10px] font-bold text-blue-600">${v.servico || 'PÁTIO'}</p>
+                        </div>
+                        <div class="flex gap-1">${v.fotos.map(f => `<img src="${f}" class="w-12 h-12 rounded-lg object-cover">`).join('')}</div>
+                    </div>
                 </div>`;
             });
         }
 
-        window.abrirDetalhes = (id) => {
-            const v = historico.find(v => v.id == id);
-            document.getElementById('detalhe-os').innerText = "OS #" + v.os;
-            document.getElementById('detalhe-placa').innerText = v.placa;
-            document.getElementById('detalhe-modelo').innerText = v.modelo;
-            document.getElementById('detalhe-cliente').innerText = v.cliente;
-            document.getElementById('detalhe-entrada').innerText = v.entrada;
-            document.getElementById('detalhe-saida').innerText = v.saida;
-            document.getElementById('detalhe-servico').innerText = v.servico;
-            const grid = document.getElementById('detalhe-fotos-pdf');
-            grid.innerHTML = '';
-            v.fotos.forEach(f => { grid.innerHTML += `<img src="${f}" class="foto-pdf-final">`; });
-            document.getElementById('pagina-detalhes').style.display = 'flex';
-        }
-
-        window.fecharDetalhes = () => document.getElementById('pagina-detalhes').style.display = 'none';
-
-        window.gerarPDF = async () => {
-            const element = document.getElementById('conteudo-pdf');
-            const { jsPDF } = window.jspdf;
-            const canvas = await html2canvas(element, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(imgData, 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`OS_${document.getElementById('detalhe-placa').innerText}.pdf`);
-        };
-
-        function salvarConfig() {
-            config.nome = document.getElementById('config-nome').value.toUpperCase();
+        function atualizarStorage() {
+            localStorage.setItem('patio_data', JSON.stringify(patio));
+            localStorage.setItem('patio_db', JSON.stringify(db));
             localStorage.setItem('patio_config', JSON.stringify(config));
-            location.reload();
         }
 
-        // Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+        // Lógica Google Drive (File Create/Update)
+        async function buscarArquivoNoDrive() {
+            const resp = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='patio_pro_db.json'`, {
+                headers: { 'Authorization': `Bearer ${googleToken}` }
+            });
+            const data = await resp.json();
+            if (data.files && data.files.length > 0) fileIdDrive = data.files[0].id;
         }
 
-        renderizarPatio();
-        document.getElementById('app-nome-display').innerText = config.nome;
+        async function salvarNoDrive() {
+            const metadata = { name: 'patio_pro_db.json', mimeType: 'application/json' };
+            const formData = new FormData();
+            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+            formData.append('file', new Blob([JSON.stringify(db)], { type: 'application/json' }));
+            let url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+            let method = 'POST';
+            if (fileIdDrive) {
+                url = `https://www.googleapis.com/upload/drive/v3/files/${fileIdDrive}?uploadType=multipart`;
+                method = 'PATCH';
+            }
+            await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${googleToken}` }, body: formData });
+        }
+
+        function fecharModalSaida() { document.getElementById('modal-saida').style.display = 'none'; }
+        document.getElementById('proxima-os').innerText = "OS: #" + config.os_counter.toString().padStart(3, '0');
     </script>
 </body>
 </html>

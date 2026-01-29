@@ -1,18 +1,10 @@
-// Esse script permite que o navegador reconheça o site como um App Instalável
-const CACHE_NAME = 'patio-pro-cache-v1';
+const cacheName = 'patiopro-v1';
+const assets = ['index.html', 'manifest.json'];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(['./', './index.html']);
-    })
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets)));
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });

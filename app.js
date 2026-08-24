@@ -12,7 +12,7 @@ let fotosTemp = [];
 let fotosTempEstoque = null;
 let veiculoFotoAddId = null;
 
-// --- REGISTRO DO SERVICE WORKER (COM DESATUALIZAÇÃO DE CACHE) ---
+// --- REGISTRO DO SERVICE WORKER ---
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
     for (let registration of registrations) {
@@ -23,28 +23,35 @@ if ('serviceWorker' in navigator) {
 
 // --- INICIALIZAÇÃO ---
 window.onload = function() {
+    injetarBotaoSincronizacao();
     carregarTodosDados();
 };
+
+// Adiciona automaticamente o botão de sincronização visual na interface
+function injetarBotaoSincronizacao() {
+    if (document.getElementById('btn-sync-global')) return;
+    const header = document.querySelector('header') || document.body;
+    const divSync = document.createElement('div');
+    divSync.innerHTML = `
+        <div id="btn-sync-global" onclick="forcarSincronizacaoManual()" style="background:#dc2626; color:white; padding:8px 14px; text-align:center; font-size:10px; font-weight:900; cursor:pointer; text-transform:uppercase; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+            <span>🔄</span> Sincronizar Dados Locais para a Nuvem (PC / Celular)
+        </div>
+    `;
+    header.prepend(divSync);
+}
 
 async function carregarTodosDados() {
     try {
         // 1. CARREGA PÁTIO DO SUPABASE
         let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
-        
-        if (pErr) {
-            console.error("Erro Supabase Pátio:", pErr);
-            notificar("ERRO AO BUSCAR DADOS DO SUPABASE: " + pErr.message, "#dc2626");
-        }
-
         if (pData && pData.length > 0) {
             patio = pData;
         } else {
-            // Se o Supabase estiver vazio, tenta LocalStorage
             patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
         }
 
         // 2. CARREGA HISTÓRICO
-        let { data: hData, error: hErr } = await _supabase.from('historico').select('*');
+        let { data: hData } = await _supabase.from('historico').select('*');
         if (hData && hData.length > 0) {
             historico = hData;
         } else {
@@ -96,22 +103,24 @@ async function carregarTodosDados() {
 
         estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
-        // RENDERIZAÇÃO
         renderizarPatio();
         renderizarFinanceiro();
         renderizarEstoque();
 
-        // Tenta migrar automaticamente dados antigos do celular para o Supabase se existirem
-        migrarLocalStorageParaSupabase();
-
     } catch (err) {
         console.error("Erro na conexão:", err);
-        notificar("ERRO DE CONEXÃO COM A NUVEM", "#dc2626");
+        patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+        historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
+        transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
+        renderizarPatio();
+        renderizarFinanceiro();
+        renderizarEstoque();
     }
 }
 
-// --- MIGRAÇÃO AUTOMÁTICA DE LOCALSTORAGE PARA SUPABASE ---
-async function migrarLocalStorageParaSupabase() {
+// --- BOTÃO MANUAL DE SINCRONIZAÇÃO (JOGA DO CELULAR PARA A NUVEM) ---
+async function forcarSincronizacaoManual() {
+    notificar("ENVIANDO DADOS LOCAIS PARA A NUVEM...", "#1e40af");
     try {
         const localPatio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
         if (localPatio.length > 0) {
@@ -122,12 +131,9 @@ async function migrarLocalStorageParaSupabase() {
                 entrada: v.entrada,
                 fotos: v.fotos || []
             }));
-            const { error } = await _supabase.from('patio').insert(patioFormatado);
-            if (!error) {
-                localStorage.removeItem('patio_v3');
-                localStorage.removeItem('patio');
-                carregarTodosDados(); // Recarrega do Supabase
-            }
+            await _supabase.from('patio').insert(patioFormatado);
+            localStorage.removeItem('patio_v3');
+            localStorage.removeItem('patio');
         }
 
         const localHist = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
@@ -142,11 +148,9 @@ async function migrarLocalStorageParaSupabase() {
                 valor: h.valor || 0,
                 fotos: h.fotos || []
             }));
-            const { error } = await _supabase.from('historico').insert(histFormatado);
-            if (!error) {
-                localStorage.removeItem('historico_v3');
-                localStorage.removeItem('historico');
-            }
+            await _supabase.from('historico').insert(histFormatado);
+            localStorage.removeItem('historico_v3');
+            localStorage.removeItem('historico');
         }
 
         const localFin = JSON.parse(localStorage.getItem('transacoes')) || [];
@@ -157,17 +161,19 @@ async function migrarLocalStorageParaSupabase() {
                 valor: t.valor,
                 data: t.data
             }));
-            const { error } = await _supabase.from('financeiro').insert(finFormatado);
-            if (!error) {
-                localStorage.removeItem('transacoes');
-            }
+            await _supabase.from('financeiro').insert(finFormatado);
+            localStorage.removeItem('transacoes');
         }
+
+        notificar("SINCRONIZADO COM SUCESSO! ATUALIZE O PC.", "#16a34a");
+        setTimeout(() => carregarTodosDados(), 1500);
     } catch (err) {
-        console.error("Erro na migração automática:", err);
+        console.error("Erro na sincronização:", err);
+        notificar("ERRO AO SINCRONIZAR DADOS", "#dc2626");
     }
 }
 
-// --- COMPRESSOR REUTILIZÁVEL DE IMAGEM ---
+// --- COMPRESSOR UNIVERSAL DE IMAGEM (QUALQUER FORMATO: PNG, JPG, WEBP, ETC) ---
 function comprimirFoto(input, callback) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -177,10 +183,11 @@ function comprimirFoto(input, callback) {
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 500;
-                canvas.height = img.height * (500 / img.width);
+                canvas.width = 600;
+                canvas.height = img.height * (600 / img.width);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                callback(canvas.toDataURL('image/jpeg', 0.6));
+                // Converte qualquer formato de imagem para JPEG compactado de alta compatibilidade
+                callback(canvas.toDataURL('image/jpeg', 0.7));
             };
         };
         reader.readAsDataURL(input.files[0]);
@@ -250,8 +257,18 @@ if (formEntrada) {
             renderizarPatio();
             notificar("ENTRADA REGISTRADA", "#16a34a");
         } else {
-            console.error("Erro ao salvar veículo:", error);
-            notificar("ERRO AO SALVAR NO SUPABASE!", "#dc2626");
+            // Salva localmente caso esteja sem internet momentânea
+            v.id = Date.now().toString();
+            patio.unshift(v);
+            let localPatio = JSON.parse(localStorage.getItem('patio_v3')) || [];
+            localPatio.unshift(v);
+            localStorage.setItem('patio_v3', JSON.stringify(localPatio));
+            
+            fotosTemp = [];
+            formEntrada.reset();
+            renderizarPrevias();
+            renderizarPatio();
+            notificar("SALVO LOCALMENTE (CLIQUE EM SINCRONIZAR)", "#d97706");
         }
     };
 }
@@ -312,6 +329,7 @@ async function confirmarSaidaFinal() {
 
     const novoHist = { placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos };
     await _supabase.from('historico').insert([novoHist]);
+    historico.unshift(novoHist);
 
     if (valor > 0) {
         const lancamento = { tipo: 'RECEITA', descricao: `SERVIÇO: ${v.placa} (${v.modelo})`, valor: valor, data: dataHoje };
@@ -477,7 +495,7 @@ function renderizarRelatorio() {
     const buscaInput = document.getElementById('busca-historico');
     const busca = buscaInput ? buscaInput.value.toUpperCase() : '';
     
-    historico.filter(v => v.placa.includes(busca) || v.cliente.includes(busca)).forEach(v => {
+    historico.filter(v => (v.placa && v.placa.includes(busca)) || (v.cliente && v.cliente.includes(busca))).forEach(v => {
         container.innerHTML += `
             <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center gap-3">
                 <div class="flex-1">
@@ -604,7 +622,7 @@ function notificar(msg, cor) {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.style.position = 'fixed';
-        container.style.top = '20px';
+        container.style.top = '45px';
         container.style.right = '20px';
         container.style.zIndex = '9999';
         document.body.appendChild(container);

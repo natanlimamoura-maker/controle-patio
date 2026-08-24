@@ -120,13 +120,37 @@
       border-radius: 6px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 15px;
+      font-size: 14px;
       width: 100%;
       text-transform: uppercase;
       margin-top: 5px;
     }
 
     .btn-action:hover { background-color: var(--hover-red); }
+
+    .btn-secondary {
+      background-color: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .btn-danger {
+      background-color: #b71c1c;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 5px;
+    }
 
     .grid-cards {
       display: grid;
@@ -195,7 +219,7 @@
       border: 2px solid var(--primary-red);
     }
 
-    .modal-content .img-box { height: 250px; }
+    .modal-content .img-box { height: 200px; }
 
     .report-list {
       text-align: left;
@@ -208,6 +232,14 @@
 
     .report-item { margin-bottom: 8px; font-size: 14px; color: var(--text-white); }
     .report-item strong { color: var(--primary-red); }
+
+    .saida-box {
+      background-color: #121212;
+      border: 1px solid var(--primary-red);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
 
     .btn-close {
       background-color: #444;
@@ -276,23 +308,29 @@
   <div id="aba-estoque" class="tab-content">
     <div class="form-container">
       <h2>Cadastrar Peça</h2>
-      <div class="form-group">
-        <label>Nome da Peça:</label>
-        <input type="text" id="pecaNome" placeholder="Ex: Injetor Common Rail">
-      </div>
-      <div class="form-group">
-        <label>Quantidade:</label>
-        <input type="number" id="pecaQtd" min="0" placeholder="Ex: 5">
-      </div>
-      <div class="form-group">
-        <label>Foto da Peça:</label>
-        <input type="file" id="pecaFoto" accept="image/*">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Código da Peça:</label>
+          <input type="text" id="pecaCodigo" placeholder="Ex: F00RJ02130">
+        </div>
+        <div class="form-group">
+          <label>Nome da Peça:</label>
+          <input type="text" id="pecaNome" placeholder="Ex: Injetor Common Rail">
+        </div>
+        <div class="form-group">
+          <label>Quantidade:</label>
+          <input type="number" id="pecaQtd" min="0" placeholder="Ex: 5">
+        </div>
+        <div class="form-group">
+          <label>Foto da Peça:</label>
+          <input type="file" id="pecaFoto" accept="image/*">
+        </div>
       </div>
       <button class="btn-action" id="btnSalvarPeca" onclick="salvarPeca()">Salvar no Estoque</button>
     </div>
 
     <h2>Peças em Estoque</h2>
-    <input type="text" id="buscaPecas" class="search-input" placeholder="🔍 Pesquisar peça pelo nome..." oninput="filtrarPecas()">
+    <input type="text" id="buscaPecas" class="search-input" placeholder="🔍 Pesquisar peça por código ou nome..." oninput="filtrarPecas()">
     <div id="gridPecas" class="grid-cards"></div>
   </div>
 
@@ -310,7 +348,7 @@
     <div id="gridHistEstoque" class="grid-cards"></div>
   </div>
 
-  <!-- MODAL DE DETALHES -->
+  <!-- MODAL DE DETALHES E EDIÇÃO -->
   <div id="modalDetalhes" class="modal-overlay">
     <div class="modal-content">
       <div class="img-box" id="modalImgContainer"></div>
@@ -482,7 +520,7 @@
 
     function filtrarPecas() {
       const t = document.getElementById('buscaPecas').value.toLowerCase().trim();
-      const list = pecasData.filter(p => (p.name || '').toLowerCase().includes(t));
+      const list = pecasData.filter(p => (p.name || '').toLowerCase().includes(t) || (p.code || '').toLowerCase().includes(t));
 
       const grid = document.getElementById('gridPecas');
       if (list.length === 0) {
@@ -495,18 +533,21 @@
         const fotoUrl = (p.img && p.img.trim().length > 5) ? p.img.trim() : PLACEHOLDER_IMG;
         const card = document.createElement('div');
         card.className = 'card-item';
+        card.onclick = () => verEDitarPeca(p);
         card.innerHTML = `
           <div class="img-box"><img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'"></div>
           <div class="titulo">${p.name || 'Sem Nome'}</div>
-          <div class="sub">Qtd: ${p.qty ?? 0}</div>
+          <div class="sub">Cód: ${p.code || 'Sem Cód'}</div>
+          <div class="sub" style="color:var(--primary-red); font-weight:bold;">Qtd: ${p.qty ?? 0}</div>
         `;
         grid.appendChild(card);
       });
     }
 
     async function salvarPeca() {
+      const code = document.getElementById('pecaCodigo').value.trim();
       const name = document.getElementById('pecaNome').value.trim();
-      const qty = Number(document.getElementById('pecaQtd').value);
+      const qty = Number(document.getElementById('pecaQtd').value || 0);
       const file = document.getElementById('pecaFoto').files[0];
 
       if (!name) return alert('Informe o nome da peça!');
@@ -515,12 +556,13 @@
         let img = null;
         if (file) img = await uploadFoto(file, 'pecas');
 
-        await _supabase.from('produtos').insert([{ name, qty, img }]);
+        await _supabase.from('produtos').insert([{ code, name, qty, img }]);
         
-        // Regista no histórico do estoque
+        // Registra entrada no histórico
         const dataHoje = new Date().toISOString().split('T')[0];
-        await _supabase.from('historico').insert([{ date: dataHoje, text: `Adicionado: ${qty}x ${name}` }]);
+        await _supabase.from('historico').insert([{ date: dataHoje, text: `Adicionado: ${qty}x ${name} (Cód: ${code || 'Sem Cód'})` }]);
 
+        document.getElementById('pecaCodigo').value = '';
         document.getElementById('pecaNome').value = '';
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
@@ -528,6 +570,118 @@
         alert('Peça salva no estoque!');
       } catch (err) {
         alert('Erro: ' + err.message);
+      }
+    }
+
+    function verEDitarPeca(p) {
+      const fotoUrl = (p.img && p.img.trim().length > 5) ? p.img.trim() : PLACEHOLDER_IMG;
+      document.getElementById('modalImgContainer').innerHTML = `<img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
+
+      document.getElementById('modalReport').innerHTML = `
+        <div class="form-group">
+          <label>Código da Peça:</label>
+          <input type="text" id="editPecaCode" value="${p.code || ''}">
+        </div>
+        <div class="form-group">
+          <label>Nome da Peça:</label>
+          <input type="text" id="editPecaName" value="${p.name || ''}">
+        </div>
+        <div class="form-group">
+          <label>Quantidade Atual em Estoque:</label>
+          <input type="number" id="editPecaQty" value="${p.qty ?? 0}">
+        </div>
+        <div class="form-group">
+          <label>Trocar Foto (Opcional):</label>
+          <input type="file" id="editPecaFoto" accept="image/*">
+        </div>
+      `;
+
+      document.getElementById('modalBtnAcao').innerHTML = `
+        <div class="saida-box">
+          <h3 style="color:var(--primary-red); font-size:14px; margin-bottom:8px;">DAR SAÍDA / USAR PEÇA</h3>
+          <div class="form-group">
+            <label>Qtd a Retirar:</label>
+            <input type="number" id="saidaQtd" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label>Onde vai usar / Destino:</label>
+            <input type="text" id="saidaUso" placeholder="Ex: Usado na Hilux do João / Cliente ABC">
+          </div>
+          <button class="btn-action" onclick="darSaidaPeca(${p.id})">Confirmar Saída da Peça</button>
+        </div>
+
+        <button class="btn-secondary" onclick="atualizarPeca(${p.id}, '${p.img || ''}')">Salvar Alterações dos Dados</button>
+        <button class="btn-danger" onclick="deletarPeca(${p.id})">Excluir Peça do Estoque</button>
+      `;
+
+      document.getElementById('modalDetalhes').style.display = 'flex';
+    }
+
+    async function darSaidaPeca(id) {
+      const p = pecasData.find(item => item.id === id);
+      if (!p) return;
+
+      const qtdBaixar = Number(document.getElementById('saidaQtd').value || 0);
+      const uso = document.getElementById('saidaUso').value.trim();
+
+      if (qtdBaixar <= 0) return alert('Informe uma quantidade válida!');
+      if (qtdBaixar > p.qty) return alert('Quantidade para saída é maior que o estoque atual!');
+
+      const novaQtd = p.qty - qtdBaixar;
+
+      try {
+        // Atualiza a nova quantidade
+        await _supabase.from('produtos').update({ qty: novaQtd }).eq('id', id);
+
+        // Grava no Histórico do Estoque
+        const dataHoje = new Date().toISOString().split('T')[0];
+        const textoHist = `Removido (${uso || 'Geral'}): ${qtdBaixar}x ${p.name} (Cód: ${p.code || 'N/I'})`;
+        await _supabase.from('historico').insert([{ date: dataHoje, text: textoHist }]);
+
+        alert('Saída registrada com sucesso!');
+        fecharModal();
+        carregarPecas();
+      } catch (err) {
+        alert('Erro ao dar saída: ' + err.message);
+      }
+    }
+
+    async function atualizarPeca(id, imgAtual) {
+      const code = document.getElementById('editPecaCode').value.trim();
+      const name = document.getElementById('editPecaName').value.trim();
+      const qty = Number(document.getElementById('editPecaQty').value || 0);
+      const file = document.getElementById('editPecaFoto').files[0];
+
+      if (!name) return alert('O nome da peça não pode ficar em branco!');
+
+      try {
+        let img = imgAtual;
+        if (file) {
+          img = await uploadFoto(file, 'pecas');
+        }
+
+        await _supabase.from('produtos').update({ code, name, qty, img }).eq('id', id);
+
+        const dataHoje = new Date().toISOString().split('T')[0];
+        await _supabase.from('historico').insert([{ date: dataHoje, text: `Edição de Dados: ${qty}x ${name} (Cód: ${code})` }]);
+
+        alert('Dados da peça atualizados!');
+        fecharModal();
+        carregarPecas();
+      } catch (err) {
+        alert('Erro ao atualizar: ' + err.message);
+      }
+    }
+
+    async function deletarPeca(id) {
+      if (!confirm('Deseja realmente excluir esta peça do estoque?')) return;
+      try {
+        await _supabase.from('produtos').delete().eq('id', id);
+        alert('Peça excluída com sucesso!');
+        fecharModal();
+        carregarPecas();
+      } catch (err) {
+        alert('Erro ao excluir: ' + err.message);
       }
     }
 
@@ -540,7 +694,6 @@
       filtrarHistEstoque();
     }
 
-    // 1. Filtra Apenas Veículos Liberados
     function filtrarHistVeiculos() {
       const t = document.getElementById('buscaHistVeiculos').value.toLowerCase().trim();
       const list = historicoData.filter(h => {
@@ -568,7 +721,6 @@
       });
     }
 
-    // 2. Filtra Apenas Movimentação de Peças/Estoque
     function filtrarHistEstoque() {
       const t = document.getElementById('buscaHistEstoque').value.toLowerCase().trim();
       const list = historicoData.filter(h => {

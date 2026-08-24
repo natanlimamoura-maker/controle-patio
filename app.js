@@ -33,7 +33,7 @@ function injetarBotaoSincronizacao() {
 // --- CARREGAMENTO DE DADOS (SUPABASE + FALLBACK LOCAL) ---
 async function carregarTodosDados() {
     try {
-        // 1. Pátio
+        // 1. Pátio (Tabela: patio)
         let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
         if (pErr) console.error("Erro ao ler pátio:", pErr);
 
@@ -44,7 +44,7 @@ async function carregarTodosDados() {
             patio = JSON.parse(dadosLocais);
         }
 
-        // 2. Histórico
+        // 2. Histórico (Tabela: historico)
         let { data: hData } = await _supabase.from('historico').select('*');
         if (hData && hData.length > 0) {
             historico = hData;
@@ -52,7 +52,7 @@ async function carregarTodosDados() {
             historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
         }
 
-        // 3. Financeiro
+        // 3. Financeiro (Tabela: financeiro)
         let { data: tData } = await _supabase.from('financeiro').select('*');
         if (tData && tData.length > 0) {
             transacoes = tData;
@@ -60,7 +60,7 @@ async function carregarTodosDados() {
             transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
         }
 
-        // 4. Estoque
+        // 4. Estoque (Tabela: estoque)
         let estoqueFinal = [];
         let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
         if (estoqueNovo && estoqueNovo.length > 0) {
@@ -121,7 +121,7 @@ async function forcarSincronizacaoManual() {
         fotos: Array.isArray(v.fotos) ? v.fotos : []
     }));
 
-    const { data, error } = await _supabase.from('patio').insert(patioFormatado).select();
+    const { error } = await _supabase.from('patio').insert(patioFormatado).select();
 
     if (error) {
         console.error("Erro Supabase Insert:", error);
@@ -185,7 +185,8 @@ function abrirAdicionarFotoVeiculo(id) {
 async function processarFotoExtraPatio(input) {
     if (!veiculoFotoAddId) return;
     comprimirFoto(input, async (fotoBase64) => {
-        const v = patio.find(x => x.id == veiculoFotoAddId || x.placa == veiculoFotoAddId);
+        const v = patio.find(x => String(x.id) === String(veiculoFotoAddId) || String(x.placa).toUpperCase() === String(veiculoFotoAddId).toUpperCase());
+        
         if (v) {
             const fotosAtuais = Array.isArray(v.fotos) ? v.fotos : [];
             const novasFotos = [...fotosAtuais, fotoBase64];
@@ -196,6 +197,8 @@ async function processarFotoExtraPatio(input) {
             v.fotos = novasFotos;
             renderizarPatio();
             notificar("FOTO ADICIONADA!", "#16a34a");
+        } else {
+            notificar("ERRO: Veículo não encontrado.", "#dc2626");
         }
         veiculoFotoAddId = null;
     });
@@ -289,7 +292,7 @@ function abrirSaida(id) {
 
 async function confirmarSaidaFinal() {
     const id = document.getElementById('saida-id-temp').value;
-    const v = patio.find(x => x.id == id || x.placa == id);
+    const v = patio.find(x => String(x.id) === String(id) || String(x.placa).toUpperCase() === String(id).toUpperCase());
     const servico = document.getElementById('input-servico-final').value.toUpperCase();
     const valor = parseFloat(document.getElementById('input-valor-servico').value) || 0;
     const dataHoje = new Date().toLocaleDateString('pt-BR');
@@ -310,7 +313,7 @@ async function confirmarSaidaFinal() {
         await _supabase.from('patio').delete().eq('placa', v.placa);
     }
 
-    patio = patio.filter(x => x.id != id && x.placa != id);
+    patio = patio.filter(x => String(x.id) !== String(id) && String(x.placa).toUpperCase() !== String(id).toUpperCase());
 
     fecharModal('modal-saida');
     renderizarPatio();

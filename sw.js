@@ -1,10 +1,13 @@
-const CACHE_NAME = 'patio-pro-v3';
-const assets = ['index.html', 'manifest.json'];
+const CACHE_NAME = 'oficina-v1';
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+self.addEventListener('activate', (e) => {
+  e.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (e) => {
+  // Pass-through para permitir requisições do Supabase e APIs
 });

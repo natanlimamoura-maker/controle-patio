@@ -12,9 +12,13 @@ let fotosTemp = [];
 let fotosTempEstoque = null;
 let veiculoFotoAddId = null;
 
-// --- REGISTRO DO SERVICE WORKER ---
+// --- REGISTRO DO SERVICE WORKER (COM DESATUALIZAÇÃO DE CACHE) ---
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Erro:', err));
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (let registration of registrations) {
+      registration.update();
+    }
+  });
 }
 
 // --- INICIALIZAÇÃO ---
@@ -24,25 +28,32 @@ window.onload = function() {
 
 async function carregarTodosDados() {
     try {
-        // 1. CARREGA PÁTIO (Tenta Supabase; se não vier nada ou der erro, puxa do LocalStorage)
+        // 1. CARREGA PÁTIO DO SUPABASE
         let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
-        if (!pErr && pData && pData.length > 0) {
+        
+        if (pErr) {
+            console.error("Erro Supabase Pátio:", pErr);
+            notificar("ERRO AO BUSCAR DADOS DO SUPABASE: " + pErr.message, "#dc2626");
+        }
+
+        if (pData && pData.length > 0) {
             patio = pData;
         } else {
+            // Se o Supabase estiver vazio, tenta LocalStorage
             patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
         }
 
         // 2. CARREGA HISTÓRICO
         let { data: hData, error: hErr } = await _supabase.from('historico').select('*');
-        if (!hErr && hData && hData.length > 0) {
+        if (hData && hData.length > 0) {
             historico = hData;
         } else {
             historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
         }
 
         // 3. CARREGA FINANCEIRO
-        let { data: tData, error: tErr } = await _supabase.from('financeiro').select('*');
-        if (!tErr && tData && tData.length > 0) {
+        let { data: tData } = await _supabase.from('financeiro').select('*');
+        if (tData && tData.length > 0) {
             transacoes = tData;
         } else {
             transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
@@ -85,23 +96,17 @@ async function carregarTodosDados() {
 
         estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
-        // RENDERIZA A TELA
+        // RENDERIZAÇÃO
         renderizarPatio();
         renderizarFinanceiro();
         renderizarEstoque();
 
-        // Se houver dados salvos só no celular, faz a migração automática para o Supabase
+        // Tenta migrar automaticamente dados antigos do celular para o Supabase se existirem
         migrarLocalStorageParaSupabase();
 
     } catch (err) {
-        console.error("Erro ao carregar dados:", err);
-        // Fallback total para LocalStorage em caso de falha de rede
-        patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
-        historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
-        transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
-        renderizarPatio();
-        renderizarFinanceiro();
-        renderizarEstoque();
+        console.error("Erro na conexão:", err);
+        notificar("ERRO DE CONEXÃO COM A NUVEM", "#dc2626");
     }
 }
 
@@ -121,6 +126,7 @@ async function migrarLocalStorageParaSupabase() {
             if (!error) {
                 localStorage.removeItem('patio_v3');
                 localStorage.removeItem('patio');
+                carregarTodosDados(); // Recarrega do Supabase
             }
         }
 
@@ -238,18 +244,15 @@ if (formEntrada) {
         const { data, error } = await _supabase.from('patio').insert([v]).select();
         if (!error && data) {
             patio.unshift(data[0]);
+            fotosTemp = [];
+            formEntrada.reset();
+            renderizarPrevias();
+            renderizarPatio();
+            notificar("ENTRADA REGISTRADA", "#16a34a");
         } else {
-            // Se falhar no Supabase, insere localmente
-            v.id = Date.now().toString();
-            patio.unshift(v);
-            localStorage.setItem('patio_v3', JSON.stringify(patio));
+            console.error("Erro ao salvar veículo:", error);
+            notificar("ERRO AO SALVAR NO SUPABASE!", "#dc2626");
         }
-
-        fotosTemp = [];
-        formEntrada.reset();
-        renderizarPrevias();
-        renderizarPatio();
-        notificar("ENTRADA REGISTRADA", "#16a34a");
     };
 }
 
@@ -624,5 +627,5 @@ function notificar(msg, cor) {
     setTimeout(() => { 
         toast.style.opacity = '0'; 
         setTimeout(() => toast.remove(), 500); 
-    }, 3000);
+    }, 4000);
 }

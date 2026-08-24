@@ -179,6 +179,7 @@ function processarFotoPatio(input) {
 
 function renderizarPrevias() {
     const c = document.getElementById('container-previa');
+    if (!c) return;
     c.innerHTML = '';
     fotosTemp.forEach(f => c.innerHTML += `<img src="${f}" class="h-20 w-full object-cover rounded-xl border">`);
     c.classList.toggle('hidden', fotosTemp.length === 0);
@@ -186,7 +187,8 @@ function renderizarPrevias() {
 
 function abrirAdicionarFotoVeiculo(id) {
     veiculoFotoAddId = id;
-    document.getElementById('input-foto-extra-patio').click();
+    const input = document.getElementById('input-foto-extra-patio');
+    if (input) input.click();
 }
 
 async function processarFotoExtraPatio(input) {
@@ -208,32 +210,38 @@ async function processarFotoExtraPatio(input) {
     });
 }
 
-document.getElementById('form-entrada').onsubmit = async function(e) {
-    e.preventDefault();
-    const dataAtual = new Date().toLocaleDateString('pt-BR');
-    const v = { 
-        placa: document.getElementById('placa').value.toUpperCase(),
-        modelo: document.getElementById('modelo').value.toUpperCase(),
-        cliente: document.getElementById('cliente').value.toUpperCase(),
-        entrada: dataAtual,
-        fotos: [...fotosTemp]
-    };
+const formEntrada = document.getElementById('form-entrada');
+if (formEntrada) {
+    formEntrada.onsubmit = async function(e) {
+        e.preventDefault();
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        const v = { 
+            placa: document.getElementById('placa').value.toUpperCase(),
+            modelo: document.getElementById('modelo').value.toUpperCase(),
+            cliente: document.getElementById('cliente').value.toUpperCase(),
+            entrada: dataAtual,
+            fotos: [...fotosTemp]
+        };
 
-    const { data, error } = await _supabase.from('patio').insert([v]).select();
-    if (!error && data) {
-        patio.unshift(data[0]);
-        fotosTemp = [];
-        document.getElementById('form-entrada').reset();
-        renderizarPrevias();
-        renderizarPatio();
-        notificar("ENTRADA REGISTRADA", "#16a34a");
-    }
-};
+        const { data, error } = await _supabase.from('patio').insert([v]).select();
+        if (!error && data) {
+            patio.unshift(data[0]);
+            fotosTemp = [];
+            formEntrada.reset();
+            renderizarPrevias();
+            renderizarPatio();
+            notificar("ENTRADA REGISTRADA", "#16a34a");
+        }
+    };
+}
 
 function renderizarPatio() {
     const list = document.getElementById('lista-veiculos');
+    if (!list) return;
     list.innerHTML = '';
-    document.getElementById('contador-patio').innerText = `${patio.length} NO PÁTIO`;
+    
+    const contador = document.getElementById('contador-patio');
+    if (contador) contador.innerText = `${patio.length} NO PÁTIO`;
     
     patio.forEach(v => {
         const fotos = Array.isArray(v.fotos) && v.fotos.length > 0 ? v.fotos : ['https://via.placeholder.com/150?text=Sem+Foto'];
@@ -261,8 +269,10 @@ function renderizarPatio() {
 }
 
 function abrirSaida(id) {
-    document.getElementById('saida-id-temp').value = id;
-    document.getElementById('modal-saida').style.display = 'flex';
+    const inputTemp = document.getElementById('saida-id-temp');
+    const modal = document.getElementById('modal-saida');
+    if (inputTemp) inputTemp.value = id;
+    if (modal) modal.style.display = 'flex';
 }
 
 async function confirmarSaidaFinal() {
@@ -295,6 +305,7 @@ async function confirmarSaidaFinal() {
 // --- MÓDULO FINANCEIRO ---
 function renderizarFinanceiro() {
     const container = document.getElementById('lista-transacoes');
+    if (!container) return;
     container.innerHTML = '';
     let totalRec = 0; 
     let totalDesp = 0;
@@ -316,11 +327,16 @@ function renderizarFinanceiro() {
         `;
     });
 
-    document.getElementById('total-receitas').innerText = `R$ ${totalRec.toFixed(2)}`;
-    document.getElementById('total-despesas').innerText = `R$ ${totalDesp.toFixed(2)}`;
+    const recElem = document.getElementById('total-receitas');
+    const despElem = document.getElementById('total-despesas');
+    if (recElem) recElem.innerText = `R$ ${totalRec.toFixed(2)}`;
+    if (despElem) despElem.innerText = `R$ ${totalDesp.toFixed(2)}`;
 }
 
-function abrirModalTransacao() { document.getElementById('modal-transacao').style.display = 'flex'; }
+function abrirModalTransacao() { 
+    const m = document.getElementById('modal-transacao');
+    if (m) m.style.display = 'flex'; 
+}
 
 async function salvarTransacaoManual() {
     const tipo = document.getElementById('trans-tipo').value;
@@ -346,13 +362,16 @@ function processarFotoEstoque(input) {
     comprimirFoto(input, (fotoBase64) => {
         fotosTempEstoque = fotoBase64;
         const prev = document.getElementById('previa-foto-estoque');
-        prev.src = fotoBase64;
-        prev.classList.remove('hidden');
+        if (prev) {
+            prev.src = fotoBase64;
+            prev.classList.remove('hidden');
+        }
     });
 }
 
 function renderizarEstoque() {
     const container = document.getElementById('lista-estoque');
+    if (!container) return;
     container.innerHTML = '';
     
     if (estoque.length === 0) {
@@ -382,8 +401,10 @@ function renderizarEstoque() {
 
 function abrirModalEstoque() { 
     fotosTempEstoque = null;
-    document.getElementById('previa-foto-estoque').classList.add('hidden');
-    document.getElementById('modal-estoque').style.display = 'flex'; 
+    const prev = document.getElementById('previa-foto-estoque');
+    const modal = document.getElementById('modal-estoque');
+    if (prev) prev.classList.add('hidden');
+    if (modal) modal.style.display = 'flex'; 
 }
 
 async function salvarItemEstoque() {
@@ -425,8 +446,10 @@ async function alterarQtdEstoque(id, delta, tabelaOrigem) {
 // --- HISTÓRICO & LAUDO PDF ---
 function renderizarRelatorio() {
     const container = document.getElementById('lista-relatorio');
+    if (!container) return;
     container.innerHTML = '';
-    const busca = document.getElementById('busca-historico').value.toUpperCase();
+    const buscaInput = document.getElementById('busca-historico');
+    const busca = buscaInput ? buscaInput.value.toUpperCase() : '';
     
     historico.filter(v => v.placa.includes(busca) || v.cliente.includes(busca)).forEach(v => {
         container.innerHTML += `
@@ -509,7 +532,7 @@ function gerarLaudoPDF(idHistorico) {
 
     const opt = {
         margin:       8,
-        filename:     `Laudo_${item.placa}_${item.cliente.replace(/\s+/g, '_')}.pdf`,
+        filename:     `Laudo_${item.placa}_${(item.cliente || 'CLIENTE').replace(/\s+/g, '_')}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -531,23 +554,49 @@ function mudarAba(id, titulo) {
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
     
-    document.getElementById(`aba-${id}`).classList.add('active');
-    if (event && event.currentTarget) {
-        event.currentTarget.classList.add('active');
+    const aba = document.getElementById(`aba-${id}`);
+    if (aba) aba.classList.add('active');
+
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
     }
-    document.getElementById('titulo-modulo').innerText = titulo;
+    
+    const tituloElem = document.getElementById('titulo-modulo');
+    if (tituloElem) tituloElem.innerText = titulo;
 
     if (id === 'relatorio') renderizarRelatorio();
 }
 
-function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+function fecharModal(id) { 
+    const m = document.getElementById(id);
+    if (m) m.style.display = 'none'; 
+}
 
 function notificar(msg, cor) {
-    const container = document.getElementById('toast-container');
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+    }
+
     const toast = document.createElement('div');
     toast.className = 'toast'; 
     toast.style.background = cor;
+    toast.style.color = '#fff';
+    toast.style.padding = '12px 20px';
+    toast.style.marginBottom = '8px';
+    toast.style.borderRadius = '12px';
+    toast.style.fontWeight = 'bold';
+    toast.style.fontSize = '12px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    toast.style.transition = 'opacity 0.5s ease';
     toast.innerText = msg; 
+
     container.appendChild(toast);
     setTimeout(() => { 
         toast.style.opacity = '0'; 

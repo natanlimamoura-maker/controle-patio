@@ -33,7 +33,7 @@ async function carregarTodosDados() {
         let { data: tData } = await _supabase.from('financeiro').select('*').order('created_at', { ascending: false });
         if (tData) transacoes = tData;
 
-        // --- BUSCA NO ESTOQUE (Combina tabela antiga 'produtos' e nova 'estoque') ---
+        // Combina tabela antiga 'produtos' e nova 'estoque'
         let estoqueFinal = [];
 
         let { data: produtosAntigos } = await _supabase.from('produtos').select('*');
@@ -98,7 +98,7 @@ function comprimirFoto(input, callback) {
     }
 }
 
-// --- MÓDULO PÁTIO (FOTOS MÚLTIPLAS) ---
+// --- MÓDULO PÁTIO ---
 function processarFotoPatio(input) {
     comprimirFoto(input, (fotoBase64) => {
         fotosTemp.push(fotoBase64);
@@ -113,7 +113,6 @@ function renderizarPrevias() {
     c.classList.toggle('hidden', fotosTemp.length === 0);
 }
 
-// Adicionar foto extra durante a permanência do veículo no pátio
 function abrirAdicionarFotoVeiculo(id) {
     veiculoFotoAddId = id;
     document.getElementById('input-foto-extra-patio').click();
@@ -168,13 +167,12 @@ function renderizarPatio() {
     patio.forEach(v => {
         const fotos = Array.isArray(v.fotos) && v.fotos.length > 0 ? v.fotos : ['https://via.placeholder.com/150?text=Sem+Foto'];
         const fotoCapa = fotos[0];
-
         let fotosHtml = fotos.map(f => `<img src="${f}" class="w-12 h-12 rounded-xl object-cover border">`).join('');
 
         list.innerHTML += `
         <div class="bg-white p-5 rounded-[30px] shadow-md border flex flex-col gap-3">
             <div class="flex gap-4 items-center">
-                <img src="${fotoCapa}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100">
+                <img src="${fotoCapa}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100 border">
                 <div class="flex-1">
                     <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
                     <div class="text-[10px] text-gray-400 font-bold mb-2">${v.modelo} - ${v.cliente}</div>
@@ -184,7 +182,6 @@ function renderizarPatio() {
                     </div>
                 </div>
             </div>
-            <!-- Galeria de Fotos do Veículo -->
             <div class="flex gap-1.5 overflow-x-auto pt-2 border-t">
                 ${fotosHtml}
             </div>
@@ -273,7 +270,7 @@ async function salvarTransacaoManual() {
     }
 }
 
-// --- MÓDULO ESTOQUE (COM FOTO COMPRIMIDA) ---
+// --- MÓDULO ESTOQUE ---
 function processarFotoEstoque(input) {
     comprimirFoto(input, (fotoBase64) => {
         fotosTempEstoque = fotoBase64;
@@ -354,6 +351,110 @@ async function alterarQtdEstoque(id, delta, tabelaOrigem) {
     }
 }
 
+// --- HISTÓRICO & LAUDO PDF ---
+function renderizarRelatorio() {
+    const container = document.getElementById('lista-relatorio');
+    container.innerHTML = '';
+    const busca = document.getElementById('busca-historico').value.toUpperCase();
+    
+    historico.filter(v => v.placa.includes(busca) || v.cliente.includes(busca)).forEach(v => {
+        container.innerHTML += `
+            <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center gap-3">
+                <div class="flex-1">
+                    <div class="font-black text-sm">${v.placa} - ${v.cliente}</div>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase">SAÍDA: ${v.saida} | R$ ${(v.valor || 0).toFixed(2)}</div>
+                    <div class="text-[10px] text-gray-600 mt-1 line-clamp-1">${v.servico || 'Sem descrição'}</div>
+                </div>
+                <button onclick="gerarLaudoPDF('${v.id}')" class="bg-red-600 text-white font-black px-3 py-2.5 rounded-2xl text-[9px] uppercase shadow-md active:scale-95 flex items-center gap-1">
+                    <span>📄</span> Laudo PDF
+                </button>
+            </div>`;
+    });
+}
+
+function gerarLaudoPDF(idHistorico) {
+    const item = historico.find(x => x.id == idHistorico) || patio.find(x => x.id == idHistorico);
+    if (!item) {
+        notificar("VEÍCULO NÃO ENCONTRADO", "#dc2626");
+        return;
+    }
+
+    const fotos = Array.isArray(item.fotos) && item.fotos.length > 0 ? item.fotos : [];
+    
+    let fotosHtml = '';
+    fotos.forEach((foto, index) => {
+        fotosHtml += `
+            <div style="text-align: center; border: 1px solid #e5e7eb; padding: 10px; border-radius: 12px; page-break-inside: avoid;">
+                <img src="${foto}" style="width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px;">
+                <p style="font-size: 10px; font-weight: bold; margin-top: 6px; color: #6b7280;">REGISTRO FOTOGRÁFICO #${index + 1}</p>
+            </div>
+        `;
+    });
+
+    const conteudoLaudo = `
+        <div id="laudo-container" style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
+            <div style="border-bottom: 3px solid #dc2626; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="font-size: 18px; font-weight: 900; color: #dc2626; margin: 0; text-transform: uppercase;">ALCANTARA'S DIESEL LTDA</h1>
+                    <p style="font-size: 10px; margin: 2px 0 0 0; font-weight: bold; color: #4b5563;">INJEÇÃO ELETRÔNICA DIESEL & SERVIÇOS ESPECIALIZADOS</p>
+                </div>
+                <div style="text-align: right; font-size: 10px; color: #6b7280;">
+                    <p style="margin: 0;">DATA: <strong>${item.saida || item.entrada || new Date().toLocaleDateString('pt-BR')}</strong></p>
+                    <p style="margin: 0; color: #dc2626; font-weight: bold;">LAUDO TÉCNICO FOTOGRÁFICO</p>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
+                <tr style="background: #f9fafb;">
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>CLIENTE:</strong> ${item.cliente || 'N/I'}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>PLACA:</strong> ${item.placa}</td>
+                </tr>
+                <tr style="background: #f9fafb;">
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>VEÍCULO / MODELO:</strong> ${item.modelo}</td>
+                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>ENTRADA:</strong> ${item.entrada}</td>
+                </tr>
+            </table>
+
+            <div style="margin-bottom: 20px; background: #fff5f5; padding: 12px; border-radius: 8px; border-left: 4px solid #dc2626;">
+                <h3 style="font-size: 11px; font-weight: bold; color: #dc2626; margin: 0 0 6px 0; text-transform: uppercase;">SERVIÇO / DIAGNÓSTICO EXECUTADO:</h3>
+                <p style="font-size: 11px; margin: 0; white-space: pre-line; color: #1f2937;">${item.servico || 'Revisão geral e manutenção técnica do sistema.'}</p>
+            </div>
+
+            <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 4px;">Evidências Fotográficas do Serviço</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                ${fotosHtml || '<p style="font-size: 10px; color: #9ca3af;">Nenhum registro fotográfico anexado.</p>'}
+            </div>
+
+            <div style="margin-top: 30px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 12px; font-size: 9px; color: #9ca3af;">
+                <p style="margin: 0;">ALCANTARA'S DIESEL LTDA - Laudo Técnico gerado via sistema de gestão de pátio.</p>
+            </div>
+        </div>
+    `;
+
+    const element = document.createElement('div');
+    element.innerHTML = conteudoLaudo;
+    document.body.appendChild(element);
+
+    const opt = {
+        margin:       8,
+        filename:     `Laudo_${item.placa}_${item.cliente.replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    notificar("GERANDO LAUDO EM PDF...", "#1e40af");
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        document.body.removeChild(element);
+        notificar("LAUDO GERADO COM SUCESSO!", "#16a34a");
+    }).catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        notificar("ERRO AO GERAR PDF", "#dc2626");
+    });
+}
+
 // --- NAVEGAÇÃO E SISTEMA ---
 function mudarAba(id, titulo) {
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
@@ -366,22 +467,6 @@ function mudarAba(id, titulo) {
     document.getElementById('titulo-modulo').innerText = titulo;
 
     if (id === 'relatorio') renderizarRelatorio();
-}
-
-function renderizarRelatorio() {
-    const container = document.getElementById('lista-relatorio');
-    container.innerHTML = '';
-    const busca = document.getElementById('busca-historico').value.toUpperCase();
-    
-    historico.filter(v => v.placa.includes(busca) || v.cliente.includes(busca)).forEach(v => {
-        container.innerHTML += `
-            <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center">
-                <div>
-                    <div class="font-black text-sm">${v.placa} - ${v.cliente}</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase">SAÍDA: ${v.saida} | R$ ${(v.valor || 0).toFixed(2)}</div>
-                </div>
-            </div>`;
-    });
 }
 
 function fecharModal(id) { document.getElementById(id).style.display = 'none'; }

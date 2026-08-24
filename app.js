@@ -44,8 +44,8 @@ async function carregarTodosDados() {
             patio = JSON.parse(dadosLocais);
         }
 
-        // 2. Histórico (Tabela: historico)
-        let { data: hData } = await _supabase.from('historico').select('*');
+        // 2. Histórico de Veículos (Tabela: historicoveiculos)
+        let { data: hData } = await _supabase.from('historicoveiculos').select('*');
         if (hData && hData.length > 0) {
             historico = hData;
         } else {
@@ -131,7 +131,6 @@ async function forcarSincronizacaoManual() {
 
     notificar("SUCESSO! DADOS ENVIADOS PARA A NUVEM.", "#16a34a");
     
-    // Limpa os locais antigos para evitar duplicidade
     localStorage.removeItem('patio_v3');
     localStorage.removeItem('patio_v2');
     localStorage.removeItem('patio');
@@ -228,7 +227,6 @@ if (formEntrada) {
             notificar("ENTRADA REGISTRADA NA NUVEM", "#16a34a");
         } else {
             console.error("Erro ao inserir:", error);
-            // Fallback para localStorage caso falhe a rede
             patio.unshift(v);
             let localPatio = JSON.parse(localStorage.getItem('patio_v3')) || [];
             localPatio.unshift(v);
@@ -299,8 +297,9 @@ async function confirmarSaidaFinal() {
 
     if (!v) return;
 
+    // Salva na tabela dedicada 'historicoveiculos'
     const novoHist = { placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos };
-    await _supabase.from('historico').insert([novoHist]);
+    await _supabase.from('historicoveiculos').insert([novoHist]);
 
     if (valor > 0) {
         const lancamento = { tipo: 'RECEITA', descricao: `SERVIÇO: ${v.placa} (${v.modelo})`, valor: valor, data: dataHoje };

@@ -9,6 +9,8 @@ let historico = [];
 let transacoes = [];
 let estoque = [];
 let fotosTemp = [];
+let fotosTempEstoque = null;
+let veiculoFotoAddId = null;
 
 // --- REGISTRO DO SERVICE WORKER ---
 if ('serviceWorker' in navigator) {
@@ -34,7 +36,6 @@ async function carregarTodosDados() {
         // --- BUSCA NO ESTOQUE (Combina tabela antiga 'produtos' e nova 'estoque') ---
         let estoqueFinal = [];
 
-        // 1. Busca na tabela antiga 'produtos'
         let { data: produtosAntigos } = await _supabase.from('produtos').select('*');
         if (produtosAntigos) {
             produtosAntigos.forEach(item => {
@@ -45,12 +46,12 @@ async function carregarTodosDados() {
                     quantidade: item.qty !== undefined ? item.qty : (item.quantidade || 0),
                     preco_custo: item.preco_custo || 0,
                     preco_venda: item.preco_venda || item.price || 0,
+                    img: item.img || item.foto || null,
                     tabela_origem: 'produtos'
                 });
             });
         }
 
-        // 2. Busca na tabela nova 'estoque'
         let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
         if (estoqueNovo) {
             estoqueNovo.forEach(item => {
@@ -61,12 +62,12 @@ async function carregarTodosDados() {
                     quantidade: item.quantidade || 0,
                     preco_custo: item.preco_custo || 0,
                     preco_venda: item.preco_venda || 0,
+                    img: item.img || item.foto || null,
                     tabela_origem: 'estoque'
                 });
             });
         }
 
-        // Ordena por nome
         estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
         renderizarPatio();
@@ -77,8 +78,8 @@ async function carregarTodosDados() {
     }
 }
 
-// --- MÓDULO PÁTIO ---
-function processarFoto(input) {
+// --- COMPRESSOR REUTILIZÁVEL DE IMAGEM ---
+function comprimirFoto(input, callback) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -90,12 +91,19 @@ function processarFoto(input) {
                 canvas.width = 500;
                 canvas.height = img.height * (500 / img.width);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                fotosTemp.push(canvas.toDataURL('image/jpeg', 0.6));
-                renderizarPrevias();
+                callback(canvas.toDataURL('image/jpeg', 0.6));
             };
         };
         reader.readAsDataURL(input.files[0]);
     }
+}
+
+// --- MÓDULO PÁTIO (FOTOS MÚLTIPLAS) ---
+function processarFotoPatio(input) {
+    comprimirFoto(input, (fotoBase64) => {
+        fotosTemp.push(fotoBase64);
+        renderizarPrevias();
+    });
 }
 
 function renderizarPrevias() {
@@ -103,6 +111,31 @@ function renderizarPrevias() {
     c.innerHTML = '';
     fotosTemp.forEach(f => c.innerHTML += `<img src="${f}" class="h-20 w-full object-cover rounded-xl border">`);
     c.classList.toggle('hidden', fotosTemp.length === 0);
+}
+
+// Adicionar foto extra durante a permanência do veículo no pátio
+function abrirAdicionarFotoVeiculo(id) {
+    veiculoFotoAddId = id;
+    document.getElementById('input-foto-extra-patio').click();
+}
+
+async function processarFotoExtraPatio(input) {
+    if (!veiculoFotoAddId) return;
+    comprimirFoto(input, async (fotoBase64) => {
+        const v = patio.find(x => x.id === veiculoFotoAddId);
+        if (v) {
+            const fotosAtuais = Array.isArray(v.fotos) ? v.fotos : [];
+            const novasFotos = [...fotosAtuais, fotoBase64];
+
+            const { error } = await _supabase.from('patio').update({ fotos: novasFotos }).eq('id', veiculoFotoAddId);
+            if (!error) {
+                v.fotos = novasFotos;
+                renderizarPatio();
+                notificar("FOTO ADICIONADA AO VEÍCULO!", "#16a34a");
+            }
+        }
+        veiculoFotoAddId = null;
+    });
 }
 
 document.getElementById('form-entrada').onsubmit = async function(e) {
@@ -133,14 +166,27 @@ function renderizarPatio() {
     document.getElementById('contador-patio').innerText = `${patio.length} NO PÁTIO`;
     
     patio.forEach(v => {
-        const fotoUrl = (v.fotos && v.fotos[0]) ? v.fotos[0] : 'https://via.placeholder.com/150?text=Sem+Foto';
+        const fotos = Array.isArray(v.fotos) && v.fotos.length > 0 ? v.fotos : ['https://via.placeholder.com/150?text=Sem+Foto'];
+        const fotoCapa = fotos[0];
+
+        let fotosHtml = fotos.map(f => `<img src="${f}" class="w-12 h-12 rounded-xl object-cover border">`).join('');
+
         list.innerHTML += `
-        <div class="bg-white p-5 rounded-[30px] shadow-md border flex gap-4 items-center">
-            <img src="${fotoUrl}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100">
-            <div class="flex-1">
-                <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
-                <div class="text-[10px] text-gray-400 font-bold mb-3">${v.modelo} - ${v.cliente}</div>
-                <button onclick="abrirSaida('${v.id}')" class="w-full bg-black text-white p-3 rounded-2xl text-[9px] font-black uppercase">Finalizar & Cobrar</button>
+        <div class="bg-white p-5 rounded-[30px] shadow-md border flex flex-col gap-3">
+            <div class="flex gap-4 items-center">
+                <img src="${fotoCapa}" class="w-20 h-20 rounded-3xl object-cover bg-gray-100">
+                <div class="flex-1">
+                    <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
+                    <div class="text-[10px] text-gray-400 font-bold mb-2">${v.modelo} - ${v.cliente}</div>
+                    <div class="flex gap-2">
+                        <button onclick="abrirSaida('${v.id}')" class="flex-1 bg-black text-white p-2.5 rounded-2xl text-[9px] font-black uppercase">Finalizar & Cobrar</button>
+                        <button onclick="abrirAdicionarFotoVeiculo('${v.id}')" class="bg-red-50 text-red-600 border border-red-200 px-3 py-2.5 rounded-2xl text-[10px] font-black">📷 +Foto</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Galeria de Fotos do Veículo -->
+            <div class="flex gap-1.5 overflow-x-auto pt-2 border-t">
+                ${fotosHtml}
             </div>
         </div>`;
     });
@@ -160,18 +206,15 @@ async function confirmarSaidaFinal() {
 
     if (!v) return;
 
-    // 1. Histórico
     const novoHist = { placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos };
     await _supabase.from('historico').insert([novoHist]);
 
-    // 2. Financeiro Automático
     if (valor > 0) {
         const lancamento = { tipo: 'RECEITA', descricao: `SERVIÇO: ${v.placa} (${v.modelo})`, valor: valor, data: dataHoje };
         const { data: tData } = await _supabase.from('financeiro').insert([lancamento]).select();
         if (tData) transacoes.unshift(tData[0]);
     }
 
-    // 3. Remover do Pátio
     await _supabase.from('patio').delete().eq('id', id);
     patio = patio.filter(x => x.id != id);
 
@@ -230,7 +273,16 @@ async function salvarTransacaoManual() {
     }
 }
 
-// --- MÓDULO ESTOQUE ---
+// --- MÓDULO ESTOQUE (COM FOTO COMPRIMIDA) ---
+function processarFotoEstoque(input) {
+    comprimirFoto(input, (fotoBase64) => {
+        fotosTempEstoque = fotoBase64;
+        const prev = document.getElementById('previa-foto-estoque');
+        prev.src = fotoBase64;
+        prev.classList.remove('hidden');
+    });
+}
+
 function renderizarEstoque() {
     const container = document.getElementById('lista-estoque');
     container.innerHTML = '';
@@ -241,14 +293,17 @@ function renderizarEstoque() {
     }
 
     estoque.forEach(item => {
+        const imgUrl = item.img ? item.img : 'https://via.placeholder.com/80?text=Pe%C3%A7a';
+
         container.innerHTML += `
-            <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center">
-                <div>
-                    <div class="font-black text-sm uppercase">${item.nome}</div>
+            <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center gap-3">
+                <img src="${imgUrl}" class="w-14 h-14 rounded-2xl object-cover bg-gray-100 border">
+                <div class="flex-1">
+                    <div class="font-black text-sm uppercase leading-tight">${item.nome}</div>
                     <div class="text-[10px] text-gray-400 font-bold">CÓD: ${item.codigo} | QTD: <span class="text-black font-black">${item.quantidade}</span></div>
                     <div class="text-[10px] text-emerald-600 font-bold">VENDA: R$ ${(item.preco_venda || 0).toFixed(2)}</div>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-1.5">
                     <button onclick="alterarQtdEstoque('${item.id}', -1, '${item.tabela_origem}')" class="bg-gray-100 font-black px-3 py-2 rounded-xl text-xs">-</button>
                     <button onclick="alterarQtdEstoque('${item.id}', 1, '${item.tabela_origem}')" class="bg-black text-white font-black px-3 py-2 rounded-xl text-xs">+</button>
                 </div>
@@ -257,7 +312,11 @@ function renderizarEstoque() {
     });
 }
 
-function abrirModalEstoque() { document.getElementById('modal-estoque').style.display = 'flex'; }
+function abrirModalEstoque() { 
+    fotosTempEstoque = null;
+    document.getElementById('previa-foto-estoque').classList.add('hidden');
+    document.getElementById('modal-estoque').style.display = 'flex'; 
+}
 
 async function salvarItemEstoque() {
     const codigo = document.getElementById('est-codigo').value.toUpperCase();
@@ -268,7 +327,7 @@ async function salvarItemEstoque() {
 
     if (!nome) { notificar("INFORME O NOME DA PEÇA", "#dc2626"); return; }
 
-    const novoItem = { codigo, nome, quantidade: qtd, preco_custo: custo, preco_venda: venda };
+    const novoItem = { codigo, nome, quantidade: qtd, preco_custo: custo, preco_venda: venda, img: fotosTempEstoque };
     const { data } = await _supabase.from('estoque').insert([novoItem]).select();
 
     if (data) {
@@ -292,8 +351,6 @@ async function alterarQtdEstoque(id, delta, tabelaOrigem) {
     if (!error) {
         item.quantidade = novaQtd;
         renderizarEstoque();
-    } else {
-        console.error("Erro ao atualizar quantidade:", error);
     }
 }
 

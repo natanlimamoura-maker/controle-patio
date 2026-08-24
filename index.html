@@ -255,10 +255,6 @@
           <input type="text" id="vCliente" placeholder="Nome do Cliente">
         </div>
         <div class="form-group">
-          <label>Telefone:</label>
-          <input type="text" id="vTelefone" placeholder="(00) 00000-0000">
-        </div>
-        <div class="form-group">
           <label>Modelo do Veículo:</label>
           <input type="text" id="vModelo" placeholder="Ex: Scania R450 / Hilux">
         </div>
@@ -269,10 +265,6 @@
         <div class="form-group">
           <label>Data Entrada:</label>
           <input type="date" id="vDataEntrada">
-        </div>
-        <div class="form-group full">
-          <label>O que foi feito / Defeito relatado:</label>
-          <textarea id="vServico" placeholder="Descreva os serviços ou reparações efetuadas..."></textarea>
         </div>
         <div class="form-group full">
           <label>Foto do Veículo:</label>
@@ -317,7 +309,7 @@
   <!-- ABA 4: HISTÓRICO DE SAÍDA DE VEÍCULOS -->
   <div id="aba-historico" class="tab-content">
     <h2>Histórico de Veículos Liberados</h2>
-    <input type="text" id="buscaHist" class="search-input" placeholder="🔍 Pesquisar histórico por placa ou cliente..." oninput="filtrarHistorico()">
+    <input type="text" id="buscaHist" class="search-input" placeholder="🔍 Pesquisar histórico..." oninput="filtrarHistorico()">
     <div id="gridHistorico" class="grid-cards"></div>
   </div>
 
@@ -340,15 +332,13 @@
     let pecasData = [];
     let historicoData = [];
 
-    // PLACEHOLDER LIMPO EM JS (Sem quebrar HTML)
     const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22120%22%20viewBox%3D%220%200%20150%20120%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%232b2b2b%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23777777%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E';
 
-    function obterFotoUrl(obj) {
-      const url = obj.foto_url || obj.foto || obj.fotos || obj.imagem || obj.url || '';
-      if (!url || typeof url !== 'string' || url.trim() === '' || url.includes('null') || url.includes('undefined')) {
-        return PLACEHOLDER_IMG;
-      }
-      return url.trim();
+    function extrairFotoPatio(fotos) {
+      if (!fotos) return PLACEHOLDER_IMG;
+      if (Array.isArray(fotos) && fotos.length > 0) return fotos[0];
+      if (typeof fotos === 'string' && fotos.trim().length > 5) return fotos.trim();
+      return PLACEHOLDER_IMG;
     }
 
     function trocarAba(aba) {
@@ -382,14 +372,12 @@
       return data.publicUrl;
     }
 
-    // --- CADASTRAR VEÍCULO ---
+    // --- ENTRADA VEÍCULO ---
     async function salvarVeiculoPatio() {
       const cliente = document.getElementById('vCliente').value.trim();
-      const telefone = document.getElementById('vTelefone').value.trim();
       const modelo = document.getElementById('vModelo').value.trim();
       const placa = document.getElementById('vPlaca').value.trim();
       const entrada = document.getElementById('vDataEntrada').value;
-      const servico = document.getElementById('vServico').value.trim();
       const file = document.getElementById('vFoto').files[0];
 
       if (!modelo || !placa) {
@@ -401,18 +389,18 @@
       btn.innerText = 'CADASTRANDO...'; btn.disabled = true;
 
       try {
-        let fotoUrl = null;
-        if (file) fotoUrl = await uploadFoto(file, 'veiculos');
+        let fotosArr = [];
+        if (file) {
+          const url = await uploadFoto(file, 'veiculos');
+          if (url) fotosArr.push(url);
+        }
 
         const payload = {
-          cliente,
-          telefone,
-          modelo,
-          placa,
-          entrada,
-          servico,
-          observacoes: servico,
-          foto_url: fotoUrl
+          cliente: cliente || 'Não informado',
+          modelo: modelo,
+          placa: placa,
+          entrada: entrada || new Date().toISOString().split('T')[0],
+          fotos: fotosArr
         };
 
         const { error } = await _supabase.from('patio').insert([payload]);
@@ -420,10 +408,8 @@
 
         alert('Veículo inserido no Pátio!');
         document.getElementById('vCliente').value = '';
-        document.getElementById('vTelefone').value = '';
         document.getElementById('vModelo').value = '';
         document.getElementById('vPlaca').value = '';
-        document.getElementById('vServico').value = '';
         document.getElementById('vFoto').value = '';
         trocarAba('patio');
       } catch (err) {
@@ -433,21 +419,21 @@
       }
     }
 
-    // --- PÁTIO DE VEÍCULOS ---
+    // --- PÁTIO ---
     async function carregarPatio() {
-      const { data, error } = await _supabase.from('patio').select('*').order('id', { ascending: false });
-      if (error) return console.error('Erro no patio:', error);
+      const { data, error } = await _supabase.from('patio').select('*').order('created_at', { ascending: false });
+      if (error) return console.error('Erro no Pátio:', error);
       patioData = data || [];
       filtrarPatio();
     }
 
     function filtrarPatio() {
       const t = document.getElementById('buscaPatio').value.toLowerCase().trim();
-      const list = patioData.filter(v => 
-        (v.modelo || v.veiculo || '').toLowerCase().includes(t) ||
-        (v.placa || '').toLowerCase().includes(t) ||
-        (v.cliente || v.nome_cliente || '').toLowerCase().includes(t)
-      );
+      const list = patioData.filter(v => {
+        return (v.modelo || '').toLowerCase().includes(t) || 
+               (v.placa || '').toLowerCase().includes(t) || 
+               (v.cliente || '').toLowerCase().includes(t);
+      });
 
       const grid = document.getElementById('gridPatio');
       if (list.length === 0) {
@@ -457,46 +443,34 @@
 
       grid.innerHTML = '';
       list.forEach(v => {
-        const modeloVeiculo = v.modelo || v.veiculo || 'Veículo';
-        const placaVeiculo = v.placa || 'Sem Placa';
-        const clienteVeiculo = v.cliente || v.nome_cliente || 'Não informado';
-        const imgUrl = obterFotoUrl(v);
-
+        const fotoUrl = extrairFotoPatio(v.fotos);
         const card = document.createElement('div');
         card.className = 'card-item';
-        card.onclick = () => verDetalhesVeiculo(v, 'patio');
+        card.onclick = () => verDetalhesVeiculo(v);
         card.innerHTML = `
           <div class="img-box">
-            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
           </div>
-          <div class="titulo">${modeloVeiculo}</div>
-          <div class="sub">Placa: ${placaVeiculo}</div>
-          <div class="sub" style="color:var(--primary-red); font-weight: bold;">Cliente: ${clienteVeiculo}</div>
+          <div class="titulo">${v.modelo || 'Veículo'}</div>
+          <div class="sub">Placa: ${v.placa || 'Sem Placa'}</div>
+          <div class="sub" style="color:var(--primary-red); font-weight: bold;">Cliente: ${v.cliente || 'Não informado'}</div>
         `;
         grid.appendChild(card);
       });
     }
 
-    function verDetalhesVeiculo(v, origem) {
-      const imgUrl = obterFotoUrl(v);
-      document.getElementById('modalImgContainer').innerHTML = `<img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
+    function verDetalhesVeiculo(v) {
+      const fotoUrl = extrairFotoPatio(v.fotos);
+      document.getElementById('modalImgContainer').innerHTML = `<img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
       
       document.getElementById('modalReport').innerHTML = `
-        <div class="report-item"><strong>CLIENTE:</strong> ${v.cliente || v.nome_cliente || 'Não cadastrado'}</div>
-        <div class="report-item"><strong>TELEFONE:</strong> ${v.telefone || 'Não informado'}</div>
-        <div class="report-item"><strong>MODELO VEÍCULO:</strong> ${v.modelo || v.veiculo || 'N/I'}</div>
+        <div class="report-item"><strong>CLIENTE:</strong> ${v.cliente || 'Não informado'}</div>
+        <div class="report-item"><strong>MODELO VEÍCULO:</strong> ${v.modelo || 'N/I'}</div>
         <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'N/I'}</div>
-        <div class="report-item"><strong>DATA ENTRADA:</strong> ${v.entrada || v.data || 'N/I'}</div>
-        <div class="report-item"><strong>SERVIÇO / OBSERVACÕES:</strong> ${v.servico || v.observacoes || 'Sem detalhes.'}</div>
+        <div class="report-item"><strong>DATA ENTRADA:</strong> ${v.entrada || 'N/I'}</div>
       `;
 
-      const btnAcao = document.getElementById('modalBtnAcao');
-      if (origem === 'patio') {
-        btnAcao.innerHTML = `<button class="btn-action" onclick="darSaidaVeiculo(${v.id})">DAR SAÍDA (MOVER P/ HISTÓRICO)</button>`;
-      } else {
-        btnAcao.innerHTML = '';
-      }
-
+      document.getElementById('modalBtnAcao').innerHTML = `<button class="btn-action" onclick="darSaidaVeiculo('${v.id}')">DAR SAÍDA (MOVER P/ HISTÓRICO)</button>`;
       document.getElementById('modalDetalhes').style.display = 'flex';
     }
 
@@ -506,11 +480,10 @@
       if (!v) return;
 
       try {
-        const payload = { ...v };
-        delete payload.id;
-        payload.saida = new Date().toISOString().split('T')[0];
+        const descricaoTexto = `Veículo: ${v.modelo || 'N/I'} | Placa: ${v.placa || 'N/I'} | Cliente: ${v.cliente || 'N/I'}`;
+        const dataHoje = new Date().toISOString().split('T')[0];
 
-        await _supabase.from('historico').insert([payload]);
+        await _supabase.from('historico').insert([{ date: dataHoje, text: descricaoTexto }]);
         await _supabase.from('patio').delete().eq('id', id);
 
         fecharModal();
@@ -521,17 +494,17 @@
       }
     }
 
-    // --- ESTOQUE DE PEÇAS ---
+    // --- ESTOQUE PEÇAS (Usa a tabela 'produtos' com colunas 'name', 'qty', 'img') ---
     async function carregarPecas() {
       const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
-      if (error) return console.error('Erro nas pecas:', error);
+      if (error) return console.error('Erro nas peças:', error);
       pecasData = data || [];
       filtrarPecas();
     }
 
     function filtrarPecas() {
       const t = document.getElementById('buscaPecas').value.toLowerCase().trim();
-      const list = pecasData.filter(p => (p.nome || p.descricao || p.titulo || '').toLowerCase().includes(t));
+      const list = pecasData.filter(p => (p.name || '').toLowerCase().includes(t));
 
       const grid = document.getElementById('gridPecas');
       if (list.length === 0) {
@@ -541,35 +514,32 @@
 
       grid.innerHTML = '';
       list.forEach(p => {
-        const nomePeca = p.nome || p.descricao || p.titulo || p.produto || 'Peça Sem Nome';
-        const quantidade = p.quantidade ?? p.qtd ?? p.estoque ?? 0;
-        const imgUrl = obterFotoUrl(p);
-
+        const fotoUrl = (p.img && p.img.trim().length > 5) ? p.img.trim() : PLACEHOLDER_IMG;
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
           <div class="img-box">
-            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
+            <img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
           </div>
-          <div class="titulo">${nomePeca}</div>
-          <div class="sub">Qtd: ${quantidade}</div>
+          <div class="titulo">${p.name || 'Sem Nome'}</div>
+          <div class="sub">Qtd: ${p.qty ?? 0}</div>
         `;
         grid.appendChild(card);
       });
     }
 
     async function salvarPeca() {
-      const nome = document.getElementById('pecaNome').value.trim();
-      const quantidade = Number(document.getElementById('pecaQtd').value);
+      const name = document.getElementById('pecaNome').value.trim();
+      const qty = Number(document.getElementById('pecaQtd').value);
       const file = document.getElementById('pecaFoto').files[0];
 
-      if (!nome) return alert('Informe o nome da peça!');
+      if (!name) return alert('Informe o nome da peça!');
 
       try {
-        let fotoUrl = null;
-        if (file) fotoUrl = await uploadFoto(file, 'pecas');
+        let img = null;
+        if (file) img = await uploadFoto(file, 'pecas');
 
-        await _supabase.from('produtos').insert([{ nome, quantidade, foto_url: fotoUrl }]);
+        await _supabase.from('produtos').insert([{ name, qty, img }]);
         document.getElementById('pecaNome').value = '';
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
@@ -580,21 +550,17 @@
       }
     }
 
-    // --- HISTÓRICO DE SAÍDAS ---
+    // --- HISTÓRICO DE SAÍDAS (Tabela 'historico' com 'date' e 'text') ---
     async function carregarHistorico() {
       const { data, error } = await _supabase.from('historico').select('*').order('id', { ascending: false });
-      if (error) return console.error('Erro no historico:', error);
+      if (error) return console.error('Erro no Histórico:', error);
       historicoData = data || [];
       filtrarHistorico();
     }
 
     function filtrarHistorico() {
       const t = document.getElementById('buscaHist').value.toLowerCase().trim();
-      const list = historicoData.filter(v => 
-        (v.modelo || v.veiculo || '').toLowerCase().includes(t) ||
-        (v.placa || '').toLowerCase().includes(t) ||
-        (v.cliente || v.nome_cliente || '').toLowerCase().includes(t)
-      );
+      const list = historicoData.filter(h => (h.text || '').toLowerCase().includes(t) || (h.date || '').includes(t));
 
       const grid = document.getElementById('gridHistorico');
       if (list.length === 0) {
@@ -603,22 +569,13 @@
       }
 
       grid.innerHTML = '';
-      list.forEach(v => {
-        const modeloVeiculo = v.modelo || v.veiculo || 'Veículo';
-        const placaVeiculo = v.placa || 'Sem Placa';
-        const clienteVeiculo = v.cliente || v.nome_cliente || 'Não informado';
-        const imgUrl = obterFotoUrl(v);
-
+      list.forEach(h => {
         const card = document.createElement('div');
         card.className = 'card-item';
-        card.onclick = () => verDetalhesVeiculo(v, 'historico');
+        card.style.textAlign = 'left';
         card.innerHTML = `
-          <div class="img-box">
-            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
-          </div>
-          <div class="titulo">${modeloVeiculo}</div>
-          <div class="sub">Placa: ${placaVeiculo}</div>
-          <div class="sub" style="color:#888;">Cliente: ${clienteVeiculo}</div>
+          <div class="titulo" style="color:var(--primary-red)">Data: ${h.date || 'Sem data'}</div>
+          <div class="sub" style="color:#fff; font-size: 13px; margin-top: 5px;">${h.text || 'Sem detalhes'}</div>
         `;
         grid.appendChild(card);
       });
@@ -628,7 +585,6 @@
       document.getElementById('modalDetalhes').style.display = 'none';
     }
 
-    // Inicialização da data atual na Entrada
     document.getElementById('vDataEntrada').valueAsDate = new Date();
   </script>
 </body>

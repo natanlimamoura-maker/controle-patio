@@ -289,7 +289,7 @@
           <input type="date" id="vDataEntrada">
         </div>
         <div class="form-group full">
-          <label>Foto do Veículo:</label>
+          <label>Foto do Veículo (Câmera ou Galeria):</label>
           <input type="file" id="vFoto" accept="image/*">
         </div>
       </div>
@@ -322,7 +322,7 @@
           <input type="number" id="pecaQtd" min="0" placeholder="Ex: 5">
         </div>
         <div class="form-group">
-          <label>Foto da Peça:</label>
+          <label>Foto da Peça (Tirar foto ou Galeria):</label>
           <input type="file" id="pecaFoto" accept="image/*">
         </div>
       </div>
@@ -391,14 +391,22 @@
 
     async function uploadFoto(file, pasta) {
       if (!file) return null;
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const filePath = `${pasta}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await _supabase.storage.from('fotos-pecas').upload(filePath, file);
-      if (uploadError) throw uploadError;
+      const { data, error } = await _supabase.storage.from('fotos-pecas').upload(filePath, file);
 
-      const { data } = _supabase.storage.from('fotos-pecas').getPublicUrl(filePath);
-      return data.publicUrl;
+      if (error) {
+        if (error.message && error.message.includes('Bucket not found')) {
+          alert('ERRO: O Bucket "fotos-pecas" não existe no Supabase!\nCrie um Bucket público com o nome exacto: fotos-pecas');
+        } else {
+          alert('Erro no envio da imagem: ' + error.message);
+        }
+        return null;
+      }
+
+      const { data: publicData } = _supabase.storage.from('fotos-pecas').getPublicUrl(filePath);
+      return publicData.publicUrl;
     }
 
     // --- ENTRADA VEÍCULO ---
@@ -552,13 +560,19 @@
 
       if (!name) return alert('Informe o nome da peça!');
 
+      const btn = document.getElementById('btnSalvarPeca');
+      btn.innerText = 'SALVANDO...'; btn.disabled = true;
+
       try {
         let img = null;
-        if (file) img = await uploadFoto(file, 'pecas');
+        if (file) {
+          img = await uploadFoto(file, 'pecas');
+        }
 
-        await _supabase.from('produtos').insert([{ code, name, qty, img }]);
+        const { error } = await _supabase.from('produtos').insert([{ code, name, qty, img }]);
+        if (error) throw error;
         
-        // Registra entrada no histórico
+        // Registra no Histórico
         const dataHoje = new Date().toISOString().split('T')[0];
         await _supabase.from('historico').insert([{ date: dataHoje, text: `Adicionado: ${qty}x ${name} (Cód: ${code || 'Sem Cód'})` }]);
 
@@ -569,7 +583,9 @@
         carregarPecas();
         alert('Peça salva no estoque!');
       } catch (err) {
-        alert('Erro: ' + err.message);
+        alert('Erro ao salvar peça: ' + err.message);
+      } finally {
+        btn.innerText = 'SALVAR NO ESTOQUE'; btn.disabled = false;
       }
     }
 
@@ -591,7 +607,7 @@
           <input type="number" id="editPecaQty" value="${p.qty ?? 0}">
         </div>
         <div class="form-group">
-          <label>Trocar Foto (Opcional):</label>
+          <label>Trocar Foto (Câmera ou Galeria):</label>
           <input type="file" id="editPecaFoto" accept="image/*">
         </div>
       `;
@@ -630,10 +646,8 @@
       const novaQtd = p.qty - qtdBaixar;
 
       try {
-        // Atualiza a nova quantidade
         await _supabase.from('produtos').update({ qty: novaQtd }).eq('id', id);
 
-        // Grava no Histórico do Estoque
         const dataHoje = new Date().toISOString().split('T')[0];
         const textoHist = `Removido (${uso || 'Geral'}): ${qtdBaixar}x ${p.name} (Cód: ${p.code || 'N/I'})`;
         await _supabase.from('historico').insert([{ date: dataHoje, text: textoHist }]);
@@ -657,7 +671,8 @@
       try {
         let img = imgAtual;
         if (file) {
-          img = await uploadFoto(file, 'pecas');
+          const url = await uploadFoto(file, 'pecas');
+          if (url) img = url;
         }
 
         await _supabase.from('produtos').update({ code, name, qty, img }).eq('id', id);
@@ -685,7 +700,7 @@
       }
     }
 
-    // --- HISTÓRICOS (SEPARADOS) ---
+    // --- HISTÓRICOS ---
     async function carregarHistoricoGeral() {
       const { data, error } = await _supabase.from('historico').select('*').order('id', { ascending: false });
       if (error) return console.error(error);

@@ -12,29 +12,19 @@ let fotosTemp = [];
 let fotosTempEstoque = null;
 let veiculoFotoAddId = null;
 
-// --- REGISTRO DO SERVICE WORKER ---
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (let registration of registrations) {
-      registration.update();
-    }
-  });
-}
-
 // --- INICIALIZAÇÃO ---
 window.onload = function() {
     injetarBotaoSincronizacao();
     carregarTodosDados();
 };
 
-// Adiciona automaticamente o botão de sincronização visual na interface
 function injetarBotaoSincronizacao() {
     if (document.getElementById('btn-sync-global')) return;
     const header = document.querySelector('header') || document.body;
     const divSync = document.createElement('div');
     divSync.innerHTML = `
-        <div id="btn-sync-global" onclick="forcarSincronizacaoManual()" style="background:#dc2626; color:white; padding:8px 14px; text-align:center; font-size:10px; font-weight:900; cursor:pointer; text-transform:uppercase; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
-            <span>🔄</span> Sincronizar Dados Locais para a Nuvem (PC / Celular)
+        <div id="btn-sync-global" onclick="forcarSincronizacaoManual()" style="background:#dc2626; color:white; padding:10px 14px; text-align:center; font-size:11px; font-weight:900; cursor:pointer; text-transform:uppercase; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); z-index:99999; position:relative;">
+            <span>🔄</span> FORÇAR ENVIO DO CELULAR PARA O PC (NUVEM)
         </div>
     `;
     header.prepend(divSync);
@@ -42,15 +32,20 @@ function injetarBotaoSincronizacao() {
 
 async function carregarTodosDados() {
     try {
-        // 1. CARREGA PÁTIO DO SUPABASE
+        // 1. Tenta carregar do Supabase primeiro
         let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
+        
+        if (pErr) {
+            console.error("Erro ao ler pátio do Supabase:", pErr);
+        }
+
         if (pData && pData.length > 0) {
             patio = pData;
         } else {
+            // Se nuvem estiver vazia, pega do localStorage do celular
             patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
         }
 
-        // 2. CARREGA HISTÓRICO
         let { data: hData } = await _supabase.from('historico').select('*');
         if (hData && hData.length > 0) {
             historico = hData;
@@ -58,7 +53,6 @@ async function carregarTodosDados() {
             historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
         }
 
-        // 3. CARREGA FINANCEIRO
         let { data: tData } = await _supabase.from('financeiro').select('*');
         if (tData && tData.length > 0) {
             transacoes = tData;
@@ -66,25 +60,8 @@ async function carregarTodosDados() {
             transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
         }
 
-        // 4. CARREGA ESTOQUE / PRODUTOS
+        // Estoque
         let estoqueFinal = [];
-
-        let { data: produtosAntigos } = await _supabase.from('produtos').select('*');
-        if (produtosAntigos && produtosAntigos.length > 0) {
-            produtosAntigos.forEach(item => {
-                estoqueFinal.push({
-                    id: item.id,
-                    codigo: item.code || item.codigo || 'S/C',
-                    nome: item.name || item.nome || 'PRODUTO',
-                    quantidade: item.qty !== undefined ? item.qty : (item.quantidade || 0),
-                    preco_custo: item.preco_custo || 0,
-                    preco_venda: item.preco_venda || item.price || 0,
-                    img: item.img || item.foto || null,
-                    tabela_origem: 'produtos'
-                });
-            });
-        }
-
         let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
         if (estoqueNovo && estoqueNovo.length > 0) {
             estoqueNovo.forEach(item => {
@@ -100,7 +77,6 @@ async function carregarTodosDados() {
                 });
             });
         }
-
         estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
         renderizarPatio();
@@ -108,72 +84,54 @@ async function carregarTodosDados() {
         renderizarEstoque();
 
     } catch (err) {
-        console.error("Erro na conexão:", err);
+        console.error("Erro geral ao carregar dados:", err);
         patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
-        historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
-        transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
         renderizarPatio();
-        renderizarFinanceiro();
-        renderizarEstoque();
     }
 }
 
-// --- BOTÃO MANUAL DE SINCRONIZAÇÃO (JOGA DO CELULAR PARA A NUVEM) ---
+// --- SINCRONIZAÇÃO MANUAL COM EXIBIÇÃO DE ERRO SE HOUVER ---
 async function forcarSincronizacaoManual() {
-    notificar("ENVIANDO DADOS LOCAIS PARA A NUVEM...", "#1e40af");
+    notificar("ENVIANDO DADOS PARA O SUPABASE...", "#1e40af");
     try {
         const localPatio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
-        if (localPatio.length > 0) {
-            const patioFormatado = localPatio.map(v => ({
-                placa: v.placa,
-                modelo: v.modelo,
-                cliente: v.cliente,
-                entrada: v.entrada,
-                fotos: v.fotos || []
-            }));
-            await _supabase.from('patio').insert(patioFormatado);
-            localStorage.removeItem('patio_v3');
-            localStorage.removeItem('patio');
+        
+        if (localPatio.length === 0) {
+            notificar("Nenhum dado local pendente para enviar.", "#d97706");
+            return;
         }
 
-        const localHist = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
-        if (localHist.length > 0) {
-            const histFormatado = localHist.map(h => ({
-                placa: h.placa,
-                modelo: h.modelo,
-                cliente: h.cliente,
-                entrada: h.entrada,
-                saida: h.saida,
-                servico: h.servico,
-                valor: h.valor || 0,
-                fotos: h.fotos || []
-            }));
-            await _supabase.from('historico').insert(histFormatado);
-            localStorage.removeItem('historico_v3');
-            localStorage.removeItem('historico');
+        const patioFormatado = localPatio.map(v => ({
+            placa: v.placa,
+            modelo: v.modelo,
+            cliente: v.cliente,
+            entrada: v.entrada,
+            fotos: v.fotos || []
+        }));
+
+        const { data, error } = await _supabase.from('patio').insert(patioFormatado).select();
+
+        if (error) {
+            console.error("Erro Supabase Insert:", error);
+            notificar("ERRO DO SUPABASE: " + error.message, "#dc2626");
+            return;
         }
 
-        const localFin = JSON.parse(localStorage.getItem('transacoes')) || [];
-        if (localFin.length > 0) {
-            const finFormatado = localFin.map(t => ({
-                tipo: t.tipo,
-                descricao: t.descricao,
-                valor: t.valor,
-                data: t.data
-            }));
-            await _supabase.from('financeiro').insert(finFormatado);
-            localStorage.removeItem('transacoes');
-        }
+        notificar("SUCESSO! DADOS ENVIADOS PARA A NUVEM.", "#16a34a");
+        localStorage.removeItem('patio_v3');
+        localStorage.removeItem('patio');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
 
-        notificar("SINCRONIZADO COM SUCESSO! ATUALIZE O PC.", "#16a34a");
-        setTimeout(() => carregarTodosDados(), 1500);
     } catch (err) {
-        console.error("Erro na sincronização:", err);
-        notificar("ERRO AO SINCRONIZAR DADOS", "#dc2626");
+        console.error("Erro crítico na sincronização:", err);
+        notificar("ERRO CRÍTICO: " + err.message, "#dc2626");
     }
 }
 
-// --- COMPRESSOR UNIVERSAL DE IMAGEM (QUALQUER FORMATO: PNG, JPG, WEBP, ETC) ---
+// --- COMPRESSOR UNIVERSAL DE IMAGEM ---
 function comprimirFoto(input, callback) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -186,7 +144,6 @@ function comprimirFoto(input, callback) {
                 canvas.width = 600;
                 canvas.height = img.height * (600 / img.width);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Converte qualquer formato de imagem para JPEG compactado de alta compatibilidade
                 callback(canvas.toDataURL('image/jpeg', 0.7));
             };
         };
@@ -194,7 +151,6 @@ function comprimirFoto(input, callback) {
     }
 }
 
-// --- MÓDULO PÁTIO ---
 function processarFotoPatio(input) {
     comprimirFoto(input, (fotoBase64) => {
         fotosTemp.push(fotoBase64);
@@ -228,7 +184,7 @@ async function processarFotoExtraPatio(input) {
             if (!error) {
                 v.fotos = novasFotos;
                 renderizarPatio();
-                notificar("FOTO ADICIONADA AO VEÍCULO!", "#16a34a");
+                notificar("FOTO ADICIONADA!", "#16a34a");
             }
         }
         veiculoFotoAddId = null;
@@ -255,9 +211,10 @@ if (formEntrada) {
             formEntrada.reset();
             renderizarPrevias();
             renderizarPatio();
-            notificar("ENTRADA REGISTRADA", "#16a34a");
+            notificar("ENTRADA REGISTRADA NA NUVEM", "#16a34a");
         } else {
-            // Salva localmente caso esteja sem internet momentânea
+            console.error("Erro ao inserir:", error);
+            // Salva localmente caso dê erro no Supabase
             v.id = Date.now().toString();
             patio.unshift(v);
             let localPatio = JSON.parse(localStorage.getItem('patio_v3')) || [];
@@ -268,7 +225,7 @@ if (formEntrada) {
             formEntrada.reset();
             renderizarPrevias();
             renderizarPatio();
-            notificar("SALVO LOCALMENTE (CLIQUE EM SINCRONIZAR)", "#d97706");
+            notificar("SALVO LOCALMENTE (CLIQUE NO BOTÃO VERMELHO ACIMA)", "#d97706");
         }
     };
 }
@@ -329,12 +286,10 @@ async function confirmarSaidaFinal() {
 
     const novoHist = { placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos };
     await _supabase.from('historico').insert([novoHist]);
-    historico.unshift(novoHist);
 
     if (valor > 0) {
         const lancamento = { tipo: 'RECEITA', descricao: `SERVIÇO: ${v.placa} (${v.modelo})`, valor: valor, data: dataHoje };
-        const { data: tData } = await _supabase.from('financeiro').insert([lancamento]).select();
-        if (tData) transacoes.unshift(tData[0]);
+        await _supabase.from('financeiro').insert([lancamento]);
     }
 
     await _supabase.from('patio').delete().eq('id', id);
@@ -342,11 +297,9 @@ async function confirmarSaidaFinal() {
 
     fecharModal('modal-saida');
     renderizarPatio();
-    renderizarFinanceiro();
-    notificar("SERVIÇO CONCLUÍDO E FATURADO!", "#16a34a");
+    notificar("SERVIÇO CONCLUÍDO!", "#16a34a");
 }
 
-// --- MÓDULO FINANCEIRO ---
 function renderizarFinanceiro() {
     const container = document.getElementById('lista-transacoes');
     if (!container) return;
@@ -370,11 +323,6 @@ function renderizarFinanceiro() {
             </div>
         `;
     });
-
-    const recElem = document.getElementById('total-receitas');
-    const despElem = document.getElementById('total-despesas');
-    if (recElem) recElem.innerText = `R$ ${totalRec.toFixed(2)}`;
-    if (despElem) despElem.innerText = `R$ ${totalDesp.toFixed(2)}`;
 }
 
 function abrirModalTransacao() { 
@@ -401,199 +349,30 @@ async function salvarTransacaoManual() {
     }
 }
 
-// --- MÓDULO ESTOQUE ---
-function processarFotoEstoque(input) {
-    comprimirFoto(input, (fotoBase64) => {
-        fotosTempEstoque = fotoBase64;
-        const prev = document.getElementById('previa-foto-estoque');
-        if (prev) {
-            prev.src = fotoBase64;
-            prev.classList.remove('hidden');
-        }
-    });
-}
-
 function renderizarEstoque() {
     const container = document.getElementById('lista-estoque');
     if (!container) return;
     container.innerHTML = '';
     
     if (estoque.length === 0) {
-        container.innerHTML = '<div class="text-center font-bold text-gray-400 py-6 text-xs uppercase">Nenhum item encontrado no estoque</div>';
+        container.innerHTML = '<div class="text-center font-bold text-gray-400 py-6 text-xs uppercase">Nenhum item encontrado</div>';
         return;
     }
 
     estoque.forEach(item => {
         const imgUrl = item.img ? item.img : 'https://via.placeholder.com/80?text=Pe%C3%A7a';
-
         container.innerHTML += `
             <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center gap-3">
                 <img src="${imgUrl}" class="w-14 h-14 rounded-2xl object-cover bg-gray-100 border">
                 <div class="flex-1">
                     <div class="font-black text-sm uppercase leading-tight">${item.nome}</div>
                     <div class="text-[10px] text-gray-400 font-bold">CÓD: ${item.codigo} | QTD: <span class="text-black font-black">${item.quantidade}</span></div>
-                    <div class="text-[10px] text-emerald-600 font-bold">VENDA: R$ ${(item.preco_venda || 0).toFixed(2)}</div>
-                </div>
-                <div class="flex gap-1.5">
-                    <button onclick="alterarQtdEstoque('${item.id}', -1, '${item.tabela_origem}')" class="bg-gray-100 font-black px-3 py-2 rounded-xl text-xs">-</button>
-                    <button onclick="alterarQtdEstoque('${item.id}', 1, '${item.tabela_origem}')" class="bg-black text-white font-black px-3 py-2 rounded-xl text-xs">+</button>
                 </div>
             </div>
         `;
     });
 }
 
-function abrirModalEstoque() { 
-    fotosTempEstoque = null;
-    const prev = document.getElementById('previa-foto-estoque');
-    const modal = document.getElementById('modal-estoque');
-    if (prev) prev.classList.add('hidden');
-    if (modal) modal.style.display = 'flex'; 
-}
-
-async function salvarItemEstoque() {
-    const codigo = document.getElementById('est-codigo').value.toUpperCase();
-    const nome = document.getElementById('est-nome').value.toUpperCase();
-    const qtd = parseInt(document.getElementById('est-qtd').value) || 0;
-    const custo = parseFloat(document.getElementById('est-custo').value) || 0;
-    const venda = parseFloat(document.getElementById('est-venda').value) || 0;
-
-    if (!nome) { notificar("INFORME O NOME DA PEÇA", "#dc2626"); return; }
-
-    const novoItem = { codigo, nome, quantidade: qtd, preco_custo: custo, preco_venda: venda, img: fotosTempEstoque };
-    const { data } = await _supabase.from('estoque').insert([novoItem]).select();
-
-    if (data) {
-        estoque.push({ ...data[0], tabela_origem: 'estoque' });
-        renderizarEstoque();
-        fecharModal('modal-estoque');
-        notificar("ITEM ADICIONADO AO ESTOQUE", "#16a34a");
-    }
-}
-
-async function alterarQtdEstoque(id, delta, tabelaOrigem) {
-    const item = estoque.find(x => x.id === id);
-    if (!item) return;
-
-    const novaQtd = Math.max(0, item.quantidade + delta);
-    const tabela = tabelaOrigem || 'estoque';
-    const campoQtd = tabela === 'produtos' ? 'qty' : 'quantidade';
-
-    const { error } = await _supabase.from(tabela).update({ [campoQtd]: novaQtd }).eq('id', id);
-
-    if (!error) {
-        item.quantidade = novaQtd;
-        renderizarEstoque();
-    }
-}
-
-// --- HISTÓRICO & LAUDO PDF ---
-function renderizarRelatorio() {
-    const container = document.getElementById('lista-relatorio');
-    if (!container) return;
-    container.innerHTML = '';
-    const buscaInput = document.getElementById('busca-historico');
-    const busca = buscaInput ? buscaInput.value.toUpperCase() : '';
-    
-    historico.filter(v => (v.placa && v.placa.includes(busca)) || (v.cliente && v.cliente.includes(busca))).forEach(v => {
-        container.innerHTML += `
-            <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center gap-3">
-                <div class="flex-1">
-                    <div class="font-black text-sm">${v.placa} - ${v.cliente}</div>
-                    <div class="text-[9px] font-bold text-gray-400 uppercase">SAÍDA: ${v.saida} | R$ ${(v.valor || 0).toFixed(2)}</div>
-                    <div class="text-[10px] text-gray-600 mt-1 line-clamp-1">${v.servico || 'Sem descrição'}</div>
-                </div>
-                <button onclick="gerarLaudoPDF('${v.id}')" class="bg-red-600 text-white font-black px-3 py-2.5 rounded-2xl text-[9px] uppercase shadow-md active:scale-95 flex items-center gap-1">
-                    <span>📄</span> Laudo PDF
-                </button>
-            </div>`;
-    });
-}
-
-function gerarLaudoPDF(idHistorico) {
-    const item = historico.find(x => x.id == idHistorico) || patio.find(x => x.id == idHistorico);
-    if (!item) {
-        notificar("VEÍCULO NÃO ENCONTRADO", "#dc2626");
-        return;
-    }
-
-    const fotos = Array.isArray(item.fotos) && item.fotos.length > 0 ? item.fotos : [];
-    
-    let fotosHtml = '';
-    fotos.forEach((foto, index) => {
-        fotosHtml += `
-            <div style="text-align: center; border: 1px solid #e5e7eb; padding: 10px; border-radius: 12px; page-break-inside: avoid;">
-                <img src="${foto}" style="width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px;">
-                <p style="font-size: 10px; font-weight: bold; margin-top: 6px; color: #6b7280;">REGISTRO FOTOGRÁFICO #${index + 1}</p>
-            </div>
-        `;
-    });
-
-    const conteudoLaudo = `
-        <div id="laudo-container" style="font-family: Arial, sans-serif; padding: 20px; color: #111;">
-            <div style="border-bottom: 3px solid #dc2626; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1 style="font-size: 18px; font-weight: 900; color: #dc2626; margin: 0; text-transform: uppercase;">ALCANTARA'S DIESEL LTDA</h1>
-                    <p style="font-size: 10px; margin: 2px 0 0 0; font-weight: bold; color: #4b5563;">INJEÇÃO ELETRÔNICA DIESEL & SERVIÇOS ESPECIALIZADOS</p>
-                </div>
-                <div style="text-align: right; font-size: 10px; color: #6b7280;">
-                    <p style="margin: 0;">DATA: <strong>${item.saida || item.entrada || new Date().toLocaleDateString('pt-BR')}</strong></p>
-                    <p style="margin: 0; color: #dc2626; font-weight: bold;">LAUDO TÉCNICO FOTOGRÁFICO</p>
-                </div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px;">
-                <tr style="background: #f9fafb;">
-                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>CLIENTE:</strong> ${item.cliente || 'N/I'}</td>
-                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>PLACA:</strong> ${item.placa}</td>
-                </tr>
-                <tr style="background: #f9fafb;">
-                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>VEÍCULO / MODELO:</strong> ${item.modelo}</td>
-                    <td style="padding: 8px; border: 1px solid #e5e7eb;"><strong>ENTRADA:</strong> ${item.entrada}</td>
-                </tr>
-            </table>
-
-            <div style="margin-bottom: 20px; background: #fff5f5; padding: 12px; border-radius: 8px; border-left: 4px solid #dc2626;">
-                <h3 style="font-size: 11px; font-weight: bold; color: #dc2626; margin: 0 0 6px 0; text-transform: uppercase;">SERVIÇO / DIAGNÓSTICO EXECUTADO:</h3>
-                <p style="font-size: 11px; margin: 0; white-space: pre-line; color: #1f2937;">${item.servico || 'Revisão geral e manutenção técnica do sistema.'}</p>
-            </div>
-
-            <h3 style="font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 4px;">Evidências Fotográficas do Serviço</h3>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                ${fotosHtml || '<p style="font-size: 10px; color: #9ca3af;">Nenhum registro fotográfico anexado.</p>'}
-            </div>
-
-            <div style="margin-top: 30px; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 12px; font-size: 9px; color: #9ca3af;">
-                <p style="margin: 0;">ALCANTARA'S DIESEL LTDA - Laudo Técnico gerado via sistema de gestão de pátio.</p>
-            </div>
-        </div>
-    `;
-
-    const element = document.createElement('div');
-    element.innerHTML = conteudoLaudo;
-    document.body.appendChild(element);
-
-    const opt = {
-        margin:       8,
-        filename:     `Laudo_${item.placa}_${(item.cliente || 'CLIENTE').replace(/\s+/g, '_')}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    notificar("GERANDO LAUDO EM PDF...", "#1e40af");
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        document.body.removeChild(element);
-        notificar("LAUDO GERADO COM SUCESSO!", "#16a34a");
-    }).catch(err => {
-        console.error("Erro ao gerar PDF:", err);
-        notificar("ERRO AO GERAR PDF", "#dc2626");
-    });
-}
-
-// --- NAVEGAÇÃO E SISTEMA ---
 function mudarAba(id, titulo) {
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
@@ -607,8 +386,6 @@ function mudarAba(id, titulo) {
     
     const tituloElem = document.getElementById('titulo-modulo');
     if (tituloElem) tituloElem.innerText = titulo;
-
-    if (id === 'relatorio') renderizarRelatorio();
 }
 
 function fecharModal(id) { 
@@ -622,9 +399,9 @@ function notificar(msg, cor) {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.style.position = 'fixed';
-        container.style.top = '45px';
+        container.style.top = '65px';
         container.style.right = '20px';
-        container.style.zIndex = '9999';
+        container.style.zIndex = '99999';
         document.body.appendChild(container);
     }
 

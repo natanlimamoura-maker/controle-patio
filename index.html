@@ -289,7 +289,7 @@
           <input type="date" id="vDataEntrada">
         </div>
         <div class="form-group full">
-          <label>Foto do Veículo (Câmera ou Galeria):</label>
+          <label>Foto do Veículo:</label>
           <input type="file" id="vFoto" accept="image/*">
         </div>
       </div>
@@ -322,7 +322,7 @@
           <input type="number" id="pecaQtd" min="0" placeholder="Ex: 5">
         </div>
         <div class="form-group">
-          <label>Foto da Peça (Tirar foto ou Galeria):</label>
+          <label>Foto da Peça:</label>
           <input type="file" id="pecaFoto" accept="image/*">
         </div>
       </div>
@@ -392,21 +392,19 @@
     async function uploadFoto(file, pasta) {
       if (!file) return null;
       const fileExt = file.name.split('.').pop() || 'jpg';
-      const filePath = `${pasta}/${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${pasta}/${fileName}`;
 
       const { data, error } = await _supabase.storage.from('fotos-pecas').upload(filePath, file);
 
       if (error) {
-        if (error.message && error.message.includes('Bucket not found')) {
-          alert('ERRO: O Bucket "fotos-pecas" não existe no Supabase!\nCrie um Bucket público com o nome exacto: fotos-pecas');
-        } else {
-          alert('Erro no envio da imagem: ' + error.message);
-        }
+        alert('Erro no envio da foto: ' + error.message);
         return null;
       }
 
-      const { data: publicData } = _supabase.storage.from('fotos-pecas').getPublicUrl(filePath);
-      return publicData.publicUrl;
+      // Monta URL pública direta garantida
+      const urlDireta = `${SUPABASE_URL}/storage/v1/object/public/fotos-pecas/${filePath}`;
+      return urlDireta;
     }
 
     // --- ENTRADA VEÍCULO ---
@@ -569,7 +567,8 @@
           img = await uploadFoto(file, 'pecas');
         }
 
-        const { error } = await _supabase.from('produtos').insert([{ code, name, qty, img }]);
+        const tempId = Date.now();
+        const { error } = await _supabase.from('produtos').insert([{ id: tempId, code, name, qty, img }]);
         if (error) throw error;
         
         // Registra no Histórico
@@ -581,7 +580,7 @@
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
         carregarPecas();
-        alert('Peça salva no estoque!');
+        alert('Peça salva no estoque com sucesso!');
       } catch (err) {
         alert('Erro ao salvar peça: ' + err.message);
       } finally {
@@ -607,7 +606,7 @@
           <input type="number" id="editPecaQty" value="${p.qty ?? 0}">
         </div>
         <div class="form-group">
-          <label>Trocar Foto (Câmera ou Galeria):</label>
+          <label>Trocar Foto:</label>
           <input type="file" id="editPecaFoto" accept="image/*">
         </div>
       `;

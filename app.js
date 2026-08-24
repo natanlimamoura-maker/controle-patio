@@ -31,8 +31,43 @@ async function carregarTodosDados() {
         let { data: tData } = await _supabase.from('financeiro').select('*').order('created_at', { ascending: false });
         if (tData) transacoes = tData;
 
-        let { data: eData } = await _supabase.from('estoque').select('*').order('nome', { ascending: true });
-        if (eData) estoque = eData;
+        // --- BUSCA NO ESTOQUE (Combina tabela antiga 'produtos' e nova 'estoque') ---
+        let estoqueFinal = [];
+
+        // 1. Busca na tabela antiga 'produtos'
+        let { data: produtosAntigos } = await _supabase.from('produtos').select('*');
+        if (produtosAntigos) {
+            produtosAntigos.forEach(item => {
+                estoqueFinal.push({
+                    id: item.id,
+                    codigo: item.code || item.codigo || 'S/C',
+                    nome: item.name || item.nome || 'PRODUTO',
+                    quantidade: item.qty !== undefined ? item.qty : (item.quantidade || 0),
+                    preco_custo: item.preco_custo || 0,
+                    preco_venda: item.preco_venda || item.price || 0,
+                    tabela_origem: 'produtos'
+                });
+            });
+        }
+
+        // 2. Busca na tabela nova 'estoque'
+        let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
+        if (estoqueNovo) {
+            estoqueNovo.forEach(item => {
+                estoqueFinal.push({
+                    id: item.id,
+                    codigo: item.codigo || 'S/C',
+                    nome: item.nome || 'PRODUTO',
+                    quantidade: item.quantidade || 0,
+                    preco_custo: item.preco_custo || 0,
+                    preco_venda: item.preco_venda || 0,
+                    tabela_origem: 'estoque'
+                });
+            });
+        }
+
+        // Ordena por nome
+        estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
         renderizarPatio();
         renderizarFinanceiro();
@@ -200,17 +235,22 @@ function renderizarEstoque() {
     const container = document.getElementById('lista-estoque');
     container.innerHTML = '';
     
+    if (estoque.length === 0) {
+        container.innerHTML = '<div class="text-center font-bold text-gray-400 py-6 text-xs uppercase">Nenhum item encontrado no estoque</div>';
+        return;
+    }
+
     estoque.forEach(item => {
         container.innerHTML += `
             <div class="bg-white p-4 rounded-3xl shadow-sm border flex justify-between items-center">
                 <div>
                     <div class="font-black text-sm uppercase">${item.nome}</div>
-                    <div class="text-[10px] text-gray-400 font-bold">CÓD: ${item.codigo || 'N/A'} | QTD: <span class="text-black font-black">${item.quantidade}</span></div>
+                    <div class="text-[10px] text-gray-400 font-bold">CÓD: ${item.codigo} | QTD: <span class="text-black font-black">${item.quantidade}</span></div>
                     <div class="text-[10px] text-emerald-600 font-bold">VENDA: R$ ${(item.preco_venda || 0).toFixed(2)}</div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="alterarQtdEstoque('${item.id}', -1)" class="bg-gray-100 font-black px-3 py-2 rounded-xl text-xs">-</button>
-                    <button onclick="alterarQtdEstoque('${item.id}', 1)" class="bg-black text-white font-black px-3 py-2 rounded-xl text-xs">+</button>
+                    <button onclick="alterarQtdEstoque('${item.id}', -1, '${item.tabela_origem}')" class="bg-gray-100 font-black px-3 py-2 rounded-xl text-xs">-</button>
+                    <button onclick="alterarQtdEstoque('${item.id}', 1, '${item.tabela_origem}')" class="bg-black text-white font-black px-3 py-2 rounded-xl text-xs">+</button>
                 </div>
             </div>
         `;
@@ -232,23 +272,28 @@ async function salvarItemEstoque() {
     const { data } = await _supabase.from('estoque').insert([novoItem]).select();
 
     if (data) {
-        estoque.push(data[0]);
+        estoque.push({ ...data[0], tabela_origem: 'estoque' });
         renderizarEstoque();
         fecharModal('modal-estoque');
         notificar("ITEM ADICIONADO AO ESTOQUE", "#16a34a");
     }
 }
 
-async function alterarQtdEstoque(id, delta) {
+async function alterarQtdEstoque(id, delta, tabelaOrigem) {
     const item = estoque.find(x => x.id === id);
     if (!item) return;
 
     const novaQtd = Math.max(0, item.quantidade + delta);
-    const { error } = await _supabase.from('estoque').update({ quantidade: novaQtd }).eq('id', id);
+    const tabela = tabelaOrigem || 'estoque';
+    const campoQtd = tabela === 'produtos' ? 'qty' : 'quantidade';
+
+    const { error } = await _supabase.from(tabela).update({ [campoQtd]: novaQtd }).eq('id', id);
 
     if (!error) {
         item.quantidade = novaQtd;
         renderizarEstoque();
+    } else {
+        console.error("Erro ao atualizar quantidade:", error);
     }
 }
 

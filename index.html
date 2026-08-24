@@ -171,7 +171,7 @@
     .btn-edit { background: #1976d2; }
     .btn-delete { background: var(--primary-red); }
 
-    /* MODAL DE DETALHES / EDITAR */
+    /* MODAIS */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -238,13 +238,12 @@
     <h1>Controle de Pátio</h1>
   </header>
 
-  <!-- NAVEGAÇÃO -->
   <div class="nav-tabs">
     <div class="tab-btn active" onclick="trocarAba('estoque')">Estoque de Peças</div>
     <div class="tab-btn" onclick="trocarAba('patio')">Pátio de Veículos</div>
   </div>
 
-  <!-- ABA ESTOQUE DE PEÇAS -->
+  <!-- ABA ESTOQUE DE PEÇAS (Tabela 'produtos') -->
   <div id="aba-estoque" class="tab-content active">
     <div class="form-container">
       <h2>Cadastrar Peça</h2>
@@ -267,7 +266,7 @@
     <div id="gridPecas" class="grid-cards"></div>
   </div>
 
-  <!-- ABA PÁTIO DE VEÍCULOS -->
+  <!-- ABA PÁTIO DE VEÍCULOS (Tabela 'patio') -->
   <div id="aba-patio" class="tab-content">
     <div class="form-container">
       <h2>Cadastrar Veículo</h2>
@@ -298,7 +297,7 @@
     <div id="gridVeiculos" class="grid-cards"></div>
   </div>
 
-  <!-- MODAL DE VISUALIZAÇÃO E RELATÓRIO DA FOTO -->
+  <!-- MODAL DE DETALHES -->
   <div id="modalDetalhes" class="modal-overlay">
     <div class="modal-content">
       <img id="modalImg" src="" alt="Imagem Expandida">
@@ -331,7 +330,6 @@
   </div>
 
   <script>
-    // URL limpa sem a subpasta /rest/v1/ que o SDK adiciona sozinho
     const SUPABASE_URL = 'https://ywybppfkyekqlrndwhdn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_R08_JT0lLER2lnRE-v4xSw_4Dgl8BDU';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -352,7 +350,6 @@
       }
     }
 
-    // UPLOAD DE IMAGEM
     async function uploadFoto(file, pasta) {
       if (!file) return null;
       const fileExt = file.name.split('.').pop();
@@ -372,23 +369,16 @@
       return data.publicUrl;
     }
 
-    // --- ESTOQUE DE PEÇAS ---
+    // --- CARREGAR ESTOQUE DA TABELA 'produtos' ---
     async function carregarPecas() {
-      // Busca nas tabelas 'estoque' ou 'pecas' conforme configurado no banco
-      let { data, error } = await _supabase.from('estoque').select('*');
-      if (error || !data) {
-        const fallback = await _supabase.from('pecas').select('*');
-        data = fallback.data;
-        error = fallback.error;
-      }
-
+      const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
+      
       if (error) {
-        console.error('Erro ao buscar peças:', error);
+        console.error('Erro ao buscar produtos:', error);
         return;
       }
 
       pecasData = data || [];
-      
       const grid = document.getElementById('gridPecas');
       grid.innerHTML = pecasData.length === 0 ? '<p style="color:#888;">Nenhuma peça cadastrada.</p>' : '';
 
@@ -413,8 +403,8 @@
       const quantidade = document.getElementById('pecaQtd').value;
       const file = document.getElementById('pecaFoto').files[0];
 
-      if (!nome || !quantidade || !file) {
-        alert('Preencha o nome, a quantidade e escolha uma foto!');
+      if (!nome || !quantidade) {
+        alert('Preencha o nome e a quantidade!');
         return;
       }
 
@@ -422,18 +412,19 @@
       btn.innerText = 'SALVANDO...'; btn.disabled = true;
 
       try {
-        const fotoUrl = await uploadFoto(file, 'pecas');
-        
-        let { error } = await _supabase.from('estoque').insert([{ nome, quantidade, foto_url: fotoUrl }]);
-        if (error) {
-          await _supabase.from('pecas').insert([{ nome, quantidade, foto_url: fotoUrl }]);
+        let fotoUrl = null;
+        if (file) {
+          fotoUrl = await uploadFoto(file, 'pecas');
         }
+        
+        const { error } = await _supabase.from('produtos').insert([{ nome, quantidade, foto_url: fotoUrl }]);
+        if (error) throw error;
 
         document.getElementById('pecaNome').value = '';
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
         await carregarPecas();
-        alert('Peça salva com sucesso!');
+        alert('Peça salva no estoque!');
       } catch (err) {
         alert('Erro ao salvar peça: ' + err.message);
       } finally {
@@ -463,17 +454,12 @@
           fotoUrl = await uploadFoto(newFile, 'pecas');
         }
 
-        let { error } = await _supabase
-          .from('estoque')
+        const { error } = await _supabase
+          .from('produtos')
           .update({ nome, quantidade, foto_url: fotoUrl })
           .eq('id', id);
 
-        if (error) {
-          await _supabase
-            .from('pecas')
-            .update({ nome, quantidade, foto_url: fotoUrl })
-            .eq('id', id);
-        }
+        if (error) throw error;
 
         fecharModalEdit();
         carregarPecas();
@@ -485,8 +471,7 @@
 
     async function excluirPeca(id) {
       if (!confirm('Deseja excluir esta peça?')) return;
-      await _supabase.from('estoque').delete().eq('id', id);
-      await _supabase.from('pecas').delete().eq('id', id);
+      await _supabase.from('produtos').delete().eq('id', id);
       carregarPecas();
     }
 
@@ -502,13 +487,14 @@
       document.getElementById('modalDetalhes').style.display = 'flex';
     }
 
-    // --- PÁTIO DE VEÍCULOS ---
+    // --- CARREGAR PÁTIO DA TABELA 'patio' / 'historico' ---
     async function carregarVeiculos() {
-      let { data, error } = await _supabase.from('patio').select('*');
-      if (error || !data) {
-        const fallback = await _supabase.from('veiculos').select('*');
-        data = fallback.data;
-        error = fallback.error;
+      let { data, error } = await _supabase.from('patio').select('*').order('id', { ascending: false });
+      
+      // Se pátio estiver vazio, puxa os registros da tabela 'historico'
+      if ((!data || data.length === 0) && !error) {
+        const hist = await _supabase.from('historico').select('*').order('id', { ascending: false });
+        data = hist.data;
       }
 
       if (error) {
@@ -517,7 +503,6 @@
       }
 
       veiculosData = data || [];
-
       const grid = document.getElementById('gridVeiculos');
       grid.innerHTML = veiculosData.length === 0 ? '<p style="color:#888;">Nenhum veículo no pátio.</p>' : '';
 
@@ -526,7 +511,7 @@
         card.className = 'card-item';
         card.innerHTML = `
           <img src="${v.foto_url || v.fotos || 'https://via.placeholder.com/150'}" onclick="verRelatorioVeiculo(${v.id})">
-          <div class="titulo" onclick="verRelatorioVeiculo(${v.id})">${v.modelo || 'Veículo'}</div>
+          <div class="titulo" onclick="verRelatorioVeiculo(${v.id})">${v.modelo || v.servico || 'Veículo'}</div>
           <div class="sub" onclick="verRelatorioVeiculo(${v.id})">Placa: ${v.placa || 'N/I'}</div>
           <button class="btn-card btn-delete" style="width:100%" onclick="excluirVeiculo(${v.id})">REMOVER DO PÁTIO</button>
         `;
@@ -541,8 +526,8 @@
       const observacoes = document.getElementById('veiculoObs').value.trim();
       const file = document.getElementById('veiculoFoto').files[0];
 
-      if (!modelo || !file) {
-        alert('Preencha o modelo do veículo e selecione uma foto!');
+      if (!modelo) {
+        alert('Preencha o modelo do veículo!');
         return;
       }
 
@@ -550,12 +535,13 @@
       btn.innerText = 'SALVANDO...'; btn.disabled = true;
 
       try {
-        const fotoUrl = await uploadFoto(file, 'veiculos');
-        
-        let { error } = await _supabase.from('patio').insert([{ modelo, placa, entrada, observacoes, foto_url: fotoUrl }]);
-        if (error) {
-          await _supabase.from('veiculos').insert([{ modelo, placa, data_entrada: entrada, observacoes, foto_url: fotoUrl }]);
+        let fotoUrl = null;
+        if (file) {
+          fotoUrl = await uploadFoto(file, 'veiculos');
         }
+        
+        const { error } = await _supabase.from('patio').insert([{ modelo, placa, entrada, observacoes, foto_url: fotoUrl }]);
+        if (error) throw error;
 
         document.getElementById('veiculoModelo').value = '';
         document.getElementById('veiculoPlaca').value = '';
@@ -576,9 +562,9 @@
       if (!v) return;
       document.getElementById('modalImg').src = v.foto_url || v.fotos || 'https://via.placeholder.com/150';
       document.getElementById('modalReport').innerHTML = `
-        <div class="report-item"><strong>MODELO:</strong> ${v.modelo || 'N/I'}</div>
+        <div class="report-item"><strong>MODELO / SERVIÇO:</strong> ${v.modelo || v.servico || 'N/I'}</div>
         <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'Não Informada'}</div>
-        <div class="report-item"><strong>DATA DE ENTRADA:</strong> ${v.entrada || v.data_entrada || 'Não Registrada'}</div>
+        <div class="report-item"><strong>DATA DE ENTRADA:</strong> ${v.entrada || v.data || 'Não Registrada'}</div>
         <div class="report-item"><strong>OBSERVAÇÕES / DEFEITO:</strong> ${v.observacoes || 'Sem detalhes informados.'}</div>
       `;
       document.getElementById('modalDetalhes').style.display = 'flex';
@@ -587,14 +573,14 @@
     async function excluirVeiculo(id) {
       if (!confirm('Deseja dar saída neste veículo?')) return;
       await _supabase.from('patio').delete().eq('id', id);
-      await _supabase.from('veiculos').delete().eq('id', id);
+      await _supabase.from('historico').delete().eq('id', id);
       carregarVeiculos();
     }
 
     function fecharModal() { document.getElementById('modalDetalhes').style.display = 'none'; }
     function fecharModalEdit() { document.getElementById('modalEditar').style.display = 'none'; }
 
-    // Carregar dados iniciais
+    // Carregar os 78 produtos e histórico no arranque
     carregarPecas();
     carregarVeiculos();
   </script>

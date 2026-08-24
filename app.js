@@ -20,6 +20,7 @@ if ('serviceWorker' in navigator) {
 // --- INICIALIZAÇÃO ---
 window.onload = function() {
     carregarTodosDados();
+    verificarMigracaoPendente();
 };
 
 async function carregarTodosDados() {
@@ -75,6 +76,76 @@ async function carregarTodosDados() {
         renderizarEstoque();
     } catch (err) {
         console.error("Erro ao sincronizar com Supabase:", err);
+    }
+}
+
+// --- MIGRAÇÃO DO LOCALSTORAGE PARA O SUPABASE ---
+function verificarMigracaoPendente() {
+    const temPatio = localStorage.getItem('patio_v3') || localStorage.getItem('patio');
+    const temHist = localStorage.getItem('historico_v3') || localStorage.getItem('historico');
+    const temFin = localStorage.getItem('transacoes');
+
+    if (temPatio || temHist || temFin) {
+        notificar("DADOS LOCAIS DETECTADOS! CLIQUE EM SINCRONIZAR", "#2563eb");
+    }
+}
+
+async function migrarLocalStorageParaSupabase() {
+    notificar("ENVIANDO DADOS PARA O SUPABASE...", "#2563eb");
+
+    try {
+        // 1. Migra Pátio
+        const localPatio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+        if (localPatio.length > 0) {
+            const patioFormatado = localPatio.map(v => ({
+                placa: v.placa,
+                modelo: v.modelo,
+                cliente: v.cliente,
+                entrada: v.entrada,
+                fotos: v.fotos || []
+            }));
+            await _supabase.from('patio').insert(patioFormatado);
+            localStorage.removeItem('patio_v3');
+            localStorage.removeItem('patio');
+        }
+
+        // 2. Migra Histórico
+        const localHist = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
+        if (localHist.length > 0) {
+            const histFormatado = localHist.map(h => ({
+                placa: h.placa,
+                modelo: h.modelo,
+                cliente: h.cliente,
+                entrada: h.entrada,
+                saida: h.saida,
+                servico: h.servico,
+                valor: h.valor || 0,
+                fotos: h.fotos || []
+            }));
+            await _supabase.from('historico').insert(histFormatado);
+            localStorage.removeItem('historico_v3');
+            localStorage.removeItem('historico');
+        }
+
+        // 3. Migra Financeiro
+        const localFin = JSON.parse(localStorage.getItem('transacoes')) || [];
+        if (localFin.length > 0) {
+            const finFormatado = localFin.map(t => ({
+                tipo: t.tipo,
+                descricao: t.descricao,
+                valor: t.valor,
+                data: t.data
+            }));
+            await _supabase.from('financeiro').insert(finFormatado);
+            localStorage.removeItem('transacoes');
+        }
+
+        notificar("DADOS MIGRADOS COM SUCESSO!", "#16a34a");
+        await carregarTodosDados();
+
+    } catch (err) {
+        console.error("Erro na migração:", err);
+        notificar("ERRO NA MIGRAÇÃO DOS DADOS", "#dc2626");
     }
 }
 

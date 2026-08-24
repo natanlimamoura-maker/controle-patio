@@ -23,7 +23,7 @@
             <p class="text-[10px] text-slate-400 font-bold">Oficina & Gestão</p>
         </div>
         <div id="status-sync" class="bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase flex items-center gap-1 shadow">
-            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Sincronizado
+            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Sincronizando...
         </div>
     </header>
 
@@ -52,7 +52,7 @@
                         <label class="text-[10px] font-black uppercase text-slate-500">Fotos do Veículo</label>
                         <input type="file" accept="image/*" capture="environment" onchange="processarFotoPatio(this)" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-red-50 file:text-red-600 hover:file:bg-red-100 cursor-pointer">
                     </div>
-                    <div id="container-previa" class="grid grid-gap-2 grid-cols-4 hidden pt-2"></div>
+                    <div id="container-previa" class="grid grid-cols-4 gap-2 hidden pt-2"></div>
                     <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs py-3 rounded-2xl uppercase tracking-wider shadow-lg shadow-red-600/30 transition">Registrar Entrada</button>
                 </form>
             </div>
@@ -189,10 +189,10 @@
 
         async function carregarDadosIniciais() {
             try {
-                let { data: pData } = await _supabase.from('patio').select('*');
+                let { data: pData } = await _supabase.from('pátio').select('*');
                 if (pData) patio = pData;
 
-                let { data: hData } = await _supabase.from('historico').select('*');
+                let { data: hData } = await _supabase.from('histórico').select('*');
                 if (hData) historico = hData;
 
                 let { data: tData } = await _supabase.from('financeiro').select('*');
@@ -278,11 +278,12 @@
                     fotos: [...fotosTemp]
                 };
 
-                const { error } = await _supabase.from('patio').insert([v]);
+                const { error } = await _supabase.from('pátio').insert([v]);
                 if (!error) {
                     fotosTemp = [];
                     formEntrada.reset();
                     renderizarPrevias();
+                    carregarDadosIniciais();
                 } else {
                     alert("Erro ao registrar entrada: " + error.message);
                 }
@@ -337,7 +338,8 @@
                 const v = patio.find(x => x.id == veiculoFotoAddId);
                 if (v) {
                     const novasFotos = [...(v.fotos || []), fotoBase64];
-                    await _supabase.from('patio').update({ fotos: novasFotos }).eq('id', v.id);
+                    await _supabase.from('pátio').update({ fotos: novasFotos }).eq('id', v.id);
+                    carregarDadosIniciais();
                 }
                 veiculoFotoAddId = null;
             });
@@ -357,7 +359,7 @@
 
             if (!v) return;
 
-            await _supabase.from('historico').insert([{ 
+            await _supabase.from('histórico').insert([{ 
                 placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos 
             }]);
 
@@ -367,11 +369,12 @@
                 }]);
             }
 
-            await _supabase.from('patio').delete().eq('id', v.id);
+            await _supabase.from('pátio').delete().eq('id', v.id);
 
             fecharModal('modal-saida');
             document.getElementById('input-servico-final').value = '';
             document.getElementById('input-valor-servico').value = '';
+            carregarDadosIniciais();
         }
 
         function renderizarHistorico() {
@@ -446,6 +449,7 @@
             fecharModal('modal-transacao');
             document.getElementById('trans-descricao').value = '';
             document.getElementById('trans-valor').value = '';
+            carregarDadosIniciais();
         }
 
         function renderizarEstoque() {

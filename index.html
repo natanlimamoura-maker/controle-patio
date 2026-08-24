@@ -148,13 +148,22 @@
 
     .card-item:hover { border-color: var(--primary-red); }
 
-    .card-item img {
+    .img-box {
       width: 100%;
       height: 120px;
-      object-fit: cover;
       border-radius: 6px;
       margin-bottom: 8px;
-      background-color: #000;
+      background-color: #2b2b2b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .card-item .titulo {
@@ -190,13 +199,8 @@
       border: 2px solid var(--primary-red);
     }
 
-    .modal-content img {
-      width: 100%;
-      max-height: 280px;
-      object-fit: contain;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      background-color: #000;
+    .modal-content .img-box {
+      height: 250px;
     }
 
     .report-list {
@@ -275,7 +279,7 @@
           <input type="file" id="vFoto" accept="image/*">
         </div>
       </div>
-      <button class="btn-action" id="btnSalvarVeiculo" onclick="salvarVeiculoPátio()">Dar Entrada no Pátio</button>
+      <button class="btn-action" id="btnSalvarVeiculo" onclick="salvarVeiculoPatio()">Dar Entrada no Pátio</button>
     </div>
   </div>
 
@@ -320,7 +324,7 @@
   <!-- MODAL DE DETALHES -->
   <div id="modalDetalhes" class="modal-overlay">
     <div class="modal-content">
-      <img id="modalImg" src="" onerror="imagemErro(this)" alt="Imagem Expandida">
+      <div class="img-box" id="modalImgContainer"></div>
       <div id="modalReport" class="report-list"></div>
       <div id="modalBtnAcao"></div>
       <button class="btn-close" style="margin-top:8px;" onclick="fecharModal()">FECHAR</button>
@@ -336,18 +340,15 @@
     let pecasData = [];
     let historicoData = [];
 
-    // TRATAMENTO DE IMAGENS INDISPONÍVEIS / QUEBRADAS
-    function obterFoto(obj) {
-      const url = obj.foto_url || obj.foto || obj.fotos || obj.imagem || obj.url || '';
-      if (!url || url.trim() === '' || url === 'undefined' || url === 'null') {
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="120" viewBox="0 0 150 120"><rect width="100%" height="100%" fill="%231e1e1e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555555" font-family="sans-serif" font-size="12">Sem Foto</text></svg>';
-      }
-      return url;
-    }
+    // PLACEHOLDER LIMPO EM JS (Sem quebrar HTML)
+    const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22120%22%20viewBox%3D%220%200%20150%20120%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%232b2b2b%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%20fill%3D%22%23777777%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3ESem%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E';
 
-    function imagemErro(img) {
-      img.onerror = null;
-      img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="120" viewBox="0 0 150 120"><rect width="100%" height="100%" fill="%231e1e1e"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23555555" font-family="sans-serif" font-size="12">Sem Foto</text></svg>';
+    function obterFotoUrl(obj) {
+      const url = obj.foto_url || obj.foto || obj.fotos || obj.imagem || obj.url || '';
+      if (!url || typeof url !== 'string' || url.trim() === '' || url.includes('null') || url.includes('undefined')) {
+        return PLACEHOLDER_IMG;
+      }
+      return url.trim();
     }
 
     function trocarAba(aba) {
@@ -382,7 +383,7 @@
     }
 
     // --- CADASTRAR VEÍCULO ---
-    async function salvarVeiculoPátio() {
+    async function salvarVeiculoPatio() {
       const cliente = document.getElementById('vCliente').value.trim();
       const telefone = document.getElementById('vTelefone').value.trim();
       const modelo = document.getElementById('vModelo').value.trim();
@@ -417,7 +418,7 @@
         const { error } = await _supabase.from('patio').insert([payload]);
         if (error) throw error;
 
-        alert('Veículo inserido no Pátio com sucesso!');
+        alert('Veículo inserido no Pátio!');
         document.getElementById('vCliente').value = '';
         document.getElementById('vTelefone').value = '';
         document.getElementById('vModelo').value = '';
@@ -434,16 +435,8 @@
 
     // --- PÁTIO DE VEÍCULOS ---
     async function carregarPatio() {
-      const { data, error } = await _supabase
-        .from('patio')
-        .select('*')
-        .order('id', { ascending: false });
-
-      if (error) {
-        console.error('Erro ao buscar pátio:', error);
-        return;
-      }
-
+      const { data, error } = await _supabase.from('patio').select('*').order('id', { ascending: false });
+      if (error) return console.error('Erro no patio:', error);
       patioData = data || [];
       filtrarPatio();
     }
@@ -467,12 +460,15 @@
         const modeloVeiculo = v.modelo || v.veiculo || 'Veículo';
         const placaVeiculo = v.placa || 'Sem Placa';
         const clienteVeiculo = v.cliente || v.nome_cliente || 'Não informado';
+        const imgUrl = obterFotoUrl(v);
 
         const card = document.createElement('div');
         card.className = 'card-item';
         card.onclick = () => verDetalhesVeiculo(v, 'patio');
         card.innerHTML = `
-          <img src="${obterFoto(v)}" onerror="imagemErro(this)" alt="${modeloVeiculo}">
+          <div class="img-box">
+            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
+          </div>
           <div class="titulo">${modeloVeiculo}</div>
           <div class="sub">Placa: ${placaVeiculo}</div>
           <div class="sub" style="color:var(--primary-red); font-weight: bold;">Cliente: ${clienteVeiculo}</div>
@@ -482,14 +478,16 @@
     }
 
     function verDetalhesVeiculo(v, origem) {
-      document.getElementById('modalImg').src = obterFoto(v);
+      const imgUrl = obterFotoUrl(v);
+      document.getElementById('modalImgContainer').innerHTML = `<img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
+      
       document.getElementById('modalReport').innerHTML = `
         <div class="report-item"><strong>CLIENTE:</strong> ${v.cliente || v.nome_cliente || 'Não cadastrado'}</div>
         <div class="report-item"><strong>TELEFONE:</strong> ${v.telefone || 'Não informado'}</div>
         <div class="report-item"><strong>MODELO VEÍCULO:</strong> ${v.modelo || v.veiculo || 'N/I'}</div>
         <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'N/I'}</div>
-        <div class="report-item"><strong>DATA DE ENTRADA:</strong> ${v.entrada || v.data || 'N/I'}</div>
-        <div class="report-item"><strong>O QUE FOI FEITO / SERVIÇO:</strong> ${v.servico || v.observacoes || 'Sem detalhes.'}</div>
+        <div class="report-item"><strong>DATA ENTRADA:</strong> ${v.entrada || v.data || 'N/I'}</div>
+        <div class="report-item"><strong>SERVIÇO / OBSERVACÕES:</strong> ${v.servico || v.observacoes || 'Sem detalhes.'}</div>
       `;
 
       const btnAcao = document.getElementById('modalBtnAcao');
@@ -526,7 +524,7 @@
     // --- ESTOQUE DE PEÇAS ---
     async function carregarPecas() {
       const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
-      if (error) return console.error(error);
+      if (error) return console.error('Erro nas pecas:', error);
       pecasData = data || [];
       filtrarPecas();
     }
@@ -545,11 +543,14 @@
       list.forEach(p => {
         const nomePeca = p.nome || p.descricao || p.titulo || p.produto || 'Peça Sem Nome';
         const quantidade = p.quantidade ?? p.qtd ?? p.estoque ?? 0;
+        const imgUrl = obterFotoUrl(p);
 
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
-          <img src="${obterFoto(p)}" onerror="imagemErro(this)" alt="${nomePeca}">
+          <div class="img-box">
+            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
+          </div>
           <div class="titulo">${nomePeca}</div>
           <div class="sub">Qtd: ${quantidade}</div>
         `;
@@ -582,7 +583,7 @@
     // --- HISTÓRICO DE SAÍDAS ---
     async function carregarHistorico() {
       const { data, error } = await _supabase.from('historico').select('*').order('id', { ascending: false });
-      if (error) return console.error(error);
+      if (error) return console.error('Erro no historico:', error);
       historicoData = data || [];
       filtrarHistorico();
     }
@@ -606,12 +607,15 @@
         const modeloVeiculo = v.modelo || v.veiculo || 'Veículo';
         const placaVeiculo = v.placa || 'Sem Placa';
         const clienteVeiculo = v.cliente || v.nome_cliente || 'Não informado';
+        const imgUrl = obterFotoUrl(v);
 
         const card = document.createElement('div');
         card.className = 'card-item';
         card.onclick = () => verDetalhesVeiculo(v, 'historico');
         card.innerHTML = `
-          <img src="${obterFoto(v)}" onerror="imagemErro(this)" alt="${modeloVeiculo}">
+          <div class="img-box">
+            <img src="${imgUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
+          </div>
           <div class="titulo">${modeloVeiculo}</div>
           <div class="sub">Placa: ${placaVeiculo}</div>
           <div class="sub" style="color:#888;">Cliente: ${clienteVeiculo}</div>

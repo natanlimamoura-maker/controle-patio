@@ -24,7 +24,7 @@
       color: var(--text-white);
       font-family: Arial, sans-serif;
       padding: 15px;
-      max-width: 950px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 
@@ -92,7 +92,7 @@
       color: var(--text-gray);
     }
 
-    input[type="text"], input[type="number"], input[type="file"], input[type="date"], textarea {
+    input[type="text"], input[type="number"], input[type="file"], input[type="date"] {
       width: 100%;
       padding: 10px;
       border-radius: 6px;
@@ -101,8 +101,6 @@
       color: var(--text-white);
       font-size: 14px;
     }
-
-    textarea { resize: vertical; height: 75px; }
 
     .search-input {
       width: 100%;
@@ -132,7 +130,7 @@
 
     .grid-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 15px;
     }
 
@@ -140,7 +138,7 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s;
@@ -170,12 +168,10 @@
       font-weight: bold;
       font-size: 14px;
       margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
     }
 
-    .card-item .sub { color: var(--text-gray); font-size: 12px; margin-bottom: 8px; }
+    .card-item .sub { color: var(--text-gray); font-size: 12px; margin-bottom: 6px; }
 
     .modal-overlay {
       display: none;
@@ -199,9 +195,7 @@
       border: 2px solid var(--primary-red);
     }
 
-    .modal-content .img-box {
-      height: 250px;
-    }
+    .modal-content .img-box { height: 250px; }
 
     .report-list {
       text-align: left;
@@ -212,12 +206,7 @@
       border: 1px solid #333;
     }
 
-    .report-item {
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--text-white);
-    }
-
+    .report-item { margin-bottom: 8px; font-size: 14px; color: var(--text-white); }
     .report-item strong { color: var(--primary-red); }
 
     .btn-close {
@@ -242,7 +231,8 @@
     <div class="tab-btn active" onclick="trocarAba('entrada')">Entrada Veículo</div>
     <div class="tab-btn" onclick="trocarAba('patio')">Pátio</div>
     <div class="tab-btn" onclick="trocarAba('estoque')">Estoque Peças</div>
-    <div class="tab-btn" onclick="trocarAba('historico')">Histórico Saídas</div>
+    <div class="tab-btn" onclick="trocarAba('hist-veiculos')">Histórico Veículos</div>
+    <div class="tab-btn" onclick="trocarAba('hist-estoque')">Histórico Estoque</div>
   </div>
 
   <!-- ABA 1: ENTRADA DE VEÍCULOS -->
@@ -306,11 +296,18 @@
     <div id="gridPecas" class="grid-cards"></div>
   </div>
 
-  <!-- ABA 4: HISTÓRICO DE SAÍDA DE VEÍCULOS -->
-  <div id="aba-historico" class="tab-content">
+  <!-- ABA 4: HISTÓRICO DE VEÍCULOS -->
+  <div id="aba-hist-veiculos" class="tab-content">
     <h2>Histórico de Veículos Liberados</h2>
-    <input type="text" id="buscaHist" class="search-input" placeholder="🔍 Pesquisar histórico..." oninput="filtrarHistorico()">
-    <div id="gridHistorico" class="grid-cards"></div>
+    <input type="text" id="buscaHistVeiculos" class="search-input" placeholder="🔍 Pesquisar veículos liberados..." oninput="filtrarHistVeiculos()">
+    <div id="gridHistVeiculos" class="grid-cards"></div>
+  </div>
+
+  <!-- ABA 5: HISTÓRICO DE ESTOQUE -->
+  <div id="aba-hist-estoque" class="tab-content">
+    <h2>Histórico de Movimentação do Estoque</h2>
+    <input type="text" id="buscaHistEstoque" class="search-input" placeholder="🔍 Pesquisar movimentação de estoque..." oninput="filtrarHistEstoque()">
+    <div id="gridHistEstoque" class="grid-cards"></div>
   </div>
 
   <!-- MODAL DE DETALHES -->
@@ -342,8 +339,8 @@
     }
 
     function trocarAba(aba) {
+      const abas = ['entrada', 'patio', 'estoque', 'hist-veiculos', 'hist-estoque'];
       document.querySelectorAll('.tab-btn').forEach((b, i) => {
-        const abas = ['entrada', 'patio', 'estoque', 'historico'];
         b.classList.toggle('active', abas[i] === aba);
       });
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -351,7 +348,7 @@
 
       if (aba === 'patio') carregarPatio();
       if (aba === 'estoque') carregarPecas();
-      if (aba === 'historico') carregarHistorico();
+      if (aba === 'hist-veiculos' || aba === 'hist-estoque') carregarHistoricoGeral();
     }
 
     async function uploadFoto(file, pasta) {
@@ -359,16 +356,10 @@
       const fileExt = file.name.split('.').pop();
       const filePath = `${pasta}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await _supabase.storage
-        .from('fotos-pecas')
-        .upload(filePath, file);
-
+      const { error: uploadError } = await _supabase.storage.from('fotos-pecas').upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const { data } = _supabase.storage
-        .from('fotos-pecas')
-        .getPublicUrl(filePath);
-
+      const { data } = _supabase.storage.from('fotos-pecas').getPublicUrl(filePath);
       return data.publicUrl;
     }
 
@@ -380,10 +371,7 @@
       const entrada = document.getElementById('vDataEntrada').value;
       const file = document.getElementById('vFoto').files[0];
 
-      if (!modelo || !placa) {
-        alert('Informe ao menos o modelo e a placa do veículo!');
-        return;
-      }
+      if (!modelo || !placa) return alert('Informe ao menos o modelo e a placa!');
 
       const btn = document.getElementById('btnSalvarVeiculo');
       btn.innerText = 'CADASTRANDO...'; btn.disabled = true;
@@ -422,18 +410,14 @@
     // --- PÁTIO ---
     async function carregarPatio() {
       const { data, error } = await _supabase.from('patio').select('*').order('created_at', { ascending: false });
-      if (error) return console.error('Erro no Pátio:', error);
+      if (error) return console.error(error);
       patioData = data || [];
       filtrarPatio();
     }
 
     function filtrarPatio() {
       const t = document.getElementById('buscaPatio').value.toLowerCase().trim();
-      const list = patioData.filter(v => {
-        return (v.modelo || '').toLowerCase().includes(t) || 
-               (v.placa || '').toLowerCase().includes(t) || 
-               (v.cliente || '').toLowerCase().includes(t);
-      });
+      const list = patioData.filter(v => (v.modelo || '').toLowerCase().includes(t) || (v.placa || '').toLowerCase().includes(t) || (v.cliente || '').toLowerCase().includes(t));
 
       const grid = document.getElementById('gridPatio');
       if (list.length === 0) {
@@ -443,14 +427,11 @@
 
       grid.innerHTML = '';
       list.forEach(v => {
-        const fotoUrl = extrairFotoPatio(v.fotos);
         const card = document.createElement('div');
         card.className = 'card-item';
         card.onclick = () => verDetalhesVeiculo(v);
         card.innerHTML = `
-          <div class="img-box">
-            <img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
-          </div>
+          <div class="img-box"><img src="${extrairFotoPatio(v.fotos)}" onerror="this.src='${PLACEHOLDER_IMG}'"></div>
           <div class="titulo">${v.modelo || 'Veículo'}</div>
           <div class="sub">Placa: ${v.placa || 'Sem Placa'}</div>
           <div class="sub" style="color:var(--primary-red); font-weight: bold;">Cliente: ${v.cliente || 'Não informado'}</div>
@@ -460,30 +441,27 @@
     }
 
     function verDetalhesVeiculo(v) {
-      const fotoUrl = extrairFotoPatio(v.fotos);
-      document.getElementById('modalImgContainer').innerHTML = `<img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
-      
+      document.getElementById('modalImgContainer').innerHTML = `<img src="${extrairFotoPatio(v.fotos)}" onerror="this.src='${PLACEHOLDER_IMG}'">`;
       document.getElementById('modalReport').innerHTML = `
         <div class="report-item"><strong>CLIENTE:</strong> ${v.cliente || 'Não informado'}</div>
         <div class="report-item"><strong>MODELO VEÍCULO:</strong> ${v.modelo || 'N/I'}</div>
         <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'N/I'}</div>
         <div class="report-item"><strong>DATA ENTRADA:</strong> ${v.entrada || 'N/I'}</div>
       `;
-
       document.getElementById('modalBtnAcao').innerHTML = `<button class="btn-action" onclick="darSaidaVeiculo('${v.id}')">DAR SAÍDA (MOVER P/ HISTÓRICO)</button>`;
       document.getElementById('modalDetalhes').style.display = 'flex';
     }
 
     async function darSaidaVeiculo(id) {
-      if (!confirm('Confirmar saída deste veículo do pátio para o histórico?')) return;
+      if (!confirm('Confirmar saída deste veículo para o histórico?')) return;
       const v = patioData.find(item => item.id === id);
       if (!v) return;
 
       try {
-        const descricaoTexto = `Veículo: ${v.modelo || 'N/I'} | Placa: ${v.placa || 'N/I'} | Cliente: ${v.cliente || 'N/I'}`;
+        const textoHistorico = `Veículo: ${v.modelo || 'N/I'} | Placa: ${v.placa || 'N/I'} | Cliente: ${v.cliente || 'N/I'}`;
         const dataHoje = new Date().toISOString().split('T')[0];
 
-        await _supabase.from('historico').insert([{ date: dataHoje, text: descricaoTexto }]);
+        await _supabase.from('historico').insert([{ date: dataHoje, text: textoHistorico }]);
         await _supabase.from('patio').delete().eq('id', id);
 
         fecharModal();
@@ -494,10 +472,10 @@
       }
     }
 
-    // --- ESTOQUE PEÇAS (Usa a tabela 'produtos' com colunas 'name', 'qty', 'img') ---
+    // --- ESTOQUE PEÇAS ---
     async function carregarPecas() {
       const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
-      if (error) return console.error('Erro nas peças:', error);
+      if (error) return console.error(error);
       pecasData = data || [];
       filtrarPecas();
     }
@@ -518,9 +496,7 @@
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
-          <div class="img-box">
-            <img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'">
-          </div>
+          <div class="img-box"><img src="${fotoUrl}" onerror="this.src='${PLACEHOLDER_IMG}'"></div>
           <div class="titulo">${p.name || 'Sem Nome'}</div>
           <div class="sub">Qtd: ${p.qty ?? 0}</div>
         `;
@@ -540,6 +516,11 @@
         if (file) img = await uploadFoto(file, 'pecas');
 
         await _supabase.from('produtos').insert([{ name, qty, img }]);
+        
+        // Regista no histórico do estoque
+        const dataHoje = new Date().toISOString().split('T')[0];
+        await _supabase.from('historico').insert([{ date: dataHoje, text: `Adicionado: ${qty}x ${name}` }]);
+
         document.getElementById('pecaNome').value = '';
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
@@ -550,21 +531,27 @@
       }
     }
 
-    // --- HISTÓRICO DE SAÍDAS (Tabela 'historico' com 'date' e 'text') ---
-    async function carregarHistorico() {
+    // --- HISTÓRICOS (SEPARADOS) ---
+    async function carregarHistoricoGeral() {
       const { data, error } = await _supabase.from('historico').select('*').order('id', { ascending: false });
-      if (error) return console.error('Erro no Histórico:', error);
+      if (error) return console.error(error);
       historicoData = data || [];
-      filtrarHistorico();
+      filtrarHistVeiculos();
+      filtrarHistEstoque();
     }
 
-    function filtrarHistorico() {
-      const t = document.getElementById('buscaHist').value.toLowerCase().trim();
-      const list = historicoData.filter(h => (h.text || '').toLowerCase().includes(t) || (h.date || '').includes(t));
+    // 1. Filtra Apenas Veículos Liberados
+    function filtrarHistVeiculos() {
+      const t = document.getElementById('buscaHistVeiculos').value.toLowerCase().trim();
+      const list = historicoData.filter(h => {
+        const txt = (h.text || '').toLowerCase();
+        const eVeiculo = txt.includes('veículo:') || txt.includes('veiculo:');
+        return eVeiculo && (txt.includes(t) || (h.date || '').includes(t));
+      });
 
-      const grid = document.getElementById('gridHistorico');
+      const grid = document.getElementById('gridHistVeiculos');
       if (list.length === 0) {
-        grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align: center; padding: 20px;">Nenhum registro no histórico de saídas.</p>';
+        grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align: center; padding: 20px;">Nenhum veículo liberado no histórico.</p>';
         return;
       }
 
@@ -575,7 +562,35 @@
         card.style.textAlign = 'left';
         card.innerHTML = `
           <div class="titulo" style="color:var(--primary-red)">Data: ${h.date || 'Sem data'}</div>
-          <div class="sub" style="color:#fff; font-size: 13px; margin-top: 5px;">${h.text || 'Sem detalhes'}</div>
+          <div class="sub" style="color:#fff; font-size: 13px; margin-top: 5px;">${h.text || ''}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 2. Filtra Apenas Movimentação de Peças/Estoque
+    function filtrarHistEstoque() {
+      const t = document.getElementById('buscaHistEstoque').value.toLowerCase().trim();
+      const list = historicoData.filter(h => {
+        const txt = (h.text || '').toLowerCase();
+        const eVeiculo = txt.includes('veículo:') || txt.includes('veiculo:');
+        return !eVeiculo && (txt.includes(t) || (h.date || '').includes(t));
+      });
+
+      const grid = document.getElementById('gridHistEstoque');
+      if (list.length === 0) {
+        grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align: center; padding: 20px;">Nenhuma movimentação de estoque encontrada.</p>';
+        return;
+      }
+
+      grid.innerHTML = '';
+      list.forEach(h => {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.style.textAlign = 'left';
+        card.innerHTML = `
+          <div class="titulo" style="color:var(--primary-red)">Data: ${h.date || 'Sem data'}</div>
+          <div class="sub" style="color:#fff; font-size: 13px; margin-top: 5px;">${h.text || ''}</div>
         `;
         grid.appendChild(card);
       });

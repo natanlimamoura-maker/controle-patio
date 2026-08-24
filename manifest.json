@@ -1,18 +1,18 @@
 {
   "name": "Controle de Pátio",
   "short_name": "Pátio Pro",
-  "start_url": "/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#dc2626",
   "icons": [
     {
-      "src": "https://img.icons8.com/color/192/truck.png",
+      "src": "https://via.placeholder.com/192x192/dc2626/ffffff?text=CP",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://img.icons8.com/color/512/truck.png",
+      "src": "https://via.placeholder.com/512x512/dc2626/ffffff?text=CP",
       "sizes": "512x512",
       "type": "image/png"
     }

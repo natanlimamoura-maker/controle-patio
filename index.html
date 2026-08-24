@@ -1,4 +1,4 @@
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -100,7 +100,7 @@ html_content = """<!DOCTYPE html>
 
     </main>
 
-    <!-- NAVEGAÇÃO INFERIOR (FOOTER TAB BAR) -->
+    <!-- NAVEGAÇÃO INFERIOR -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-6 flex justify-around items-center z-50 shadow-lg">
         <button onclick="mudarAba('patio', 'Controle de Pátio')" class="nav-button active flex flex-col items-center text-red-600 transition">
             <span class="text-lg">🚗</span>
@@ -120,7 +120,7 @@ html_content = """<!DOCTYPE html>
         </button>
     </nav>
 
-    <!-- MODAL DE SAÍDA E COBRANÇA -->
+    <!-- MODAL DE SAÍDA -->
     <div id="modal-saida" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 shadow-2xl space-y-4">
             <h3 class="text-sm font-black uppercase tracking-wider text-red-600">Finalizar Atendimento & Cobrança</h3>
@@ -140,7 +140,7 @@ html_content = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- MODAL DE TRANSAÇÃO MANUAL -->
+    <!-- MODAL DE TRANSAÇÃO -->
     <div id="modal-transacao" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[30px] p-6 shadow-2xl space-y-4">
             <h3 class="text-sm font-black uppercase tracking-wider text-red-600">Nova Transação no Caixa</h3>
@@ -166,17 +166,15 @@ html_content = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- INPUT INVISÍVEL PARA ADICIONAR FOTO EXTRA -->
+    <!-- INPUT FOTO EXTRA -->
     <input type="file" id="input-foto-extra-patio" accept="image/*" capture="environment" class="hidden" onchange="processarFotoExtraPatio(this)">
 
-    <!-- SCRIPT DE CONEXÃO E SINCRONIZAÇÃO AUTOMÁTICA EM TEMPO REAL -->
+    <!-- SCRIPTS -->
     <script>
-        // --- CONFIGURAÇÃO DO SUPABASE ---
         const SUPABASE_URL = 'https://ywybppfkyekqlrndwhdn.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_R08_JT0lLER2lnRE-v4xSw_4Dgl8BDU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- ESTADOS ---
         let patio = [];
         let historico = [];
         let transacoes = [];
@@ -184,7 +182,6 @@ html_content = """<!DOCTYPE html>
         let fotosTemp = [];
         let veiculoFotoAddId = null;
 
-        // --- INICIALIZAÇÃO E REALTIME AUTOMÁTICO ---
         window.onload = function() {
             carregarDadosIniciais();
             ativarSincronizacaoRealtime();
@@ -192,41 +189,27 @@ html_content = """<!DOCTYPE html>
 
         async function carregarDadosIniciais() {
             try {
-                // Pátio
                 let { data: pData } = await _supabase.from('patio').select('*');
                 if (pData) patio = pData;
 
-                // Histórico
                 let { data: hData } = await _supabase.from('historico').select('*');
                 if (hData) historico = hData;
 
-                // Financeiro
                 let { data: tData } = await _supabase.from('financeiro').select('*');
                 if (tData) transacoes = tData;
 
-                // Estoque
                 let { data: eData } = await _supabase.from('estoque').select('*');
                 if (eData) estoque = eData;
 
                 renderizarTudo();
             } catch (err) {
-                console.error("Erro ao carregar dados do Supabase:", err);
+                console.error("Erro ao carregar dados:", err);
             }
         }
 
-        // --- SINCRONIZAÇÃO AUTOMÁTICA EM TEMPO REAL (SUPABASE REALTIME) ---
         function ativarSincronizacaoRealtime() {
             _supabase.channel('public-db-changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'patio' }, payload => {
-                    carregarDadosIniciais();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'historico' }, payload => {
-                    carregarDadosIniciais();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'financeiro' }, payload => {
-                    carregarDadosIniciais();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'estoque' }, payload => {
+                .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
                     carregarDadosIniciais();
                 })
                 .subscribe((status) => {
@@ -241,7 +224,6 @@ html_content = """<!DOCTYPE html>
                 });
         }
 
-        // --- RENDERIZAÇÃO GERAL ---
         function renderizarTudo() {
             renderizarPatio();
             renderizarHistorico();
@@ -249,7 +231,6 @@ html_content = """<!DOCTYPE html>
             renderizarEstoque();
         }
 
-        // --- COMPRESSOR DE IMAGEM ---
         function comprimirFoto(input, callback) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -284,7 +265,6 @@ html_content = """<!DOCTYPE html>
             c.classList.toggle('hidden', fotosTemp.length === 0);
         }
 
-        // --- CADASTRO DE ENTRADA ---
         const formEntrada = document.getElementById('form-entrada');
         if (formEntrada) {
             formEntrada.onsubmit = async function(e) {
@@ -303,14 +283,12 @@ html_content = """<!DOCTYPE html>
                     fotosTemp = [];
                     formEntrada.reset();
                     renderizarPrevias();
-                    // O realtime atualiza a tela automaticamente
                 } else {
                     alert("Erro ao registrar entrada: " + error.message);
                 }
             };
         }
 
-        // --- RENDERIZAR PÁTIO ---
         function renderizarPatio() {
             const list = document.getElementById('lista-veiculos');
             const contador = document.getElementById('contador-patio');
@@ -379,19 +357,16 @@ html_content = """<!DOCTYPE html>
 
             if (!v) return;
 
-            // Insere no histórico
             await _supabase.from('historico').insert([{ 
                 placa: v.placa, modelo: v.modelo, cliente: v.cliente, entrada: v.entrada, saida: dataHoje, servico: servico, valor: valor, fotos: v.fotos 
             }]);
 
-            // Se houver valor, lança no financeiro automaticamente
             if (valor > 0) {
                 await _supabase.from('financeiro').insert([{ 
                     tipo: 'RECEITA', descricao: `SERVIÇO: ${v.placa} (${v.modelo})`, valor: valor, data: dataHoje 
                 }]);
             }
 
-            // Remove do pátio
             await _supabase.from('patio').delete().eq('id', v.id);
 
             fecharModal('modal-saida');
@@ -399,7 +374,6 @@ html_content = """<!DOCTYPE html>
             document.getElementById('input-valor-servico').value = '';
         }
 
-        // --- RENDERIZAR HISTÓRICO ---
         function renderizarHistorico() {
             const container = document.getElementById('lista-historico');
             if (!container) return;
@@ -426,7 +400,6 @@ html_content = """<!DOCTYPE html>
             });
         }
 
-        // --- FINANCEIRO ---
         function renderizarFinanceiro() {
             const container = document.getElementById('lista-transacoes');
             const saldoElem = document.getElementById('saldo-caixa');
@@ -475,7 +448,6 @@ html_content = """<!DOCTYPE html>
             document.getElementById('trans-valor').value = '';
         }
 
-        // --- ESTOQUE ---
         function renderizarEstoque() {
             const container = document.getElementById('lista-estoque');
             if (!container) return;
@@ -500,7 +472,6 @@ html_content = """<!DOCTYPE html>
             });
         }
 
-        // --- NAVEGAÇÃO E UTILITÁRIOS ---
         function mudarAba(id, titulo) {
             document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-button').forEach(b => {
@@ -524,12 +495,3 @@ html_content = """<!DOCTYPE html>
     </script>
 </body>
 </html>
-"""
-
-import os
-file_path = "controle_patio_online.html"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.encode = "utf-8"
-    f.write(html_content)
-
-print("Arquivo gerado com sucesso!")

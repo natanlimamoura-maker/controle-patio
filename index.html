@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controle de Pátio</title>
-  <!-- SDK do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -25,7 +24,7 @@
       color: var(--text-white);
       font-family: Arial, sans-serif;
       padding: 15px;
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
     }
 
@@ -39,16 +38,17 @@
     h1 { color: var(--primary-red); font-size: 22px; text-transform: uppercase; }
     h2 { color: var(--primary-red); font-size: 18px; margin-bottom: 12px; }
 
-    /* NAVEGAÇÃO DE ABAS */
     .nav-tabs {
       display: flex;
-      gap: 10px;
+      gap: 5px;
       margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 12px;
+      min-width: 130px;
+      padding: 12px 8px;
       background: var(--card-bg);
       color: var(--text-white);
       border: 1px solid var(--border-color);
@@ -56,6 +56,7 @@
       cursor: pointer;
       font-weight: bold;
       text-align: center;
+      font-size: 13px;
     }
 
     .tab-btn.active {
@@ -66,7 +67,6 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* FORMULÁRIOS */
     .form-container {
       background-color: var(--card-bg);
       padding: 18px;
@@ -75,7 +75,14 @@
       border: 1px solid var(--border-color);
     }
 
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
     .form-group { margin-bottom: 12px; }
+    .form-group.full { grid-column: 1 / -1; }
 
     label {
       display: block;
@@ -95,7 +102,17 @@
       font-size: 14px;
     }
 
-    textarea { resize: vertical; height: 70px; }
+    textarea { resize: vertical; height: 75px; }
+
+    .search-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--primary-red);
+      background-color: var(--input-bg);
+      color: var(--text-white);
+      margin-bottom: 15px;
+    }
 
     .btn-action {
       background-color: var(--primary-red);
@@ -113,10 +130,9 @@
 
     .btn-action:hover { background-color: var(--hover-red); }
 
-    /* GRID DE CARDS */
     .grid-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 15px;
     }
 
@@ -134,7 +150,7 @@
 
     .card-item img {
       width: 100%;
-      height: 110px;
+      height: 120px;
       object-fit: cover;
       border-radius: 6px;
       margin-bottom: 8px;
@@ -152,26 +168,6 @@
 
     .card-item .sub { color: var(--text-gray); font-size: 12px; margin-bottom: 8px; }
 
-    .card-actions {
-      display: flex;
-      gap: 5px;
-    }
-
-    .btn-card {
-      flex: 1;
-      padding: 5px;
-      border: none;
-      border-radius: 4px;
-      font-size: 11px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #fff;
-    }
-
-    .btn-edit { background: #1976d2; }
-    .btn-delete { background: var(--primary-red); }
-
-    /* MODAIS */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -187,7 +183,7 @@
       background-color: var(--card-bg);
       padding: 20px;
       border-radius: 10px;
-      max-width: 500px;
+      max-width: 550px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -239,12 +235,59 @@
   </header>
 
   <div class="nav-tabs">
-    <div class="tab-btn active" onclick="trocarAba('estoque')">Estoque de Peças</div>
-    <div class="tab-btn" onclick="trocarAba('patio')">Pátio de Veículos</div>
+    <div class="tab-btn active" onclick="trocarAba('entrada')">Entrada Veículo</div>
+    <div class="tab-btn" onclick="trocarAba('patio')">Pátio</div>
+    <div class="tab-btn" onclick="trocarAba('estoque')">Estoque Peças</div>
+    <div class="tab-btn" onclick="trocarAba('historico')">Histórico Saídas</div>
   </div>
 
-  <!-- ABA ESTOQUE DE PEÇAS (Tabela 'produtos') -->
-  <div id="aba-estoque" class="tab-content active">
+  <!-- ABA 1: ENTRADA DE VEÍCULOS -->
+  <div id="aba-entrada" class="tab-content active">
+    <div class="form-container">
+      <h2>Cadastrar Entrada de Veículo</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cliente:</label>
+          <input type="text" id="vCliente" placeholder="Nome do Cliente">
+        </div>
+        <div class="form-group">
+          <label>Telefone:</label>
+          <input type="text" id="vTelefone" placeholder="(00) 00000-0000">
+        </div>
+        <div class="form-group">
+          <label>Modelo do Veículo:</label>
+          <input type="text" id="vModelo" placeholder="Ex: Scania R450 / Hilux">
+        </div>
+        <div class="form-group">
+          <label>Placa:</label>
+          <input type="text" id="vPlaca" placeholder="Ex: ABC-1234">
+        </div>
+        <div class="form-group">
+          <label>Data Entrada:</label>
+          <input type="date" id="vDataEntrada">
+        </div>
+        <div class="form-group full">
+          <label>O que foi feito / Defeito relatado:</label>
+          <textarea id="vServico" placeholder="Descreva os serviços ou reparações efetuadas..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Foto do Veículo:</label>
+          <input type="file" id="vFoto" accept="image/*">
+        </div>
+      </div>
+      <button class="btn-action" id="btnSalvarVeiculo" onclick="salvarVeiculoPátio()">Dar Entrada no Pátio</button>
+    </div>
+  </div>
+
+  <!-- ABA 2: PÁTIO -->
+  <div id="aba-patio" class="tab-content">
+    <h2>Veículos Atual no Pátio</h2>
+    <input type="text" id="buscaPatio" class="search-input" placeholder="🔍 Pesquisar por cliente, modelo ou placa..." oninput="filtrarPatio()">
+    <div id="gridPatio" class="grid-cards"></div>
+  </div>
+
+  <!-- ABA 3: ESTOQUE PEÇAS -->
+  <div id="aba-estoque" class="tab-content">
     <div class="form-container">
       <h2>Cadastrar Peça</h2>
       <div class="form-group">
@@ -263,38 +306,15 @@
     </div>
 
     <h2>Peças em Estoque</h2>
+    <input type="text" id="buscaPecas" class="search-input" placeholder="🔍 Pesquisar peça pelo nome..." oninput="filtrarPecas()">
     <div id="gridPecas" class="grid-cards"></div>
   </div>
 
-  <!-- ABA PÁTIO DE VEÍCULOS (Tabela 'patio') -->
-  <div id="aba-patio" class="tab-content">
-    <div class="form-container">
-      <h2>Cadastrar Veículo</h2>
-      <div class="form-group">
-        <label>Modelo do Veículo:</label>
-        <input type="text" id="veiculoModelo" placeholder="Ex: Scania R450 / Hilux">
-      </div>
-      <div class="form-group">
-        <label>Placa:</label>
-        <input type="text" id="veiculoPlaca" placeholder="Ex: ABC-1234">
-      </div>
-      <div class="form-group">
-        <label>Data de Entrada:</label>
-        <input type="date" id="veiculoData">
-      </div>
-      <div class="form-group">
-        <label>Observações / Relatório:</label>
-        <textarea id="veiculoObs" placeholder="Ex: Defeito na bomba de alta pressão..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>Foto do Veículo:</label>
-        <input type="file" id="veiculoFoto" accept="image/*">
-      </div>
-      <button class="btn-action" id="btnSalvarVeiculo" onclick="salvarVeiculo()">Salvar Veículo</button>
-    </div>
-
-    <h2>Veículos no Pátio</h2>
-    <div id="gridVeiculos" class="grid-cards"></div>
+  <!-- ABA 4: HISTÓRICO DE SAÍDA DE VEÍCULOS -->
+  <div id="aba-historico" class="tab-content">
+    <h2>Histórico de Veículos Liberados</h2>
+    <input type="text" id="buscaHist" class="search-input" placeholder="🔍 Pesquisar histórico por placa ou cliente..." oninput="filtrarHistorico()">
+    <div id="gridHistorico" class="grid-cards"></div>
   </div>
 
   <!-- MODAL DE DETALHES -->
@@ -302,30 +322,8 @@
     <div class="modal-content">
       <img id="modalImg" src="" alt="Imagem Expandida">
       <div id="modalReport" class="report-list"></div>
-      <button class="btn-close" onclick="fecharModal()">FECHAR</button>
-    </div>
-  </div>
-
-  <!-- MODAL DE EDIÇÃO DA PEÇA -->
-  <div id="modalEditar" class="modal-overlay">
-    <div class="modal-content">
-      <h2>Editar Peça</h2>
-      <input type="hidden" id="editPecaId">
-      <input type="hidden" id="editPecaFotoUrl">
-      <div class="form-group">
-        <label>Nome:</label>
-        <input type="text" id="editPecaNome">
-      </div>
-      <div class="form-group">
-        <label>Quantidade:</label>
-        <input type="number" id="editPecaQtd">
-      </div>
-      <div class="form-group">
-        <label>Trocar Foto (Opcional):</label>
-        <input type="file" id="editPecaFoto" accept="image/*">
-      </div>
-      <button class="btn-action" onclick="confirmarEdicaoPeca()">Atualizar Peça</button>
-      <button class="btn-close" style="margin-top: 10px;" onclick="fecharModalEdit()">Cancelar</button>
+      <div id="modalBtnAcao"></div>
+      <button class="btn-close" style="margin-top:8px;" onclick="fecharModal()">FECHAR</button>
     </div>
   </div>
 
@@ -334,27 +332,31 @@
     const SUPABASE_KEY = 'sb_publishable_R08_JT0lLER2lnRE-v4xSw_4Dgl8BDU';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let patioData = [];
     let pecasData = [];
-    let veiculosData = [];
+    let historicoData = [];
+
+    function obterFoto(obj) {
+      return obj.foto_url || obj.foto || obj.fotos || obj.imagem || 'https://via.placeholder.com/150';
+    }
 
     function trocarAba(aba) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        const abas = ['entrada', 'patio', 'estoque', 'historico'];
+        b.classList.toggle('active', abas[i] === aba);
+      });
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
-      if(aba === 'estoque') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('aba-estoque').classList.add('active');
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('aba-patio').classList.add('active');
-      }
+      document.getElementById(`aba-${aba}`).classList.add('active');
+
+      if (aba === 'patio') carregarPatio();
+      if (aba === 'estoque') carregarPecas();
+      if (aba === 'historico') carregarHistorico();
     }
 
     async function uploadFoto(file, pasta) {
       if (!file) return null;
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${pasta}/${fileName}`;
+      const filePath = `${pasta}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await _supabase.storage
         .from('fotos-pecas')
@@ -369,30 +371,153 @@
       return data.publicUrl;
     }
 
-    // --- CARREGAR ESTOQUE DA TABELA 'produtos' ---
-    async function carregarPecas() {
-      const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
-      
-      if (error) {
-        console.error('Erro ao buscar produtos:', error);
+    // --- CADASTRAR VEÍCULO ---
+    async function salvarVeiculoPátio() {
+      const cliente = document.getElementById('vCliente').value.trim();
+      const telefone = document.getElementById('vTelefone').value.trim();
+      const modelo = document.getElementById('vModelo').value.trim();
+      const placa = document.getElementById('vPlaca').value.trim();
+      const entrada = document.getElementById('vDataEntrada').value;
+      const servico = document.getElementById('vServico').value.trim();
+      const file = document.getElementById('vFoto').files[0];
+
+      if (!modelo || !placa) {
+        alert('Informe o modelo e a placa do veículo!');
         return;
       }
 
-      pecasData = data || [];
-      const grid = document.getElementById('gridPecas');
-      grid.innerHTML = pecasData.length === 0 ? '<p style="color:#888;">Nenhuma peça cadastrada.</p>' : '';
+      const btn = document.getElementById('btnSalvarVeiculo');
+      btn.innerText = 'CADASTRANDO...'; btn.disabled = true;
 
-      pecasData.forEach(p => {
+      try {
+        let fotoUrl = null;
+        if (file) fotoUrl = await uploadFoto(file, 'veiculos');
+
+        const payload = {
+          cliente,
+          telefone,
+          modelo,
+          placa,
+          entrada,
+          servico,
+          observacoes: servico,
+          foto_url: fotoUrl
+        };
+
+        const { error } = await _supabase.from('patio').insert([payload]);
+        if (error) throw error;
+
+        alert('Veículo inserido no Pátio com sucesso!');
+        document.getElementById('vCliente').value = '';
+        document.getElementById('vTelefone').value = '';
+        document.getElementById('vModelo').value = '';
+        document.getElementById('vPlaca').value = '';
+        document.getElementById('vServico').value = '';
+        document.getElementById('vFoto').value = '';
+        trocarAba('patio');
+      } catch (err) {
+        alert('Erro ao cadastrar veículo: ' + err.message);
+      } finally {
+        btn.innerText = 'DAR ENTRADA NO PÁTIO'; btn.disabled = false;
+      }
+    }
+
+    // --- PÁTIO ---
+    async function carregarPatio() {
+      const { data, error } = await _supabase.from('patio').select('*').order('id', { ascending: false });
+      if (error) return console.error(error);
+      patioData = data || [];
+      filtrarPatio();
+    }
+
+    function filtrarPatio() {
+      const t = document.getElementById('buscaPatio').value.toLowerCase().trim();
+      const list = patioData.filter(v => 
+        (v.modelo || '').toLowerCase().includes(t) ||
+        (v.placa || '').toLowerCase().includes(t) ||
+        (v.cliente || '').toLowerCase().includes(t)
+      );
+
+      const grid = document.getElementById('gridPatio');
+      grid.innerHTML = list.length === 0 ? '<p style="color:#888;">Nenhum veículo no pátio.</p>' : '';
+
+      list.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.onclick = () => verDetalhesVeiculo(v, 'patio');
+        card.innerHTML = `
+          <img src="${obterFoto(v)}">
+          <div class="titulo">${v.modelo || 'Veículo'}</div>
+          <div class="sub">Placa: ${v.placa || 'N/I'}</div>
+          <div class="sub" style="color:var(--primary-red)">Cliente: ${v.cliente || 'N/I'}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function verDetalhesVeiculo(v, origem) {
+      document.getElementById('modalImg').src = obterFoto(v);
+      document.getElementById('modalReport').innerHTML = `
+        <div class="report-item"><strong>CLIENTE:</strong> ${v.cliente || 'Não cadastrado'}</div>
+        <div class="report-item"><strong>TELEFONE:</strong> ${v.telefone || 'Não informado'}</div>
+        <div class="report-item"><strong>MODELO VEÍCULO:</strong> ${v.modelo || 'N/I'}</div>
+        <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'N/I'}</div>
+        <div class="report-item"><strong>DATA DE ENTRADA:</strong> ${v.entrada || v.data || 'N/I'}</div>
+        <div class="report-item"><strong>O QUE FOI FEITO / SERVIÇO:</strong> ${v.servico || v.observacoes || 'Sem detalhes.'}</div>
+      `;
+
+      const btnAcao = document.getElementById('modalBtnAcao');
+      if (origem === 'patio') {
+        btnAcao.innerHTML = `<button class="btn-action" onclick="darSaidaVeiculo(${v.id})">DAR SAÍDA (MOVER P/ HISTÓRICO)</button>`;
+      } else {
+        btnAcao.innerHTML = '';
+      }
+
+      document.getElementById('modalDetalhes').style.display = 'flex';
+    }
+
+    async function darSaidaVeiculo(id) {
+      if (!confirm('Confirmar saída deste veículo do pátio para o histórico?')) return;
+      const v = patioData.find(item => item.id === id);
+      if (!v) return;
+
+      try {
+        delete v.id;
+        v.saida = new Date().toISOString().split('T')[0];
+        
+        await _supabase.from('historico').insert([v]);
+        await _supabase.from('patio').delete().eq('id', id);
+
+        fecharModal();
+        carregarPatio();
+        alert('Veículo movido para o histórico de saídas!');
+      } catch (err) {
+        alert('Erro ao dar saída: ' + err.message);
+      }
+    }
+
+    // --- ESTOQUE DE PEÇAS ---
+    async function carregarPecas() {
+      const { data, error } = await _supabase.from('produtos').select('*').order('id', { ascending: false });
+      if (error) return console.error(error);
+      pecasData = data || [];
+      filtrarPecas();
+    }
+
+    function filtrarPecas() {
+      const t = document.getElementById('buscaPecas').value.toLowerCase().trim();
+      const list = pecasData.filter(p => (p.nome || p.descricao || '').toLowerCase().includes(t));
+
+      const grid = document.getElementById('gridPecas');
+      grid.innerHTML = list.length === 0 ? '<p style="color:#888;">Nenhuma peça encontrada.</p>' : '';
+
+      list.forEach(p => {
         const card = document.createElement('div');
         card.className = 'card-item';
         card.innerHTML = `
-          <img src="${p.foto_url || p.fotos || 'https://via.placeholder.com/150'}" onclick="verRelatorioPeca(${p.id})">
-          <div class="titulo" onclick="verRelatorioPeca(${p.id})">${p.nome || p.descricao || 'Peça'}</div>
-          <div class="sub" onclick="verRelatorioPeca(${p.id})">Qtd: ${p.quantidade || 0}</div>
-          <div class="card-actions">
-            <button class="btn-card btn-edit" onclick="abrirEditarPeca(${p.id})">EDITAR</button>
-            <button class="btn-card btn-delete" onclick="excluirPeca(${p.id})">EXCLUIR</button>
-          </div>
+          <img src="${obterFoto(p)}">
+          <div class="titulo">${p.nome || p.descricao || 'Peça'}</div>
+          <div class="sub">Qtd: ${p.quantidade ?? p.qtd ?? 0}</div>
         `;
         grid.appendChild(card);
       });
@@ -400,189 +525,65 @@
 
     async function salvarPeca() {
       const nome = document.getElementById('pecaNome').value.trim();
-      const quantidade = document.getElementById('pecaQtd').value;
+      const quantidade = Number(document.getElementById('pecaQtd').value);
       const file = document.getElementById('pecaFoto').files[0];
 
-      if (!nome || !quantidade) {
-        alert('Preencha o nome e a quantidade!');
-        return;
-      }
-
-      const btn = document.getElementById('btnSalvarPeca');
-      btn.innerText = 'SALVANDO...'; btn.disabled = true;
+      if (!nome) return alert('Informe o nome da peça!');
 
       try {
         let fotoUrl = null;
-        if (file) {
-          fotoUrl = await uploadFoto(file, 'pecas');
-        }
-        
-        const { error } = await _supabase.from('produtos').insert([{ nome, quantidade, foto_url: fotoUrl }]);
-        if (error) throw error;
+        if (file) fotoUrl = await uploadFoto(file, 'pecas');
 
+        await _supabase.from('produtos').insert([{ nome, quantidade, foto_url: fotoUrl }]);
         document.getElementById('pecaNome').value = '';
         document.getElementById('pecaQtd').value = '';
         document.getElementById('pecaFoto').value = '';
-        await carregarPecas();
+        carregarPecas();
         alert('Peça salva no estoque!');
       } catch (err) {
-        alert('Erro ao salvar peça: ' + err.message);
-      } finally {
-        btn.innerText = 'SALVAR NO ESTOQUE'; btn.disabled = false;
+        alert('Erro: ' + err.message);
       }
     }
 
-    function abrirEditarPeca(id) {
-      const p = pecasData.find(item => item.id === id);
-      if (!p) return;
-      document.getElementById('editPecaId').value = p.id;
-      document.getElementById('editPecaNome').value = p.nome || p.descricao || '';
-      document.getElementById('editPecaQtd').value = p.quantidade || 0;
-      document.getElementById('editPecaFotoUrl').value = p.foto_url || p.fotos || '';
-      document.getElementById('modalEditar').style.display = 'flex';
+    // --- HISTÓRICO DE SAÍDAS ---
+    async function carregarHistorico() {
+      const { data, error } = await _supabase.from('historico').select('*').order('id', { ascending: false });
+      if (error) return console.error(error);
+      historicoData = data || [];
+      filtrarHistorico();
     }
 
-    async function confirmarEdicaoPeca() {
-      const id = document.getElementById('editPecaId').value;
-      const nome = document.getElementById('editPecaNome').value.trim();
-      const quantidade = document.getElementById('editPecaQtd').value;
-      let fotoUrl = document.getElementById('editPecaFotoUrl').value;
-      const newFile = document.getElementById('editPecaFoto').files[0];
+    function filtrarHistorico() {
+      const t = document.getElementById('buscaHist').value.toLowerCase().trim();
+      const list = historicoData.filter(v => 
+        (v.modelo || '').toLowerCase().includes(t) ||
+        (v.placa || '').toLowerCase().includes(t) ||
+        (v.cliente || '').toLowerCase().includes(t)
+      );
 
-      try {
-        if (newFile) {
-          fotoUrl = await uploadFoto(newFile, 'pecas');
-        }
+      const grid = document.getElementById('gridHistorico');
+      grid.innerHTML = list.length === 0 ? '<p style="color:#888;">Nenhum registro de saída.</p>' : '';
 
-        const { error } = await _supabase
-          .from('produtos')
-          .update({ nome, quantidade, foto_url: fotoUrl })
-          .eq('id', id);
-
-        if (error) throw error;
-
-        fecharModalEdit();
-        carregarPecas();
-        alert('Peça atualizada com sucesso!');
-      } catch (err) {
-        alert('Erro ao atualizar: ' + err.message);
-      }
-    }
-
-    async function excluirPeca(id) {
-      if (!confirm('Deseja excluir esta peça?')) return;
-      await _supabase.from('produtos').delete().eq('id', id);
-      carregarPecas();
-    }
-
-    function verRelatorioPeca(id) {
-      const p = pecasData.find(item => item.id === id);
-      if (!p) return;
-      document.getElementById('modalImg').src = p.foto_url || p.fotos || 'https://via.placeholder.com/150';
-      document.getElementById('modalReport').innerHTML = `
-        <div class="report-item"><strong>NOME DA PEÇA:</strong> ${p.nome || p.descricao}</div>
-        <div class="report-item"><strong>QUANTIDADE EM ESTOQUE:</strong> ${p.quantidade || 0}</div>
-        <div class="report-item"><strong>CÓDIGO SISTEMA:</strong> #${p.id}</div>
-      `;
-      document.getElementById('modalDetalhes').style.display = 'flex';
-    }
-
-    // --- CARREGAR PÁTIO DA TABELA 'patio' / 'historico' ---
-    async function carregarVeiculos() {
-      let { data, error } = await _supabase.from('patio').select('*').order('id', { ascending: false });
-      
-      // Se pátio estiver vazio, puxa os registros da tabela 'historico'
-      if ((!data || data.length === 0) && !error) {
-        const hist = await _supabase.from('historico').select('*').order('id', { ascending: false });
-        data = hist.data;
-      }
-
-      if (error) {
-        console.error('Erro ao buscar veículos:', error);
-        return;
-      }
-
-      veiculosData = data || [];
-      const grid = document.getElementById('gridVeiculos');
-      grid.innerHTML = veiculosData.length === 0 ? '<p style="color:#888;">Nenhum veículo no pátio.</p>' : '';
-
-      veiculosData.forEach(v => {
+      list.forEach(v => {
         const card = document.createElement('div');
         card.className = 'card-item';
+        card.onclick = () => verDetalhesVeiculo(v, 'historico');
         card.innerHTML = `
-          <img src="${v.foto_url || v.fotos || 'https://via.placeholder.com/150'}" onclick="verRelatorioVeiculo(${v.id})">
-          <div class="titulo" onclick="verRelatorioVeiculo(${v.id})">${v.modelo || v.servico || 'Veículo'}</div>
-          <div class="sub" onclick="verRelatorioVeiculo(${v.id})">Placa: ${v.placa || 'N/I'}</div>
-          <button class="btn-card btn-delete" style="width:100%" onclick="excluirVeiculo(${v.id})">REMOVER DO PÁTIO</button>
+          <img src="${obterFoto(v)}">
+          <div class="titulo">${v.modelo || 'Veículo'}</div>
+          <div class="sub">Placa: ${v.placa || 'N/I'}</div>
+          <div class="sub" style="color:#888;">Cliente: ${v.cliente || 'N/I'}</div>
         `;
         grid.appendChild(card);
       });
     }
 
-    async function salvarVeiculo() {
-      const modelo = document.getElementById('veiculoModelo').value.trim();
-      const placa = document.getElementById('veiculoPlaca').value.trim();
-      const entrada = document.getElementById('veiculoData').value;
-      const observacoes = document.getElementById('veiculoObs').value.trim();
-      const file = document.getElementById('veiculoFoto').files[0];
-
-      if (!modelo) {
-        alert('Preencha o modelo do veículo!');
-        return;
-      }
-
-      const btn = document.getElementById('btnSalvarVeiculo');
-      btn.innerText = 'SALVANDO...'; btn.disabled = true;
-
-      try {
-        let fotoUrl = null;
-        if (file) {
-          fotoUrl = await uploadFoto(file, 'veiculos');
-        }
-        
-        const { error } = await _supabase.from('patio').insert([{ modelo, placa, entrada, observacoes, foto_url: fotoUrl }]);
-        if (error) throw error;
-
-        document.getElementById('veiculoModelo').value = '';
-        document.getElementById('veiculoPlaca').value = '';
-        document.getElementById('veiculoData').value = '';
-        document.getElementById('veiculoObs').value = '';
-        document.getElementById('veiculoFoto').value = '';
-        await carregarVeiculos();
-        alert('Veículo cadastrado no pátio!');
-      } catch (err) {
-        alert('Erro ao salvar veículo: ' + err.message);
-      } finally {
-        btn.innerText = 'SALVAR VEÍCULO'; btn.disabled = false;
-      }
+    function fecharModal() {
+      document.getElementById('modalDetalhes').style.display = 'none';
     }
 
-    function verRelatorioVeiculo(id) {
-      const v = veiculosData.find(item => item.id === id);
-      if (!v) return;
-      document.getElementById('modalImg').src = v.foto_url || v.fotos || 'https://via.placeholder.com/150';
-      document.getElementById('modalReport').innerHTML = `
-        <div class="report-item"><strong>MODELO / SERVIÇO:</strong> ${v.modelo || v.servico || 'N/I'}</div>
-        <div class="report-item"><strong>PLACA:</strong> ${v.placa || 'Não Informada'}</div>
-        <div class="report-item"><strong>DATA DE ENTRADA:</strong> ${v.entrada || v.data || 'Não Registrada'}</div>
-        <div class="report-item"><strong>OBSERVAÇÕES / DEFEITO:</strong> ${v.observacoes || 'Sem detalhes informados.'}</div>
-      `;
-      document.getElementById('modalDetalhes').style.display = 'flex';
-    }
-
-    async function excluirVeiculo(id) {
-      if (!confirm('Deseja dar saída neste veículo?')) return;
-      await _supabase.from('patio').delete().eq('id', id);
-      await _supabase.from('historico').delete().eq('id', id);
-      carregarVeiculos();
-    }
-
-    function fecharModal() { document.getElementById('modalDetalhes').style.display = 'none'; }
-    function fecharModalEdit() { document.getElementById('modalEditar').style.display = 'none'; }
-
-    // Carregar os 78 produtos e histórico no arranque
-    carregarPecas();
-    carregarVeiculos();
+    // Inicialização
+    document.getElementById('vDataEntrada').valueAsDate = new Date();
   </script>
 </body>
 </html>

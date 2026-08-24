@@ -30,22 +30,21 @@ function injetarBotaoSincronizacao() {
     header.prepend(divSync);
 }
 
+// --- CARREGAMENTO DE DADOS (SUPABASE + FALLBACK LOCAL) ---
 async function carregarTodosDados() {
     try {
-        // 1. Tenta carregar do Supabase primeiro
+        // 1. Pátio
         let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
-        
-        if (pErr) {
-            console.error("Erro ao ler pátio do Supabase:", pErr);
-        }
+        if (pErr) console.error("Erro ao ler pátio:", pErr);
 
         if (pData && pData.length > 0) {
             patio = pData;
         } else {
-            // Se nuvem estiver vazia, pega do localStorage do celular
-            patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+            let dadosLocais = localStorage.getItem('patio_v3') || localStorage.getItem('patio_v2') || localStorage.getItem('patio') || '[]';
+            patio = JSON.parse(dadosLocais);
         }
 
+        // 2. Histórico
         let { data: hData } = await _supabase.from('historico').select('*');
         if (hData && hData.length > 0) {
             historico = hData;
@@ -53,6 +52,7 @@ async function carregarTodosDados() {
             historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
         }
 
+        // 3. Financeiro
         let { data: tData } = await _supabase.from('financeiro').select('*');
         if (tData && tData.length > 0) {
             transacoes = tData;
@@ -60,7 +60,7 @@ async function carregarTodosDados() {
             transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
         }
 
-        // Estoque
+        // 4. Estoque
         let estoqueFinal = [];
         let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
         if (estoqueNovo && estoqueNovo.length > 0) {
@@ -84,54 +84,64 @@ async function carregarTodosDados() {
         renderizarEstoque();
 
     } catch (err) {
-        console.error("Erro geral ao carregar dados:", err);
-        patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+        console.error("Erro crítico ao carregar dados:", err);
+        let dadosLocais = localStorage.getItem('patio_v3') || localStorage.getItem('patio_v2') || localStorage.getItem('patio') || '[]';
+        patio = JSON.parse(dadosLocais);
         renderizarPatio();
     }
 }
 
-// --- SINCRONIZAÇÃO MANUAL COM EXIBIÇÃO DE ERRO SE HOUVER ---
+// --- SINCRONIZAÇÃO MANUAL (FORÇAR ENVIO DO CELULAR PARA A NUVEM) ---
 async function forcarSincronizacaoManual() {
-    notificar("ENVIANDO DADOS PARA O SUPABASE...", "#1e40af");
+    notificar("BUSCANDO DADOS NO CELULAR...", "#1e40af");
+    
+    let dadosBrutos = localStorage.getItem('patio_v3') || 
+                      localStorage.getItem('patio_v2') || 
+                      localStorage.getItem('patio') || '[]';
+    
+    let localPatio = [];
     try {
-        const localPatio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
-        
-        if (localPatio.length === 0) {
-            notificar("Nenhum dado local pendente para enviar.", "#d97706");
-            return;
-        }
-
-        const patioFormatado = localPatio.map(v => ({
-            placa: v.placa,
-            modelo: v.modelo,
-            cliente: v.cliente,
-            entrada: v.entrada,
-            fotos: v.fotos || []
-        }));
-
-        const { data, error } = await _supabase.from('patio').insert(patioFormatado).select();
-
-        if (error) {
-            console.error("Erro Supabase Insert:", error);
-            notificar("ERRO DO SUPABASE: " + error.message, "#dc2626");
-            return;
-        }
-
-        notificar("SUCESSO! DADOS ENVIADOS PARA A NUVEM.", "#16a34a");
-        localStorage.removeItem('patio_v3');
-        localStorage.removeItem('patio');
-        
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
-
-    } catch (err) {
-        console.error("Erro crítico na sincronização:", err);
-        notificar("ERRO CRÍTICO: " + err.message, "#dc2626");
+        localPatio = JSON.parse(dadosBrutos);
+    } catch(e) {
+        localPatio = [];
     }
+
+    if (!Array.isArray(localPatio) || localPatio.length === 0) {
+        notificar("Nenhum veículo local pendente para enviar.", "#d97706");
+        return;
+    }
+
+    notificar(`Encontrados ${localPatio.length} veículos. Enviando...`, "#1e40af");
+
+    const patioFormatado = localPatio.map(v => ({
+        placa: (v.placa || '').toUpperCase(),
+        modelo: (v.modelo || '').toUpperCase(),
+        cliente: (v.cliente || '').toUpperCase(),
+        entrada: v.entrada || new Date().toLocaleDateString('pt-BR'),
+        fotos: Array.isArray(v.fotos) ? v.fotos : []
+    }));
+
+    const { data, error } = await _supabase.from('patio').insert(patioFormatado).select();
+
+    if (error) {
+        console.error("Erro Supabase Insert:", error);
+        notificar("ERRO DO SUPABASE: " + error.message, "#dc2626");
+        return;
+    }
+
+    notificar("SUCESSO! DADOS ENVIADOS PARA A NUVEM.", "#16a34a");
+    
+    // Limpa os locais antigos para evitar duplicidade
+    localStorage.removeItem('patio_v3');
+    localStorage.removeItem('patio_v2');
+    localStorage.removeItem('patio');
+    
+    setTimeout(() => {
+        window.location.reload();
+    }, 1500);
 }
 
-// --- COMPRESSOR UNIVERSAL DE IMAGEM ---
+// --- COMPRESSOR DE IMAGEM ---
 function comprimirFoto(input, callback) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -175,22 +185,23 @@ function abrirAdicionarFotoVeiculo(id) {
 async function processarFotoExtraPatio(input) {
     if (!veiculoFotoAddId) return;
     comprimirFoto(input, async (fotoBase64) => {
-        const v = patio.find(x => x.id == veiculoFotoAddId);
+        const v = patio.find(x => x.id == veiculoFotoAddId || x.placa == veiculoFotoAddId);
         if (v) {
             const fotosAtuais = Array.isArray(v.fotos) ? v.fotos : [];
             const novasFotos = [...fotosAtuais, fotoBase64];
 
-            const { error } = await _supabase.from('patio').update({ fotos: novasFotos }).eq('id', veiculoFotoAddId);
-            if (!error) {
-                v.fotos = novasFotos;
-                renderizarPatio();
-                notificar("FOTO ADICIONADA!", "#16a34a");
+            if (v.id) {
+                await _supabase.from('patio').update({ fotos: novasFotos }).eq('id', v.id);
             }
+            v.fotos = novasFotos;
+            renderizarPatio();
+            notificar("FOTO ADICIONADA!", "#16a34a");
         }
         veiculoFotoAddId = null;
     });
 }
 
+// --- CADASTRO DE ENTRADA NO PÁTIO ---
 const formEntrada = document.getElementById('form-entrada');
 if (formEntrada) {
     formEntrada.onsubmit = async function(e) {
@@ -214,8 +225,7 @@ if (formEntrada) {
             notificar("ENTRADA REGISTRADA NA NUVEM", "#16a34a");
         } else {
             console.error("Erro ao inserir:", error);
-            // Salva localmente caso dê erro no Supabase
-            v.id = Date.now().toString();
+            // Fallback para localStorage caso falhe a rede
             patio.unshift(v);
             let localPatio = JSON.parse(localStorage.getItem('patio_v3')) || [];
             localPatio.unshift(v);
@@ -225,11 +235,12 @@ if (formEntrada) {
             formEntrada.reset();
             renderizarPrevias();
             renderizarPatio();
-            notificar("SALVO LOCALMENTE (CLIQUE NO BOTÃO VERMELHO ACIMA)", "#d97706");
+            notificar("SALVO LOCALMENTE (CLIQUE NO BOTÃO VERMELHO ACIMA PARA SINCRONIZAR)", "#d97706");
         }
     };
 }
 
+// --- RENDERIZAÇÃO DO PÁTIO ---
 function renderizarPatio() {
     const list = document.getElementById('lista-veiculos');
     if (!list) return;
@@ -244,6 +255,7 @@ function renderizarPatio() {
     }
 
     patio.forEach(v => {
+        const identificador = v.id || v.placa;
         const fotos = Array.isArray(v.fotos) && v.fotos.length > 0 ? v.fotos : ['https://via.placeholder.com/150?text=Sem+Foto'];
         const fotoCapa = fotos[0];
         let fotosHtml = fotos.map(f => `<img src="${f}" class="w-12 h-12 rounded-xl object-cover border">`).join('');
@@ -256,8 +268,8 @@ function renderizarPatio() {
                     <div class="font-black text-xl uppercase italic leading-none">${v.placa}</div>
                     <div class="text-[10px] text-gray-400 font-bold mb-2">${v.modelo} - ${v.cliente}</div>
                     <div class="flex gap-2">
-                        <button onclick="abrirSaida('${v.id}')" class="flex-1 bg-black text-white p-2.5 rounded-2xl text-[9px] font-black uppercase">Finalizar & Cobrar</button>
-                        <button onclick="abrirAdicionarFotoVeiculo('${v.id}')" class="bg-red-50 text-red-600 border border-red-200 px-3 py-2.5 rounded-2xl text-[10px] font-black">📷 +Foto</button>
+                        <button onclick="abrirSaida('${identificador}')" class="flex-1 bg-black text-white p-2.5 rounded-2xl text-[9px] font-black uppercase">Finalizar & Cobrar</button>
+                        <button onclick="abrirAdicionarFotoVeiculo('${identificador}')" class="bg-red-50 text-red-600 border border-red-200 px-3 py-2.5 rounded-2xl text-[10px] font-black">📷 +Foto</button>
                     </div>
                 </div>
             </div>
@@ -277,7 +289,7 @@ function abrirSaida(id) {
 
 async function confirmarSaidaFinal() {
     const id = document.getElementById('saida-id-temp').value;
-    const v = patio.find(x => x.id == id);
+    const v = patio.find(x => x.id == id || x.placa == id);
     const servico = document.getElementById('input-servico-final').value.toUpperCase();
     const valor = parseFloat(document.getElementById('input-valor-servico').value) || 0;
     const dataHoje = new Date().toLocaleDateString('pt-BR');
@@ -292,25 +304,26 @@ async function confirmarSaidaFinal() {
         await _supabase.from('financeiro').insert([lancamento]);
     }
 
-    await _supabase.from('patio').delete().eq('id', id);
-    patio = patio.filter(x => x.id != id);
+    if (v.id) {
+        await _supabase.from('patio').delete().eq('id', v.id);
+    } else {
+        await _supabase.from('patio').delete().eq('placa', v.placa);
+    }
+
+    patio = patio.filter(x => x.id != id && x.placa != id);
 
     fecharModal('modal-saida');
     renderizarPatio();
     notificar("SERVIÇO CONCLUÍDO!", "#16a34a");
 }
 
+// --- FINANCEIRO ---
 function renderizarFinanceiro() {
     const container = document.getElementById('lista-transacoes');
     if (!container) return;
     container.innerHTML = '';
-    let totalRec = 0; 
-    let totalDesp = 0;
-
+    
     transacoes.forEach(t => {
-        if (t.tipo === 'RECEITA') totalRec += t.valor;
-        else totalDesp += t.valor;
-
         container.innerHTML += `
             <div class="flex justify-between items-center p-3 bg-gray-50 rounded-2xl border">
                 <div>
@@ -349,6 +362,7 @@ async function salvarTransacaoManual() {
     }
 }
 
+// --- ESTOQUE ---
 function renderizarEstoque() {
     const container = document.getElementById('lista-estoque');
     if (!container) return;
@@ -373,6 +387,7 @@ function renderizarEstoque() {
     });
 }
 
+// --- NAVEGAÇÃO E UTILITÁRIOS ---
 function mudarAba(id, titulo) {
     document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
@@ -406,7 +421,6 @@ function notificar(msg, cor) {
     }
 
     const toast = document.createElement('div');
-    toast.className = 'toast'; 
     toast.style.background = cor;
     toast.style.color = '#fff';
     toast.style.padding = '12px 20px';

@@ -20,25 +20,39 @@ if ('serviceWorker' in navigator) {
 // --- INICIALIZAÇÃO ---
 window.onload = function() {
     carregarTodosDados();
-    verificarMigracaoPendente();
 };
 
 async function carregarTodosDados() {
     try {
-        let { data: pData } = await _supabase.from('patio').select('*').order('created_at', { ascending: false });
-        if (pData) patio = pData;
+        // 1. CARREGA PÁTIO (Tenta Supabase; se não vier nada ou der erro, puxa do LocalStorage)
+        let { data: pData, error: pErr } = await _supabase.from('patio').select('*');
+        if (!pErr && pData && pData.length > 0) {
+            patio = pData;
+        } else {
+            patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+        }
 
-        let { data: hData } = await _supabase.from('historico').select('*').order('created_at', { ascending: false });
-        if (hData) historico = hData;
+        // 2. CARREGA HISTÓRICO
+        let { data: hData, error: hErr } = await _supabase.from('historico').select('*');
+        if (!hErr && hData && hData.length > 0) {
+            historico = hData;
+        } else {
+            historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
+        }
 
-        let { data: tData } = await _supabase.from('financeiro').select('*').order('created_at', { ascending: false });
-        if (tData) transacoes = tData;
+        // 3. CARREGA FINANCEIRO
+        let { data: tData, error: tErr } = await _supabase.from('financeiro').select('*');
+        if (!tErr && tData && tData.length > 0) {
+            transacoes = tData;
+        } else {
+            transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
+        }
 
-        // Combina tabela antiga 'produtos' e nova 'estoque'
+        // 4. CARREGA ESTOQUE / PRODUTOS
         let estoqueFinal = [];
 
         let { data: produtosAntigos } = await _supabase.from('produtos').select('*');
-        if (produtosAntigos) {
+        if (produtosAntigos && produtosAntigos.length > 0) {
             produtosAntigos.forEach(item => {
                 estoqueFinal.push({
                     id: item.id,
@@ -54,7 +68,7 @@ async function carregarTodosDados() {
         }
 
         let { data: estoqueNovo } = await _supabase.from('estoque').select('*');
-        if (estoqueNovo) {
+        if (estoqueNovo && estoqueNovo.length > 0) {
             estoqueNovo.forEach(item => {
                 estoqueFinal.push({
                     id: item.id,
@@ -71,30 +85,29 @@ async function carregarTodosDados() {
 
         estoque = estoqueFinal.sort((a, b) => a.nome.localeCompare(b.nome));
 
+        // RENDERIZA A TELA
         renderizarPatio();
         renderizarFinanceiro();
         renderizarEstoque();
+
+        // Se houver dados salvos só no celular, faz a migração automática para o Supabase
+        migrarLocalStorageParaSupabase();
+
     } catch (err) {
-        console.error("Erro ao sincronizar com Supabase:", err);
+        console.error("Erro ao carregar dados:", err);
+        // Fallback total para LocalStorage em caso de falha de rede
+        patio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
+        historico = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
+        transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
+        renderizarPatio();
+        renderizarFinanceiro();
+        renderizarEstoque();
     }
 }
 
-// --- MIGRAÇÃO DO LOCALSTORAGE PARA O SUPABASE ---
-function verificarMigracaoPendente() {
-    const temPatio = localStorage.getItem('patio_v3') || localStorage.getItem('patio');
-    const temHist = localStorage.getItem('historico_v3') || localStorage.getItem('historico');
-    const temFin = localStorage.getItem('transacoes');
-
-    if (temPatio || temHist || temFin) {
-        notificar("DADOS LOCAIS DETECTADOS! CLIQUE EM SINCRONIZAR", "#2563eb");
-    }
-}
-
+// --- MIGRAÇÃO AUTOMÁTICA DE LOCALSTORAGE PARA SUPABASE ---
 async function migrarLocalStorageParaSupabase() {
-    notificar("ENVIANDO DADOS PARA O SUPABASE...", "#2563eb");
-
     try {
-        // 1. Migra Pátio
         const localPatio = JSON.parse(localStorage.getItem('patio_v3')) || JSON.parse(localStorage.getItem('patio')) || [];
         if (localPatio.length > 0) {
             const patioFormatado = localPatio.map(v => ({
@@ -104,12 +117,13 @@ async function migrarLocalStorageParaSupabase() {
                 entrada: v.entrada,
                 fotos: v.fotos || []
             }));
-            await _supabase.from('patio').insert(patioFormatado);
-            localStorage.removeItem('patio_v3');
-            localStorage.removeItem('patio');
+            const { error } = await _supabase.from('patio').insert(patioFormatado);
+            if (!error) {
+                localStorage.removeItem('patio_v3');
+                localStorage.removeItem('patio');
+            }
         }
 
-        // 2. Migra Histórico
         const localHist = JSON.parse(localStorage.getItem('historico_v3')) || JSON.parse(localStorage.getItem('historico')) || [];
         if (localHist.length > 0) {
             const histFormatado = localHist.map(h => ({
@@ -122,12 +136,13 @@ async function migrarLocalStorageParaSupabase() {
                 valor: h.valor || 0,
                 fotos: h.fotos || []
             }));
-            await _supabase.from('historico').insert(histFormatado);
-            localStorage.removeItem('historico_v3');
-            localStorage.removeItem('historico');
+            const { error } = await _supabase.from('historico').insert(histFormatado);
+            if (!error) {
+                localStorage.removeItem('historico_v3');
+                localStorage.removeItem('historico');
+            }
         }
 
-        // 3. Migra Financeiro
         const localFin = JSON.parse(localStorage.getItem('transacoes')) || [];
         if (localFin.length > 0) {
             const finFormatado = localFin.map(t => ({
@@ -136,16 +151,13 @@ async function migrarLocalStorageParaSupabase() {
                 valor: t.valor,
                 data: t.data
             }));
-            await _supabase.from('financeiro').insert(finFormatado);
-            localStorage.removeItem('transacoes');
+            const { error } = await _supabase.from('financeiro').insert(finFormatado);
+            if (!error) {
+                localStorage.removeItem('transacoes');
+            }
         }
-
-        notificar("DADOS MIGRADOS COM SUCESSO!", "#16a34a");
-        await carregarTodosDados();
-
     } catch (err) {
-        console.error("Erro na migração:", err);
-        notificar("ERRO NA MIGRAÇÃO DOS DADOS", "#dc2626");
+        console.error("Erro na migração automática:", err);
     }
 }
 
@@ -194,7 +206,7 @@ function abrirAdicionarFotoVeiculo(id) {
 async function processarFotoExtraPatio(input) {
     if (!veiculoFotoAddId) return;
     comprimirFoto(input, async (fotoBase64) => {
-        const v = patio.find(x => x.id === veiculoFotoAddId);
+        const v = patio.find(x => x.id == veiculoFotoAddId);
         if (v) {
             const fotosAtuais = Array.isArray(v.fotos) ? v.fotos : [];
             const novasFotos = [...fotosAtuais, fotoBase64];
@@ -226,12 +238,18 @@ if (formEntrada) {
         const { data, error } = await _supabase.from('patio').insert([v]).select();
         if (!error && data) {
             patio.unshift(data[0]);
-            fotosTemp = [];
-            formEntrada.reset();
-            renderizarPrevias();
-            renderizarPatio();
-            notificar("ENTRADA REGISTRADA", "#16a34a");
+        } else {
+            // Se falhar no Supabase, insere localmente
+            v.id = Date.now().toString();
+            patio.unshift(v);
+            localStorage.setItem('patio_v3', JSON.stringify(patio));
         }
+
+        fotosTemp = [];
+        formEntrada.reset();
+        renderizarPrevias();
+        renderizarPatio();
+        notificar("ENTRADA REGISTRADA", "#16a34a");
     };
 }
 
@@ -243,6 +261,11 @@ function renderizarPatio() {
     const contador = document.getElementById('contador-patio');
     if (contador) contador.innerText = `${patio.length} NO PÁTIO`;
     
+    if (patio.length === 0) {
+        list.innerHTML = '<div class="text-center font-bold text-gray-400 py-6 text-xs uppercase">Nenhum veículo no pátio</div>';
+        return;
+    }
+
     patio.forEach(v => {
         const fotos = Array.isArray(v.fotos) && v.fotos.length > 0 ? v.fotos : ['https://via.placeholder.com/150?text=Sem+Foto'];
         const fotoCapa = fotos[0];
